@@ -16,3 +16,9 @@ After exiting, you can kill and remove the container
 docker kill cs8803
 docker rm cs8803 
 ```
+
+When running antlr4 tool, run the following:
+```
+antlr4 Tiger.gr -o src/
+javac src/Tiger*.java
+```

@@ -1,0 +1,9 @@
+PROGRAM=1
+END=2
+INTLIT=3
+FLOATLIT=4
+ID=5
+COMMENT=6
+WS=7
+'program'=1
+'end'=2

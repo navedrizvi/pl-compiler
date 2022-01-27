@@ -26,3 +26,5 @@ replay_pid*
 # IntelliJ
 .idea/
 
+# Under src/ folder
+src/tiger-compiler.iml

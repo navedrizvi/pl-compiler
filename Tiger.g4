@@ -11,8 +11,60 @@ main: PROGRAM ID END;
  */
 
 // Keywords
-PROGRAM: 'program';
+ARRAY: 'array';
+BEGIN: 'begin';
+BREAK: 'break';
+DO: 'do';
+ELSE: 'else';
 END: 'end';
+ENDDO: 'enddo';
+ENDIF: 'endif';
+FLOAT: 'float';
+FOR: 'for';
+FUNCTION: 'function';
+IF: 'if';
+INT: 'int';
+LET: 'let';
+OF: 'of';
+PROGRAM: 'program';
+RETURN: 'return';
+STATIC: 'static';
+THEN: 'then';
+TO: 'to';
+TYPE: 'type';
+VAR: 'var';
+WHILE: 'while';
+
+// Punctuation
+COMMA: ',';
+DOT: '.';
+COLON: ':';
+SEMICOLON: ';';
+OPENPAR: '(';
+CLOSEPAR: ')';
+OPENBRACK: '[';
+CLOSEBRACK: ']';
+OPENCURLY: '{';
+CLOSECURLY: '}';
+
+// Binary operators
+PLUS: '+';
+MINUS: '-';
+MULT: '*';
+DIV: '/';
+POW: '**';
+EQUAL: '==';
+NEQUAL: '!=';
+LESS: '<';
+GREAT: '>';
+LESSEQ: '<=';
+GREATED: '>=';
+AND: '&';
+OR: '|';
+
+// Assignment operators
+ASSIGN: ':=';
+TASSIGN: '=';
 
 // User-defined values
 INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*)  ;

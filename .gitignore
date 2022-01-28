@@ -28,3 +28,6 @@ replay_pid*
 
 # Under src/ folder
 src/tiger-compiler.iml
+
+# antlr JAR
+antlr-4*

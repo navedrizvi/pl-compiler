@@ -1,0 +1,6 @@
+Just a text file w rough info. about building
+
+$ javac Tiger*.java
+
+// invoke with
+$ java Tiger -i <path/to/file.tiger>

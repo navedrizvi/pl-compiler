@@ -33,10 +33,18 @@ stat: value ASSIGN expr SEMICOLON
     ;
 opt_return: expr | ;
 opt_prefix: value ASSIGN | ;
-expr: constant | value | expr binary_op expr | OPENPAREN expr CLOSEPAREN;
+expr: constant
+    | value
+    | OPENPAREN expr CLOSEPAREN
+    | <assoc=right> expr POW expr
+    | expr (MULT | DIV) expr
+    | expr (PLUS | MINUS) expr
+    | expr (EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ) expr
+    | expr AND expr
+    | expr OR expr
+    ;
 constant: INTLIT | FLOATLIT;
-binary_op: PLUS | MINUS | MULT | DIV | POW | EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ | AND | OR;
-expr_list: expr expr_list | ;
+expr_list: expr expr_list_tail | ;
 expr_list_tail: COMMA expr expr_list_tail | ;
 value: ID value_tail;
 value_tail: OPENBRACK expr CLOSEBRACK | ;
@@ -83,11 +91,11 @@ OPENCURLY: '{';
 CLOSECURLY: '}';
 
 // Binary operators
-PLUS: '+';
-MINUS: '-';
+POW: '**';
 MULT: '*';
 DIV: '/';
-POW: '**';
+PLUS: '+';
+MINUS: '-';
 EQUAL: '==';
 NEQUAL: '!=';
 LESS: '<';

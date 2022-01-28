@@ -20,7 +20,7 @@ public class TigerLexer extends Lexer {
 		FOR=10, FUNCTION=11, IF=12, INT=13, LET=14, OF=15, PROGRAM=16, RETURN=17, 
 		STATIC=18, THEN=19, TO=20, TYPE=21, VAR=22, WHILE=23, COMMA=24, DOT=25, 
 		COLON=26, SEMICOLON=27, OPENPAREN=28, CLOSEPAREN=29, OPENBRACK=30, CLOSEBRACK=31, 
-		OPENCURLY=32, CLOSECURLY=33, PLUS=34, MINUS=35, MULT=36, DIV=37, POW=38, 
+		OPENCURLY=32, CLOSECURLY=33, POW=34, MULT=35, DIV=36, PLUS=37, MINUS=38, 
 		EQUAL=39, NEQUAL=40, LESS=41, GREAT=42, LESSEQ=43, GREATEQ=44, AND=45, 
 		OR=46, ASSIGN=47, TASSIGN=48, INTLIT=49, FLOATLIT=50, ID=51, COMMENT=52, 
 		WS=53;
@@ -38,7 +38,7 @@ public class TigerLexer extends Lexer {
 			"FOR", "FUNCTION", "IF", "INT", "LET", "OF", "PROGRAM", "RETURN", "STATIC", 
 			"THEN", "TO", "TYPE", "VAR", "WHILE", "COMMA", "DOT", "COLON", "SEMICOLON", 
 			"OPENPAREN", "CLOSEPAREN", "OPENBRACK", "CLOSEBRACK", "OPENCURLY", "CLOSECURLY", 
-			"PLUS", "MINUS", "MULT", "DIV", "POW", "EQUAL", "NEQUAL", "LESS", "GREAT", 
+			"POW", "MULT", "DIV", "PLUS", "MINUS", "EQUAL", "NEQUAL", "LESS", "GREAT", 
 			"LESSEQ", "GREATEQ", "AND", "OR", "ASSIGN", "TASSIGN", "INTLIT", "FLOATLIT", 
 			"ID", "COMMENT", "WS", "ZERO", "DIGIT", "NON_ZERO_DIGIT"
 		};
@@ -51,7 +51,7 @@ public class TigerLexer extends Lexer {
 			"'endif'", "'float'", "'for'", "'function'", "'if'", "'int'", "'let'", 
 			"'of'", "'program'", "'return'", "'static'", "'then'", "'to'", "'type'", 
 			"'var'", "'while'", "','", "'.'", "':'", "';'", "'('", "')'", "'['", 
-			"']'", "'{'", "'}'", "'+'", "'-'", "'*'", "'/'", "'**'", "'=='", "'!='", 
+			"']'", "'{'", "'}'", "'**'", "'*'", "'/'", "'+'", "'-'", "'=='", "'!='", 
 			"'<'", "'>'", "'<='", "'>='", "'&'", "'|'", "':='", "'='"
 		};
 	}
@@ -62,7 +62,7 @@ public class TigerLexer extends Lexer {
 			"FLOAT", "FOR", "FUNCTION", "IF", "INT", "LET", "OF", "PROGRAM", "RETURN", 
 			"STATIC", "THEN", "TO", "TYPE", "VAR", "WHILE", "COMMA", "DOT", "COLON", 
 			"SEMICOLON", "OPENPAREN", "CLOSEPAREN", "OPENBRACK", "CLOSEBRACK", "OPENCURLY", 
-			"CLOSECURLY", "PLUS", "MINUS", "MULT", "DIV", "POW", "EQUAL", "NEQUAL", 
+			"CLOSECURLY", "POW", "MULT", "DIV", "PLUS", "MINUS", "EQUAL", "NEQUAL", 
 			"LESS", "GREAT", "LESSEQ", "GREATEQ", "AND", "OR", "ASSIGN", "TASSIGN", 
 			"INTLIT", "FLOATLIT", "ID", "COMMENT", "WS"
 		};
@@ -142,10 +142,10 @@ public class TigerLexer extends Lexer {
 		"\22\3\22\3\22\3\22\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\24\3\24\3\24\3"+
 		"\24\3\24\3\25\3\25\3\25\3\26\3\26\3\26\3\26\3\26\3\27\3\27\3\27\3\27\3"+
 		"\30\3\30\3\30\3\30\3\30\3\30\3\31\3\31\3\32\3\32\3\33\3\33\3\34\3\34\3"+
-		"\35\3\35\3\36\3\36\3\37\3\37\3 \3 \3!\3!\3\"\3\"\3#\3#\3$\3$\3%\3%\3&"+
-		"\3&\3\'\3\'\3\'\3(\3(\3(\3)\3)\3)\3*\3*\3+\3+\3,\3,\3,\3-\3-\3-\3.\3."+
-		"\3/\3/\3\60\3\60\3\60\3\61\3\61\3\62\3\62\3\62\7\62\u0127\n\62\f\62\16"+
-		"\62\u012a\13\62\5\62\u012c\n\62\3\63\3\63\6\63\u0130\n\63\r\63\16\63\u0131"+
+		"\35\3\35\3\36\3\36\3\37\3\37\3 \3 \3!\3!\3\"\3\"\3#\3#\3#\3$\3$\3%\3%"+
+		"\3&\3&\3\'\3\'\3(\3(\3(\3)\3)\3)\3*\3*\3+\3+\3,\3,\3,\3-\3-\3-\3.\3.\3"+
+		"/\3/\3\60\3\60\3\60\3\61\3\61\3\62\3\62\3\62\7\62\u0127\n\62\f\62\16\62"+
+		"\u012a\13\62\5\62\u012c\n\62\3\63\3\63\6\63\u0130\n\63\r\63\16\63\u0131"+
 		"\5\63\u0134\n\63\3\63\3\63\7\63\u0138\n\63\f\63\16\63\u013b\13\63\3\64"+
 		"\3\64\7\64\u013f\n\64\f\64\16\64\u0142\13\64\3\65\3\65\3\65\3\65\7\65"+
 		"\u0148\n\65\f\65\16\65\u014b\13\65\3\65\3\65\3\65\3\65\3\65\3\66\6\66"+
@@ -170,8 +170,8 @@ public class TigerLexer extends Lexer {
 		"\'\u00d4\3\2\2\2)\u00d9\3\2\2\2+\u00dc\3\2\2\2-\u00e1\3\2\2\2/\u00e5\3"+
 		"\2\2\2\61\u00eb\3\2\2\2\63\u00ed\3\2\2\2\65\u00ef\3\2\2\2\67\u00f1\3\2"+
 		"\2\29\u00f3\3\2\2\2;\u00f5\3\2\2\2=\u00f7\3\2\2\2?\u00f9\3\2\2\2A\u00fb"+
-		"\3\2\2\2C\u00fd\3\2\2\2E\u00ff\3\2\2\2G\u0101\3\2\2\2I\u0103\3\2\2\2K"+
-		"\u0105\3\2\2\2M\u0107\3\2\2\2O\u010a\3\2\2\2Q\u010d\3\2\2\2S\u0110\3\2"+
+		"\3\2\2\2C\u00fd\3\2\2\2E\u00ff\3\2\2\2G\u0102\3\2\2\2I\u0104\3\2\2\2K"+
+		"\u0106\3\2\2\2M\u0108\3\2\2\2O\u010a\3\2\2\2Q\u010d\3\2\2\2S\u0110\3\2"+
 		"\2\2U\u0112\3\2\2\2W\u0114\3\2\2\2Y\u0117\3\2\2\2[\u011a\3\2\2\2]\u011c"+
 		"\3\2\2\2_\u011e\3\2\2\2a\u0121\3\2\2\2c\u012b\3\2\2\2e\u0133\3\2\2\2g"+
 		"\u013c\3\2\2\2i\u0143\3\2\2\2k\u0152\3\2\2\2m\u0158\3\2\2\2o\u015a\3\2"+
@@ -210,9 +210,9 @@ public class TigerLexer extends Lexer {
 		"\7*\2\2\u00f4:\3\2\2\2\u00f5\u00f6\7+\2\2\u00f6<\3\2\2\2\u00f7\u00f8\7"+
 		"]\2\2\u00f8>\3\2\2\2\u00f9\u00fa\7_\2\2\u00fa@\3\2\2\2\u00fb\u00fc\7}"+
 		"\2\2\u00fcB\3\2\2\2\u00fd\u00fe\7\177\2\2\u00feD\3\2\2\2\u00ff\u0100\7"+
-		"-\2\2\u0100F\3\2\2\2\u0101\u0102\7/\2\2\u0102H\3\2\2\2\u0103\u0104\7,"+
-		"\2\2\u0104J\3\2\2\2\u0105\u0106\7\61\2\2\u0106L\3\2\2\2\u0107\u0108\7"+
-		",\2\2\u0108\u0109\7,\2\2\u0109N\3\2\2\2\u010a\u010b\7?\2\2\u010b\u010c"+
+		",\2\2\u0100\u0101\7,\2\2\u0101F\3\2\2\2\u0102\u0103\7,\2\2\u0103H\3\2"+
+		"\2\2\u0104\u0105\7\61\2\2\u0105J\3\2\2\2\u0106\u0107\7-\2\2\u0107L\3\2"+
+		"\2\2\u0108\u0109\7/\2\2\u0109N\3\2\2\2\u010a\u010b\7?\2\2\u010b\u010c"+
 		"\7?\2\2\u010cP\3\2\2\2\u010d\u010e\7#\2\2\u010e\u010f\7?\2\2\u010fR\3"+
 		"\2\2\2\u0110\u0111\7>\2\2\u0111T\3\2\2\2\u0112\u0113\7@\2\2\u0113V\3\2"+
 		"\2\2\u0114\u0115\7>\2\2\u0115\u0116\7?\2\2\u0116X\3\2\2\2\u0117\u0118"+

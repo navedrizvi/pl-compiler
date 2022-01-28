@@ -291,18 +291,6 @@ public class TigerBaseListener implements TigerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBinary_op(TigerParser.Binary_opContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBinary_op(TigerParser.Binary_opContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterExpr_list(TigerParser.Expr_listContext ctx) { }
 	/**
 	 * {@inheritDoc}

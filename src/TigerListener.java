@@ -237,16 +237,6 @@ public interface TigerListener extends ParseTreeListener {
 	 */
 	void exitConstant(TigerParser.ConstantContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link TigerParser#binary_op}.
-	 * @param ctx the parse tree
-	 */
-	void enterBinary_op(TigerParser.Binary_opContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link TigerParser#binary_op}.
-	 * @param ctx the parse tree
-	 */
-	void exitBinary_op(TigerParser.Binary_opContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link TigerParser#expr_list}.
 	 * @param ctx the parse tree
 	 */

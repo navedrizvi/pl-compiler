@@ -20,13 +20,26 @@ param_list: param param_list_tail | ;
 param_list_tail: COMMA param param_list_tail | ;
 return_type: COLON type | ;
 param: ID COLON type;
-// Naved's part start
 stat_seq: stat | stat stat_seq;
-stat: BREAK SEMICOLON;
+stat: value ASSIGN expr SEMICOLON
+    | IF expr THEN stat_seq ENDIF SEMICOLON
+    | IF expr THEN stat_seq ELSE stat_seq ENDIF SEMICOLON
+    | WHILE expr DO stat_seq ENDDO SEMICOLON
+    | FOR ID ASSIGN expr TO expr DO stat_seq ENDDO SEMICOLON
+    | opt_prefix ID OPENPAREN expr_list CLOSEPAREN SEMICOLON
+    | BREAK SEMICOLON
+    | RETURN opt_return SEMICOLON
+    | LET decl_seg BEGIN stat_seq END
+    ;
+opt_return: expr | ;
+opt_prefix: value ASSIGN | ;
+expr: constant | value | expr binary_op expr | OPENPAREN expr CLOSEPAREN;
 constant: INTLIT | FLOATLIT;
-// end
-
-
+binary_op: PLUS | MINUS | MULT | DIV | POW | EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ | AND | OR;
+expr_list: expr expr_list | ;
+expr_list_tail: COMMA expr expr_list_tail | ;
+value: ID value_tail;
+value_tail: OPENBRACK expr CLOSEBRACK | ;
 
 /*
  * Lexer
@@ -80,7 +93,7 @@ NEQUAL: '!=';
 LESS: '<';
 GREAT: '>';
 LESSEQ: '<=';
-GREATED: '>=';
+GREATEQ: '>=';
 AND: '&';
 OR: '|';
 
@@ -91,7 +104,7 @@ TASSIGN: '=';
 // User-defined values
 INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*)  ;
 FLOATLIT: (ZERO | NON_ZERO_DIGIT+)? '.'  DIGIT* ;
-ID : [a-zA-Z][a-zA-Z0-9_]+ ;
+ID : [a-zA-Z][a-zA-Z0-9_]*;
 COMMENT : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
 WS : [ \r\t\n]+ -> skip ; // Skip whitespace
 

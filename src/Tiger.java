@@ -33,7 +33,7 @@ public class Tiger {
             ref: https://stackoverflow.com/a/49981691 (TODO also describes handling parser error, but only handle lexer for now until Parser is implemented)
         */
         try {
-            MyErrorListener errorListener = new MyErrorListener();
+            LexicalErrorListener errorListener = new LexicalErrorListener();
             CharStream input = CharStreams.fromFileName(fileName); // minor TODO refactor to pass this as an arg to avoid addl. overhead
             TigerLexer lexer = new TigerLexer(input);
             lexer.removeErrorListeners();

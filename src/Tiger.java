@@ -1,5 +1,13 @@
 import java.util.Arrays;
 import java.io.File;
+import java.io.IOException;
+// TODO need to ensure nio is available in Docker container
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -9,6 +17,46 @@ public class Tiger {
     private static boolean srcFileExists(String fpath) {
         File f = new File(fpath);
         return f.exists();
+    }
+
+    private static void writeFileWithContent(String fpath, String contents) {
+        // File destination = new File(fpath);
+        Path targetPath = Paths.get(fpath);
+        try {
+            Files.write(targetPath, contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            System.out.println("Error in creating new file"); 
+            // minor TODO what error to return here, or silently exit?
+        }
+    }
+
+    private static void writeTokenFile(String fileName) {
+        /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
+            ref: https://stackoverflow.com/a/22531110
+        */
+        String tokenFileToCreateFname = fileName.replace(".tiger", ".tokens");
+        String tokenFileToCreateContent = "";
+        try {
+            CharStream input = CharStreams.fromFileName(fileName);
+            // TigerLexer lexer = new TigerLexer(input);
+            TokenSource tokenSource = new TigerLexer(input);
+            // CommonTokenStream tokens = new CommonTokenStream(lexer);
+            while (true) {
+                Token token = tokenSource.nextToken();
+                if (token.getType() == Token.EOF) {
+                    break;
+                }
+                String tokenTupleStr = "<" + TigerLexer.VOCABULARY.getSymbolicName(token.getType()) + "," + " \"" + token.getText() + "\">\n";
+                // System.out.println(tokenTupleStr); // for debugging
+                tokenFileToCreateContent += tokenTupleStr;
+            }
+            writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
+        }
+        catch (IOException e) {
+            // minor style TODO. this is duplicate logic of srcFileExists. try doing this one time in a refactor
+            System.out.println("Error in program arguments: source file not found");
+            System.exit(1); // Error in program arguments: source file not found
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -21,6 +69,7 @@ public class Tiger {
         /* Ensure args are valid */
         // minor TODO confirm do we need to support input stream, or only file?
         String[] validArgFlags = new String[] {"-l", "-p"};
+        boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 5
 
         // validate first 2 args
         String fileName = args[1];
@@ -35,21 +84,25 @@ public class Tiger {
                 System.exit(1); // Error in program arguments: file doesn't end with '.tiger'. TODO confirm this is correct error to throw
             }
             else if (!srcFileExists(fileName)) {
-                System.out.println("Error in program arguments: file not found");
-                System.exit(1); // Error in program arguments: file not found
+                System.out.println("Error in program arguments: source file not found");
+                System.exit(1); // Error in program arguments: source file not found
             }
         }
 
-        for (int i=0; i < args.length; i++) {
+        // start from 3rd idx b/c first 2 args are verified
+        for (int i=2; i < args.length; i++) {
             if (!Arrays.asList(validArgFlags).contains(args[i])) {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
             }
+            if (args[i].equals(("-l"))) {
+                lFlagProvided = true;
+            }
         }
 
-        /* Req: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
-        */
-        CharStream fileStream = CharStreams.fromFileName(fileName);
+        if (lFlagProvided) {
+            writeTokenFile(fileName);
+        }
 
         System.exit(0); // compiling was successful/no errors encountered
     }

@@ -4,9 +4,6 @@ import java.io.File;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-// write initial CLI parser
-// write initial part of error parsing
-
 public class Tiger {
 
     private static boolean srcFileExists(String fpath) {
@@ -15,30 +12,44 @@ public class Tiger {
     }
 
     public static void main(String[] args) throws Exception {
+        // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
         if (!(args.length >= 2)) {
-            System.exit(1); // Error in program arguments: must have 2 args atleast (-i and <path/to/source> are necessary)
+            System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
+            System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
 
         /* Ensure args are valid */
         // minor TODO confirm do we need to support input stream, or only file?
-        String[] validArgFlags = new String[] {"-i", "-l", "-p"};
+        String[] validArgFlags = new String[] {"-l", "-p"};
 
-        for (int i=0; i < args.length; i++) {
-            if (args[i].equals("-i")) {
-                // if -i arg, check the next arg is presumably the source tiger file
-                // TODO do we need to throw Error code if src file doesnt end with `.tiger`?
-                if (!srcFileExists(args[i+1])) {
-                    System.exit(1); // Error in program arguments: file not found
-                }
-                // next arg is valid so skip checking it
-                i += 1;
+        // validate first 2 args
+        String fileName = args[1];
+        if (!args[0].equals("-i")) {
+            System.out.println("Error in program arguments: necessary arg -i not provided");
+            System.exit(1); // Error in program arguments: necessary arg not provided.
+        }
+        else {
+            // if -i arg, check the next arg is presumably the source tiger file
+            if (!fileName.endsWith(".tiger")) {
+                System.out.println("Error in program arguments: file doesn't end with '.tiger'");
+                System.exit(1); // Error in program arguments: file doesn't end with '.tiger'. TODO confirm this is correct error to throw
             }
-            else {
-                if (!Arrays.asList(validArgFlags).contains(args[i])) {
-                    System.exit(1); // Error in program arguments: unknown argument
-                }
+            else if (!srcFileExists(fileName)) {
+                System.out.println("Error in program arguments: file not found");
+                System.exit(1); // Error in program arguments: file not found
             }
         }
+
+        for (int i=0; i < args.length; i++) {
+            if (!Arrays.asList(validArgFlags).contains(args[i])) {
+                System.out.println("Error in program arguments: unknown argument " + args[i]);
+                System.exit(1); // Error in program arguments: unknown argument
+            }
+        }
+
+        /* Req: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
+        */
+        CharStream fileStream = CharStreams.fromFileName(fileName);
 
         System.exit(0); // compiling was successful/no errors encountered
     }

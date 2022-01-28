@@ -24,6 +24,7 @@ type
 var
 while
 
+
 ,
 .
 :
@@ -51,3 +52,5 @@ while
 
 :=
 =
+
+$

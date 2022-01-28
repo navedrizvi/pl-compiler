@@ -2,7 +2,6 @@ import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
 // TODO need to ensure nio is available in Docker container
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +9,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
 
 public class Tiger {
 
@@ -30,33 +28,42 @@ public class Tiger {
         }
     }
 
-    private static void writeTokenFile(String fileName) {
+    private static TigerLexer getLexer(String fileName) {
+        /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
+            ref: https://stackoverflow.com/a/49981691 (TODO also describes handling parser error, but only handle lexer for now until Parser is implemented)
+        */
+        try {
+            MyErrorListener errorListener = new MyErrorListener();
+            CharStream input = CharStreams.fromFileName(fileName); // minor TODO refactor to pass this as an arg to avoid addl. overhead
+            TigerLexer lexer = new TigerLexer(input);
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(errorListener);
+            return lexer;
+        }
+        catch (IOException e) {
+            // minor style TODO. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
+            System.out.println("Error in program arguments: source file not found");
+            System.exit(1);
+            return null;
+        }
+    }
+
+    private static void writeTokenFile(TigerLexer lexer, String fileName) {
         /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
             ref: https://stackoverflow.com/a/22531110
         */
         String tokenFileToCreateFname = fileName.replace(".tiger", ".tokens");
         String tokenFileToCreateContent = "";
-        try {
-            CharStream input = CharStreams.fromFileName(fileName);
-            // TigerLexer lexer = new TigerLexer(input);
-            TokenSource tokenSource = new TigerLexer(input);
-            // CommonTokenStream tokens = new CommonTokenStream(lexer);
-            while (true) {
-                Token token = tokenSource.nextToken();
-                if (token.getType() == Token.EOF) {
-                    break;
-                }
-                String tokenTupleStr = "<" + TigerLexer.VOCABULARY.getSymbolicName(token.getType()) + "," + " \"" + token.getText() + "\">\n";
-                // System.out.println(tokenTupleStr); // for debugging
-                tokenFileToCreateContent += tokenTupleStr;
+        while (true) {
+            Token token = lexer.nextToken();
+            if (token.getType() == Token.EOF) {
+                break;
             }
-            writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
+            String tokenTupleStr = "<" + TigerLexer.VOCABULARY.getSymbolicName(token.getType()) + "," + " \"" + token.getText() + "\">\n";
+            // System.out.println(tokenTupleStr); // for debugging
+            tokenFileToCreateContent += tokenTupleStr;
         }
-        catch (IOException e) {
-            // minor style TODO. this is duplicate logic of srcFileExists. try doing this one time in a refactor
-            System.out.println("Error in program arguments: source file not found");
-            System.exit(1); // Error in program arguments: source file not found
-        }
+        writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
     }
 
     public static void main(String[] args) throws Exception {
@@ -100,8 +107,10 @@ public class Tiger {
             }
         }
 
+        TigerLexer lexer = getLexer(fileName);
+
         if (lFlagProvided) {
-            writeTokenFile(fileName);
+            writeTokenFile(lexer, fileName);
         }
 
         System.exit(0); // compiling was successful/no errors encountered

@@ -19,6 +19,13 @@ docker rm cs8803
 
 When running antlr4 tool, run the following:
 ```
-antlr4 Tiger.gr -o src/
+antlr4 Tiger.g4 -o src/
 javac src/Tiger*.java
+```
+
+For testing using, cd into `src/` directory and then you can run any of the following commands:
+```
+grun Tiger main -tokens ../test.tiger
+grun Tiger main -tree ../test.tiger
+grun Tiger main -gui ../test.tiger
 ```

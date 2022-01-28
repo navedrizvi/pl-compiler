@@ -3,7 +3,29 @@ grammar Tiger;
 /*
  * Parser
  */
-main: PROGRAM ID END;
+main: PROGRAM ID LET decl_seg BEGIN funct_list END;
+decl_seg: type_decl_list var_decl_list;
+type_decl_list: type_decl type_decl_list | ;
+var_decl_list: var_decl var_decl_list | ;
+funct_list: funct funct_list | ;
+type_decl: TYPE ID TASSIGN type SEMICOLON;
+type: base_type | ARRAY OPENBRACK INTLIT CLOSEBRACK OF base_type | ID;
+base_type: INT | FLOAT;
+var_decl: storage_class id_list COLON type optional_init SEMICOLON;
+storage_class: VAR | STATIC;
+id_list: ID | ID COMMA id_list;
+optional_init: ASSIGN constant | ;
+funct: FUNCTION ID OPENPAREN param_list CLOSEPAREN return_type BEGIN stat_seq END;
+param_list: param param_list_tail | ;
+param_list_tail: COMMA param param_list_tail | ;
+return_type: COLON type | ;
+param: ID COLON type;
+// Naved's part start
+stat_seq: stat | stat stat_seq;
+stat: BREAK SEMICOLON;
+constant: INTLIT | FLOATLIT;
+// end
+
 
 
 /*
@@ -40,8 +62,8 @@ COMMA: ',';
 DOT: '.';
 COLON: ':';
 SEMICOLON: ';';
-OPENPAR: '(';
-CLOSEPAR: ')';
+OPENPAREN: '(';
+CLOSEPAREN: ')';
 OPENBRACK: '[';
 CLOSEBRACK: ']';
 OPENCURLY: '{';

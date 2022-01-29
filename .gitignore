@@ -31,3 +31,6 @@ src/tiger-compiler.iml
 
 # antlr JAR
 antlr-4*
+
+.antlr
+.vscode

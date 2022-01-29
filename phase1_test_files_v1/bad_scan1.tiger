@@ -1,0 +1,13 @@
+/* Scanner error: invalid symbol $ */
+
+program bad_scan1
+let
+    static $name : int;
+begin
+
+    function main() : int
+    begin
+        return 0;
+    end
+
+end

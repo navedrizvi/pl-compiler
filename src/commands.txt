@@ -8,4 +8,3 @@ $ java Tiger -i <path/to/file.tiger>
 // tested with
 $ java Tiger -i test.tiger
 $ java Tiger -i test.tiger -l
-(note, test.tiger contains a $ charater which I used for testing the lexer error code, to test the -l arg remove the $ charater from test.tiger)

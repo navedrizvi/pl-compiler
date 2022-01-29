@@ -57,6 +57,16 @@ public class Tiger {
         return parser;
     }
 
+    private static void checkScannerErrors(TigerLexer lexer) {
+        while (true) {
+            Token token = lexer.nextToken();
+            if (token.getType() == Token.EOF) {
+                break;
+            }
+        }
+        lexer.reset();
+    }
+
     private static void writeTokenFile(TigerLexer lexer, String fileName) {
         /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
             ref: https://stackoverflow.com/a/22531110
@@ -73,6 +83,7 @@ public class Tiger {
             tokenFileToCreateContent += tokenTupleStr;
         }
         writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
+        lexer.reset();
     }
 
     public static void main(String[] args) throws Exception {
@@ -122,9 +133,12 @@ public class Tiger {
             writeTokenFile(lexer, fileName);
         }
 
-//        lexer.reset();
-//        CommonTokenStream tokens = new CommonTokenStream(lexer);
-//        TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
+        checkScannerErrors(lexer);
+
+        // lexer.reset();
+        // CommonTokenStream tokens = new CommonTokenStream(lexer);
+        // tokens.getTokens();
+        // TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
 //        ParseTree tree = parser.main();
 //        System.out.println(tree.toStringTree(parser));
 

@@ -1,9 +1,0 @@
-program test
-let 
-var size : int;
-begin
-function main() : int
-begin
-break;
-end
-end

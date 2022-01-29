@@ -38,3 +38,5 @@ antlr-4*
 
 # Personal test files
 tmp*
+
+.DS_Store

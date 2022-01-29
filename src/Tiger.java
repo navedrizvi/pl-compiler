@@ -1,7 +1,6 @@
 import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
-// TODO need to ensure nio is available in Docker container
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,11 +30,11 @@ public class Tiger {
 
     private static TigerLexer getLexer(String fileName) {
         /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
-            ref: https://stackoverflow.com/a/49981691 (TODO also describes handling parser error, but only handle lexer for now until Parser is implemented)
+            ref: https://stackoverflow.com/a/49981691
         */
         try {
             LexicalErrorListener errorListener = new LexicalErrorListener();
-            CharStream input = CharStreams.fromFileName(fileName); // minor TODO refactor to pass this as an arg to avoid addl. overhead
+            CharStream input = CharStreams.fromFileName(fileName);
             TigerLexer lexer = new TigerLexer(input);
             lexer.removeErrorListeners();
             lexer.addErrorListener(errorListener);
@@ -88,14 +87,12 @@ public class Tiger {
     }
 
     public static void main(String[] args) throws Exception {
-        // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
 
         /* Ensure args are valid */
-        // minor TODO confirm do we need to support input stream, or only file?
         String[] validArgFlags = new String[] {"-l", "-p"};
         boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 5
 
@@ -131,17 +128,19 @@ public class Tiger {
         TigerLexer lexer = getLexer(fileName);
 
         if (lFlagProvided) {
-            writeTokenFile(lexer, fileName);
+            writeTokenFile(lexer, fileName); // also checks for scanner errors
+        }
+        else {
+            checkScannerErrors(lexer);
         }
 
-        checkScannerErrors(lexer);
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
 
         ParseTree tree = parser.main(); // Note: this will throw parser error
 
-        System.out.println(tree.toStringTree(parser));
+        // System.out.println(tree.toStringTree(parser));
 
         System.exit(0); // compiling was successful/no errors encountered
     }

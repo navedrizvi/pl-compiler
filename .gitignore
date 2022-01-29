@@ -35,3 +35,6 @@ antlr-4*
 # VSCode
 .antlr
 .vscode
+
+# Personal test files
+tmp*

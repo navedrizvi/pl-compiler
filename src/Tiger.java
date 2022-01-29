@@ -141,7 +141,7 @@ public class Tiger {
 
         ParseTree tree = parser.main(); // Note: this will throw parser error
 
-//        System.out.println(tree.toStringTree(parser));
+        System.out.println(tree.toStringTree(parser));
 
         System.exit(0); // compiling was successful/no errors encountered
     }

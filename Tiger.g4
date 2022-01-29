@@ -111,7 +111,7 @@ TASSIGN: '=';
 
 // User-defined values
 INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*)  ;
-FLOATLIT: (ZERO | DIGIT+)? '.'  DIGIT* ;
+FLOATLIT: INTLIT? '.' DIGIT* ;
 
 ID : [a-zA-Z][a-zA-Z0-9_]*;
 COMMENT : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */

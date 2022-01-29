@@ -50,11 +50,11 @@ public class Tiger {
     }
 
     private static TigerParser getTigerParser(CommonTokenStream tokens) {
-            ParserErrorListener errorListener = new ParserErrorListener();
-            TigerParser parser = new TigerParser((TokenStream) tokens);
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
-            return parser;
+        ParserErrorListener errorListener = new ParserErrorListener();
+        TigerParser parser = new TigerParser((TokenStream) tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        return parser;
     }
 
     private static void writeTokenFile(TigerLexer lexer, String fileName) {

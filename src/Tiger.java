@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
 
 public class Tiger {
 
@@ -46,6 +47,14 @@ public class Tiger {
             System.exit(1);
             return null;
         }
+    }
+
+    private static TigerParser getTigerParser(CommonTokenStream tokens) {
+            ParserErrorListener errorListener = new ParserErrorListener();
+            TigerParser parser = new TigerParser((TokenStream) tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(errorListener);
+            return parser;
     }
 
     private static void writeTokenFile(TigerLexer lexer, String fileName) {
@@ -112,6 +121,12 @@ public class Tiger {
         if (lFlagProvided) {
             writeTokenFile(lexer, fileName);
         }
+
+//        lexer.reset();
+//        CommonTokenStream tokens = new CommonTokenStream(lexer);
+//        TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
+//        ParseTree tree = parser.main();
+//        System.out.println(tree.toStringTree(parser));
 
         System.exit(0); // compiling was successful/no errors encountered
     }

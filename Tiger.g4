@@ -3,7 +3,7 @@ grammar Tiger;
 /*
  * Parser
  */
-main: PROGRAM ID LET decl_seg BEGIN funct_list END;
+main: PROGRAM ID LET decl_seg BEGIN funct_list END EOF;
 decl_seg: type_decl_list var_decl_list;
 type_decl_list: type_decl type_decl_list |  /* epsilon */ ;
 var_decl_list: var_decl var_decl_list |  /* epsilon */ ;
@@ -110,8 +110,8 @@ ASSIGN: ':=';
 TASSIGN: '=';
 
 // User-defined values
-INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*)  ;
-FLOATLIT: INTLIT? '.' DIGIT* ;
+INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*) ;
+FLOATLIT: (ZERO | (NON_ZERO_DIGIT DIGIT*)+) '.' DIGIT* ;
 
 ID : [a-zA-Z][a-zA-Z0-9_]*;
 COMMENT : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */

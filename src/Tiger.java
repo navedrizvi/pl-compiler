@@ -50,12 +50,23 @@ public class Tiger {
     }
 
     private static TigerParser getTigerParser(CommonTokenStream tokens) {
-            ParserErrorListener errorListener = new ParserErrorListener();
-            TigerParser parser = new TigerParser((TokenStream) tokens);
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
-            return parser;
+        ParserErrorListener errorListener = new ParserErrorListener();
+        TigerParser parser = new TigerParser((TokenStream) tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        return parser;
     }
+
+    private static void checkScannerErrors(TigerLexer lexer) {
+        while (true) {
+            Token token = lexer.nextToken();
+            if (token.getType() == Token.EOF) {
+                break;
+            }
+        }
+        lexer.reset();
+    }
+
 
     private static void writeTokenFile(TigerLexer lexer, String fileName) {
         /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
@@ -73,6 +84,7 @@ public class Tiger {
             tokenFileToCreateContent += tokenTupleStr;
         }
         writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
+        lexer.reset();
     }
 
     public static void main(String[] args) throws Exception {
@@ -122,11 +134,14 @@ public class Tiger {
             writeTokenFile(lexer, fileName);
         }
 
-//        lexer.reset();
-//        CommonTokenStream tokens = new CommonTokenStream(lexer);
-//        TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
-//        ParseTree tree = parser.main();
-//        System.out.println(tree.toStringTree(parser));
+        checkScannerErrors(lexer);
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
+
+        ParseTree tree = parser.main(); // Note: this will throw parser error
+
+        System.out.println(tree.toStringTree(parser));
 
         System.exit(0); // compiling was successful/no errors encountered
     }

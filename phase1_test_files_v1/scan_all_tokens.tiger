@@ -1,7 +1,7 @@
 /* Scanner test: all tokens */
 
-begin
 array
+begin
 break
 do
 else
@@ -23,7 +23,6 @@ to
 type
 var
 while
-
 
 ,
 .
@@ -52,5 +51,3 @@ while
 
 :=
 =
-
-$

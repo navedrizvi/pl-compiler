@@ -1,0 +1,19 @@
+/* Parser error: malformed if-else */
+
+program bad_parse5
+let
+begin
+
+    function main() : int
+    begin
+        if (1 < 0) then
+            return 0;
+        else if (1 == 0) then
+            return 1;
+        else
+            return 2;
+        endif;
+        return 0;
+    end
+
+end

@@ -5,20 +5,20 @@ grammar Tiger;
  */
 main: PROGRAM ID LET decl_seg BEGIN funct_list END;
 decl_seg: type_decl_list var_decl_list;
-type_decl_list: type_decl type_decl_list | ;
-var_decl_list: var_decl var_decl_list | ;
-funct_list: funct funct_list | ;
+type_decl_list: type_decl type_decl_list |  /* epsilon */ ;
+var_decl_list: var_decl var_decl_list |  /* epsilon */ ;
+funct_list: funct funct_list |  /* epsilon */ ;
 type_decl: TYPE ID TASSIGN type SEMICOLON;
 type: base_type | ARRAY OPENBRACK INTLIT CLOSEBRACK OF base_type | ID;
 base_type: INT | FLOAT;
 var_decl: storage_class id_list COLON type optional_init SEMICOLON;
 storage_class: VAR | STATIC;
 id_list: ID | ID COMMA id_list;
-optional_init: ASSIGN constant | ;
+optional_init: ASSIGN constant |  /* epsilon */ ;
 funct: FUNCTION ID OPENPAREN param_list CLOSEPAREN return_type BEGIN stat_seq END;
-param_list: param param_list_tail | ;
-param_list_tail: COMMA param param_list_tail | ;
-return_type: COLON type | ;
+param_list: param param_list_tail |  /* epsilon */ ;
+param_list_tail: COMMA param param_list_tail |  /* epsilon */ ;
+return_type: COLON type |  /* epsilon */ ;
 param: ID COLON type;
 stat_seq: stat | stat stat_seq;
 stat: value ASSIGN expr SEMICOLON
@@ -31,8 +31,8 @@ stat: value ASSIGN expr SEMICOLON
     | RETURN opt_return SEMICOLON
     | LET decl_seg BEGIN stat_seq END
     ;
-opt_return: expr | ;
-opt_prefix: value ASSIGN | ;
+opt_return: expr |  /* epsilon */ ;
+opt_prefix: value ASSIGN |  /* epsilon */ ;
 expr: constant
     | value
     | OPENPAREN expr CLOSEPAREN
@@ -44,10 +44,10 @@ expr: constant
     | expr OR expr
     ;
 constant: INTLIT | FLOATLIT;
-expr_list: expr expr_list_tail | ;
-expr_list_tail: COMMA expr expr_list_tail | ;
+expr_list: expr expr_list_tail |  /* epsilon */ ;
+expr_list_tail: COMMA expr expr_list_tail |  /* epsilon */ ;
 value: ID value_tail;
-value_tail: OPENBRACK expr CLOSEBRACK | ;
+value_tail: OPENBRACK expr CLOSEBRACK |  /* epsilon */ ;
 
 /*
  * Lexer
@@ -111,7 +111,8 @@ TASSIGN: '=';
 
 // User-defined values
 INTLIT: ZERO | (NON_ZERO_DIGIT DIGIT*)  ;
-FLOATLIT: (ZERO | NON_ZERO_DIGIT+)? '.'  DIGIT* ;
+FLOATLIT: INTLIT? '.' DIGIT* ;
+
 ID : [a-zA-Z][a-zA-Z0-9_]*;
 COMMENT : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
 WS : [ \r\t\n]+ -> skip ; // Skip whitespace

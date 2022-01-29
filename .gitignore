@@ -31,3 +31,10 @@ src/tiger-compiler.iml
 
 # antlr JAR
 antlr-4*
+
+# VSCode
+.antlr
+.vscode
+
+# Personal test files
+tmp*

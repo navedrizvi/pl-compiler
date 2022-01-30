@@ -7,12 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Set;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.MultiMap;
+import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.runtime.tree.*;
 
 public class Tiger {
-
     private static boolean srcFileExists(String fpath) {
         File f = new File(fpath);
         return f.exists();
@@ -87,7 +89,16 @@ public class Tiger {
         lexer.reset();
     }
 
-    public static void main(String[] args) throws Exception {
+    private static String parseTreeToGraph(ParseTree tree) {
+        return "";
+    }
+
+    private static void writeGraphToFile(String fileName, String graph) {
+        String outputFile = fileName.replace(".tiger", ".tree.gv");
+        writeFileWithContent(outputFile, graph);
+    }
+
+    public static void main(String[] args) {
         // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
@@ -97,7 +108,8 @@ public class Tiger {
         /* Ensure args are valid */
         // minor TODO confirm do we need to support input stream, or only file?
         String[] validArgFlags = new String[] {"-l", "-p"};
-        boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 5
+        boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 4
+        boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
 
         // validate first 2 args
         String fileName = args[1];
@@ -126,6 +138,10 @@ public class Tiger {
             if (args[i].equals(("-l"))) {
                 lFlagProvided = true;
             }
+
+            if (args[i].equals(("-p"))) {
+                pFlagProvided = true;
+            }
         }
 
         TigerLexer lexer = getLexer(fileName);
@@ -133,15 +149,25 @@ public class Tiger {
         if (lFlagProvided) {
             writeTokenFile(lexer, fileName);
         }
-
-        checkScannerErrors(lexer);
+        else {
+            checkScannerErrors(lexer);
+        }
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
 
-        ParseTree tree = parser.main(); // Note: this will throw parser error
-
-        System.out.println(tree.toStringTree(parser));
+        if (pFlagProvided) {
+            ParseTree tree = parser.main(); // Note: this will throw parser error
+            String parseTreeAsGraph = parseTreeToGraph(tree);
+//            StringBuilder buf = new StringBuilder();
+//            buf.append("digraph G {\n");
+//            buf.append("A -> B -> C\n");
+//            buf.append("}\n");
+            writeGraphToFile(fileName, parseTreeAsGraph);
+        }
+        else {
+            parser.main(); // Note: this will throw parser error
+        }
 
         System.exit(0); // compiling was successful/no errors encountered
     }

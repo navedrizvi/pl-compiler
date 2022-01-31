@@ -7,4 +7,5 @@ $ java Tiger -i <path/to/file.tiger>
 
 // tested with
 $ java Tiger -i test.tiger
-$ java Tiger -i test.tiger -l
+$ java Tiger -i test.tiger -l // print tokens
+$ java Tiger -i test.tiger -p // write parse tree to dot format

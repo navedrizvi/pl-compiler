@@ -5,45 +5,58 @@ grammar Tiger;
  */
 main: PROGRAM ID LET decl_seg BEGIN funct_list END EOF;
 decl_seg: type_decl_list var_decl_list;
-type_decl_list: type_decl type_decl_list |  /* epsilon */ ;
-var_decl_list: var_decl var_decl_list |  /* epsilon */ ;
-funct_list: funct funct_list |  /* epsilon */ ;
+type_decl_list: type_decl type_decl_list |  /* epsilon */;
+var_decl_list: var_decl var_decl_list |  /* epsilon */;
+funct_list: funct funct_list |  /* epsilon */;
 type_decl: TYPE ID TASSIGN type SEMICOLON;
-type: base_type | ARRAY OPENBRACK INTLIT CLOSEBRACK OF base_type | ID;
-base_type: INT | FLOAT;
+type: base_type                                      # TypeBaseType
+    | ARRAY OPENBRACK INTLIT CLOSEBRACK OF base_type # TypeArray
+    | ID                                             # TypeID
+    ;
+base_type: INT   # BaseTypeInt
+         | FLOAT # BaseTypeFloat
+         ;
 var_decl: storage_class id_list COLON type optional_init SEMICOLON;
-storage_class: VAR | STATIC;
-id_list: ID | ID COMMA id_list;
+storage_class: VAR    # StorageClassVar
+             | STATIC # StorageClassStatic
+             ;
+id_list: ID               # IdListId
+       | ID COMMA id_list # IdList
+       ;
 optional_init: ASSIGN constant |  /* epsilon */ ;
 funct: FUNCTION ID OPENPAREN param_list CLOSEPAREN return_type BEGIN stat_seq END;
 param_list: param param_list_tail |  /* epsilon */ ;
 param_list_tail: COMMA param param_list_tail |  /* epsilon */ ;
 return_type: COLON type |  /* epsilon */ ;
 param: ID COLON type;
-stat_seq: stat | stat stat_seq;
-stat: value ASSIGN expr SEMICOLON
-    | IF expr THEN stat_seq ENDIF SEMICOLON
-    | IF expr THEN stat_seq ELSE stat_seq ENDIF SEMICOLON
-    | WHILE expr DO stat_seq ENDDO SEMICOLON
-    | FOR ID ASSIGN expr TO expr DO stat_seq ENDDO SEMICOLON
-    | opt_prefix ID OPENPAREN expr_list CLOSEPAREN SEMICOLON
-    | BREAK SEMICOLON
-    | RETURN opt_return SEMICOLON
-    | LET decl_seg BEGIN stat_seq END
+stat_seq: stat          # StatSingle
+        | stat stat_seq # StatSeq
+        ;
+stat: value ASSIGN expr SEMICOLON                            # StatAssign
+    | IF expr THEN stat_seq ENDIF SEMICOLON                  # StatIf
+    | IF expr THEN stat_seq ELSE stat_seq ENDIF SEMICOLON    # StatIfElse
+    | WHILE expr DO stat_seq ENDDO SEMICOLON                 # StatWhile
+    | FOR ID ASSIGN expr TO expr DO stat_seq ENDDO SEMICOLON # StatFor
+    | opt_prefix ID OPENPAREN expr_list CLOSEPAREN SEMICOLON # StatFunctionCall
+    | BREAK SEMICOLON                                        # StatBreak
+    | RETURN opt_return SEMICOLON                            # StatReturn
+    | LET decl_seg BEGIN stat_seq END                        # StatLet
     ;
 opt_return: expr |  /* epsilon */ ;
 opt_prefix: value ASSIGN |  /* epsilon */ ;
-expr: constant
-    | value
-    | OPENPAREN expr CLOSEPAREN
-    | <assoc=right> expr POW expr
-    | expr (MULT | DIV) expr
-    | expr (PLUS | MINUS) expr
-    | expr (EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ) expr
-    | expr AND expr
-    | expr OR expr
+expr: constant # ExprConstant
+    | value    # ExprValue
+    | OPENPAREN expr CLOSEPAREN # ExprParen
+    | <assoc=right> expr POW expr # ExprPow
+    | expr (MULT | DIV) expr # ExprMultDiv
+    | expr (PLUS | MINUS) expr # ExprAddSub
+    | expr (EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ) expr # ExprComp
+    | expr AND expr # ExprAnd
+    | expr OR expr # ExporOr
     ;
-constant: INTLIT | FLOATLIT;
+constant: INTLIT # ConstantIntLit
+        | FLOATLIT # ConstantFloatLit
+        ;
 expr_list: expr expr_list_tail |  /* epsilon */ ;
 expr_list_tail: COMMA expr expr_list_tail |  /* epsilon */ ;
 value: ID value_tail;

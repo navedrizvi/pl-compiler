@@ -6,12 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Set;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.MultiMap;
+import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.runtime.tree.*;
 
 public class Tiger {
-
     private static boolean srcFileExists(String fpath) {
         File f = new File(fpath);
         return f.exists();
@@ -86,7 +88,25 @@ public class Tiger {
         lexer.reset();
     }
 
+<<<<<<< HEAD
     public static void main(String[] args) throws Exception {
+=======
+    private static String parseTreeToGraph(TigerParser parser, TigerLexer lexer, ParseTree tree) {
+        ParseTreeWalker walker = new ParseTreeWalker();
+        TigerGraphListener tigerGraphListener = new TigerGraphListener(parser, lexer);
+        walker.walk(tigerGraphListener, tree);
+//        System.out.println(tigerGraphListener.graph.toString());
+        return tigerGraphListener.graph.toDOT();
+    }
+
+    private static void writeGraphToFile(String fileName, String graph) {
+        String outputFile = fileName.replace(".tiger", ".tree.gv");
+        writeFileWithContent(outputFile, graph);
+    }
+
+    public static void main(String[] args) {
+        // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
+>>>>>>> ugul3/graphviz-2
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
@@ -94,7 +114,8 @@ public class Tiger {
 
         /* Ensure args are valid */
         String[] validArgFlags = new String[] {"-l", "-p"};
-        boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 5
+        boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 4
+        boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
 
         // validate first 2 args
         String fileName = args[1];
@@ -123,6 +144,10 @@ public class Tiger {
             if (args[i].equals(("-l"))) {
                 lFlagProvided = true;
             }
+
+            if (args[i].equals(("-p"))) {
+                pFlagProvided = true;
+            }
         }
 
         TigerLexer lexer = getLexer(fileName);
@@ -133,14 +158,31 @@ public class Tiger {
         else {
             checkScannerErrors(lexer);
         }
+<<<<<<< HEAD
 
+=======
+        else {
+            checkScannerErrors(lexer);
+        }
+>>>>>>> ugul3/graphviz-2
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
 
+<<<<<<< HEAD
         ParseTree tree = parser.main(); // Note: this will throw parser error
 
         // System.out.println(tree.toStringTree(parser));
+=======
+        if (pFlagProvided) {
+            ParseTree tree = parser.main(); // Note: this will throw parser error
+            String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
+            writeGraphToFile(fileName, parseTreeAsGraph);
+        }
+        else {
+            parser.main(); // Note: this will throw parser error
+        }
+>>>>>>> ugul3/graphviz-2
 
         System.exit(0); // compiling was successful/no errors encountered
     }

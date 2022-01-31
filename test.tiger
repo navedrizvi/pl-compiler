@@ -1,9 +1,12 @@
-program test
-let 
-var size : int;
+/* Parser test: associativity */
+
+program parse_associativity
+let
 begin
-function main() : int
-begin
-break;
-end
+
+    function main() : int
+    begin
+        return 0;
+    end
+
 end

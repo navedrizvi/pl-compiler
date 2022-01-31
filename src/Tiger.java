@@ -89,8 +89,11 @@ public class Tiger {
         lexer.reset();
     }
 
-    private static String parseTreeToGraph(ParseTree tree) {
-        return "";
+    private static String parseTreeToGraph(TigerParser parser, TigerLexer lexer, ParseTree tree) {
+        ParseTreeWalker walker = new ParseTreeWalker();
+        TigerGraphListener tigerGraphListener = new TigerGraphListener(parser, lexer);
+        walker.walk(tigerGraphListener, tree);
+        return tigerGraphListener.graph.toDOT();
     }
 
     private static void writeGraphToFile(String fileName, String graph) {
@@ -158,7 +161,7 @@ public class Tiger {
 
         if (pFlagProvided) {
             ParseTree tree = parser.main(); // Note: this will throw parser error
-            String parseTreeAsGraph = parseTreeToGraph(tree);
+            String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
 //            StringBuilder buf = new StringBuilder();
 //            buf.append("digraph G {\n");
 //            buf.append("A -> B -> C\n");

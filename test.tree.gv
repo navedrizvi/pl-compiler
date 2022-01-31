@@ -1,0 +1,3 @@
+digraph G {
+main; PROGRAM; ID:parse_associativity; LET; decl_seg; BEGIN; funct_list; END; EOF; type_decl_list; var_decl_list; funct; FUNCTION; ID:main; OPENPAREN; param_list; CLOSEPAREN; return_type; stat_seq; COLON; type; base_type; INT; stat; RETURN; opt_return; SEMICOLON; expr; constant; INTLIT:0; 
+}

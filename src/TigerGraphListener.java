@@ -5,30 +5,26 @@ import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.misc.MultiMap;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TigerGraphListener extends TigerBaseListener {
     static class Graph {
-        Set<String> nodes = new OrderedHashSet<String>(); // list of functions
-        MultiMap<String, String> edges = new MultiMap<String, String>(); // caller->callee
-//        int index = 0;
+        List<String> nodes = new ArrayList<>();
+        MultiMap<String, String> edges = new MultiMap<>(); // caller->callee
 
         public void addEdge(String source, String target) {
             edges.map(source, target);
         }
 
         public void addNode(String node) {
-//            nodes.add(node + index + " [label = \"" + node + "\"]");
             nodes.add(node);
-//            index++;
         }
 
         public String toString() {
-            return "edges: " + edges.toString() + ", functions: " + nodes;
+            return "nodes: " + nodes + "\nedges: " + edges.toString();
         }
 
         public String toDOT() {
@@ -46,7 +42,7 @@ public class TigerGraphListener extends TigerBaseListener {
                     buf.append(" -> ");
                     buf.append(trg);
                     buf.append(";\n");
-                }
+               }
             }
             buf.append("}\n");
             return buf.toString();
@@ -58,8 +54,10 @@ public class TigerGraphListener extends TigerBaseListener {
     String[] ruleNames;
     Vocabulary vocabulary;
     int index;
+    ParseTreeProperty<String> values = new ParseTreeProperty<>();
+    Graph graph = new Graph();
 
-    private final static Set<String> USER_DEFINED_TOKENS = new HashSet<>(Arrays.asList("ID", "INTLIT", "FLOATLINT"));
+    private final static Set<String> USER_DEFINED_TOKENS = new HashSet<>(Arrays.asList("ID", "INTLIT", "FLOATLIT"));
 
     public TigerGraphListener(TigerParser parser, TigerLexer lexer) {
         this.parser = parser;
@@ -69,98 +67,40 @@ public class TigerGraphListener extends TigerBaseListener {
         this.index = 0;
     }
 
-    Graph graph = new Graph();
+    public void setValue(ParseTree node, String value) { values.put(node, value); }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+    public String getValue(ParseTree node) { return values.get(node); }
+
     @Override public void enterEveryRule(ParserRuleContext ctx) {
-        String parentRuleName = ruleNames[ctx.getRuleIndex()];
-        String parentNodeRuleName =  parentRuleName + index;
-        String parentNodeRuleNameWithLabel = parentNodeRuleName  + " [label = \"" + parentRuleName + "\"]";
-        graph.addNode(parentNodeRuleNameWithLabel);
+        String ruleName = ruleNames[ctx.getRuleIndex()];
+        String node =  "node_" + index;
+        String nodeWithLabel = node  + " [label = \"" + ruleName + "\"]";
+        graph.addNode(nodeWithLabel);
+        ParserRuleContext parent = ctx.getParent();
+        // Not a root node
+        if (parent != null) {
+            graph.addEdge(getValue(parent), node);
+        }
+        setValue(ctx, node);
         index++;
-        if (ctx.children == null ) {
-            return;
-        }
-
-//        System.out.println(ctx.children);
-        for (ParseTree child: ctx.children) {
-            Object payload = child.getPayload();
-            if (child.getPayload() instanceof ParserRuleContext) {
-                RuleContext ruleContext = (ParserRuleContext) payload;
-                String ruleName = ruleNames[(ruleContext).getRuleIndex()];
-                String nodeRuleName =  ruleName + index;
-                String nodeRuleNameWithLabel = nodeRuleName  + " [label = \"" + ruleName + "\"]";
-               // index++;
-                graph.addNode(nodeRuleNameWithLabel);
-                graph.addEdge(parentNodeRuleName, nodeRuleName);
-            }
-            else {
-                Token token = (Token) payload;
-                String symbol = vocabulary.getSymbolicName(token.getType());
-                String tokenName = null;
-                String nodeTokenName = null;
-                String nodeTokenNameWithLabel = null;
-                if (USER_DEFINED_TOKENS.contains(symbol)) {
-                    tokenName = "\"" + symbol + ":" + token.getText() + "\"";
-                    nodeTokenName = "\"" + symbol + ":" + token.getText() + index + "\"";;
-                    nodeTokenNameWithLabel = nodeTokenName + " [label = \"" + tokenName.replace("\"", "") + "\"]";
-                }
-                else {
-                    tokenName = symbol;
-                    nodeTokenName = symbol + index;
-                    nodeTokenNameWithLabel = nodeTokenName + " [label = \"" + tokenName + "\"]";
-                }
-                //index++;
-                graph.addNode(nodeTokenNameWithLabel);
-                graph.addEdge(parentNodeRuleName, nodeTokenName);
-            }
-        }
     }
 
-    @Override public void exitEveryRule(ParserRuleContext ctx) {
-        if (index == 0)
-            return;
-        index--;
+    @Override public void visitTerminal(TerminalNode terminalNode) {
+        Token token = terminalNode.getSymbol();
+        ParseTree parent = terminalNode.getParent();
+        String symbol = vocabulary.getSymbolicName(token.getType());
+        String node =  "node_" + index;
+        String tokenName = null;
+        if (USER_DEFINED_TOKENS.contains(symbol)) {
+            tokenName = symbol + ":" + token.getText();
+        }
+        else {
+            tokenName = symbol;
+        }
+        String nodeWithLabel = node + " [label = \"" + tokenName + "\"]";
+        graph.addNode(nodeWithLabel);
+        // Parent of a terminal node will be a rule (type: ParserRuleContext)
+        graph.addEdge(getValue(((ParserRuleContext) parent.getPayload())), node);
+        index++;
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-//    @Override public void exitEveryRule(ParserRuleContext ctx) {
-//        String ruleName = ruleNames[ctx.getRuleIndex()];
-//        System.out.println("At exit for: " + ruleName);
-//        ParserRuleContext parentCtx = ctx.getParent();
-//        if (parentCtx == null) {
-//            System.out.println("Node " + ruleName + " is root");
-//            return;
-//        }
-//        String parent = ruleNames[parentCtx.getRuleIndex()];
-//        System.out.println("exitEveryRule: " + parent + " " + ruleName);
-//        graph.addEdge(parent, ruleName);
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     *
-//     * <p>The default implementation does nothing.</p>
-//     */
-//    @Override public void visitTerminal(TerminalNode node) {
-//        Token token = node.getSymbol();
-//        ParseTree parent = node.getParent();
-//        String symbol = vocabulary.getSymbolicName(token.getType());
-//        String tokenName = null;
-//        if (USER_DEFINED_TOKENS.contains(symbol))
-//            tokenName = "\"" + symbol + ":" + token.getText() + "\"";
-//        else
-//            tokenName = symbol;
-//        System.out.println("visitTerminal: " + ruleNames[((ParserRuleContext) parent.getPayload()).getRuleIndex()] + " " + tokenName);
-//        graph.addEdge(ruleNames[((ParserRuleContext) parent.getPayload()).getRuleIndex()], tokenName);
-//    }
-
 }

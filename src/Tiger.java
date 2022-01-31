@@ -163,10 +163,6 @@ public class Tiger {
         if (pFlagProvided) {
             ParseTree tree = parser.main(); // Note: this will throw parser error
             String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
-//            StringBuilder buf = new StringBuilder();
-//            buf.append("digraph G {\n");
-//            buf.append("A -> B -> C\n");
-//            buf.append("}\n");
             writeGraphToFile(fileName, parseTreeAsGraph);
         }
         else {

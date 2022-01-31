@@ -93,6 +93,7 @@ public class Tiger {
         ParseTreeWalker walker = new ParseTreeWalker();
         TigerGraphListener tigerGraphListener = new TigerGraphListener(parser, lexer);
         walker.walk(tigerGraphListener, tree);
+//        System.out.println(tigerGraphListener.graph.toString());
         return tigerGraphListener.graph.toDOT();
     }
 

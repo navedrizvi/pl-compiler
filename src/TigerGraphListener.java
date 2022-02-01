@@ -1,9 +1,7 @@
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.misc.MultiMap;
-import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -78,9 +76,9 @@ public class TigerGraphListener extends TigerBaseListener {
         graph.addNode(nodeWithLabel);
         ParserRuleContext parent = ctx.getParent();
         // Not a root node
-        if (parent != null) {
+        if (parent != null)
             graph.addEdge(getValue(parent), node);
-        }
+
         setValue(ctx, node);
         index++;
     }
@@ -91,12 +89,11 @@ public class TigerGraphListener extends TigerBaseListener {
         String symbol = vocabulary.getSymbolicName(token.getType());
         String node =  "node_" + index;
         String tokenName = null;
-        if (USER_DEFINED_TOKENS.contains(symbol)) {
+        if (USER_DEFINED_TOKENS.contains(symbol))
             tokenName = symbol + ":" + token.getText();
-        }
-        else {
+        else
             tokenName = symbol;
-        }
+
         String nodeWithLabel = node + " [label = \"" + tokenName + "\"]";
         graph.addNode(nodeWithLabel);
         // Parent of a terminal node will be a rule (type: ParserRuleContext)

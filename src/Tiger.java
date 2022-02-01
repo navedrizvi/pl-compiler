@@ -6,11 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Set;
 
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.MultiMap;
-import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.runtime.tree.*;
 
 public class Tiger {
@@ -61,9 +58,8 @@ public class Tiger {
     private static void checkScannerErrors(TigerLexer lexer) {
         while (true) {
             Token token = lexer.nextToken();
-            if (token.getType() == Token.EOF) {
+            if (token.getType() == Token.EOF)
                 break;
-            }
         }
         lexer.reset();
     }
@@ -77,25 +73,19 @@ public class Tiger {
         String tokenFileToCreateContent = "";
         while (true) {
             Token token = lexer.nextToken();
-            if (token.getType() == Token.EOF) {
+            if (token.getType() == Token.EOF)
                 break;
-            }
             String tokenTupleStr = "<" + TigerLexer.VOCABULARY.getSymbolicName(token.getType()) + "," + " \"" + token.getText() + "\">\n";
-            // System.out.println(tokenTupleStr); // for debugging
             tokenFileToCreateContent += tokenTupleStr;
         }
         writeFileWithContent(tokenFileToCreateFname, tokenFileToCreateContent);
         lexer.reset();
     }
 
-<<<<<<< HEAD
-    public static void main(String[] args) throws Exception {
-=======
     private static String parseTreeToGraph(TigerParser parser, TigerLexer lexer, ParseTree tree) {
         ParseTreeWalker walker = new ParseTreeWalker();
         TigerGraphListener tigerGraphListener = new TigerGraphListener(parser, lexer);
         walker.walk(tigerGraphListener, tree);
-//        System.out.println(tigerGraphListener.graph.toString());
         return tigerGraphListener.graph.toDOT();
     }
 
@@ -106,7 +96,6 @@ public class Tiger {
 
     public static void main(String[] args) {
         // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
->>>>>>> ugul3/graphviz-2
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
@@ -141,48 +130,30 @@ public class Tiger {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
             }
-            if (args[i].equals(("-l"))) {
+            if (args[i].equals(("-l")))
                 lFlagProvided = true;
-            }
 
-            if (args[i].equals(("-p"))) {
+            if (args[i].equals(("-p")))
                 pFlagProvided = true;
-            }
         }
 
         TigerLexer lexer = getLexer(fileName);
 
-        if (lFlagProvided) {
+        if (lFlagProvided)
             writeTokenFile(lexer, fileName); // also checks for scanner errors
-        }
-        else {
+        else
             checkScannerErrors(lexer);
-        }
-<<<<<<< HEAD
-
-=======
-        else {
-            checkScannerErrors(lexer);
-        }
->>>>>>> ugul3/graphviz-2
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        TigerParser parser = getTigerParser(tokens); //new TigerParser((TokenStream) tokens);
+        TigerParser parser = getTigerParser(tokens);
 
-<<<<<<< HEAD
-        ParseTree tree = parser.main(); // Note: this will throw parser error
-
-        // System.out.println(tree.toStringTree(parser));
-=======
         if (pFlagProvided) {
             ParseTree tree = parser.main(); // Note: this will throw parser error
             String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
             writeGraphToFile(fileName, parseTreeAsGraph);
         }
-        else {
+        else
             parser.main(); // Note: this will throw parser error
-        }
->>>>>>> ugul3/graphviz-2
 
         System.exit(0); // compiling was successful/no errors encountered
     }

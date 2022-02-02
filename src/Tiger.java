@@ -133,7 +133,7 @@ public class Tiger {
             if (args[i].equals(("-l")))
                 lFlagProvided = true;
 
-            if (args[i].equals(("-p")))
+           else if (args[i].equals(("-p")))
                 pFlagProvided = true;
         }
 
@@ -141,19 +141,17 @@ public class Tiger {
 
         if (lFlagProvided)
             writeTokenFile(lexer, fileName); // also checks for scanner errors
-        else
-            checkScannerErrors(lexer);
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        TigerParser parser = getTigerParser(tokens);
-
-        if (pFlagProvided) {
+        else if (pFlagProvided) {
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            TigerParser parser = getTigerParser(tokens);
             ParseTree tree = parser.main(); // Note: this will throw parser error
             String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
             writeGraphToFile(fileName, parseTreeAsGraph);
         }
-        else
-            parser.main(); // Note: this will throw parser error
+        else {
+            System.out.println("No action required.");
+        }
 
         System.exit(0); // compiling was successful/no errors encountered
     }

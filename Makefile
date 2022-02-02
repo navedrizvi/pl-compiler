@@ -3,7 +3,7 @@ BUILD_DIR := build
 COMPILER_JAR := tigerc.jar
 GRAMMAR := Tiger.g4
 JAR_DIR := cs8803_bin
-MAIN_CLASS_NAME := Main
+MAIN_CLASS_NAME := Tiger
 
 ANTLR_JAVA_FILES := \
 	src/TigerBaseListener.java \
@@ -24,10 +24,11 @@ ANTLR_LIBS := \
 	$(BUILD_DIR)/javax \
 	$(BUILD_DIR)/org
 
-SOURCES := \ 
-	src/Foo.java \
-	src/Bar.java \
-	src/Main.java
+SOURCES := \
+	src/Tiger.java \
+	src/TigerGraphListener.java \
+	src/LexicalErrorListener.java \
+	src/ParserErrorListener.java
 
 .PHONY:
 all: $(COMPILER_JAR)
@@ -38,6 +39,7 @@ $(COMPILER_JAR): $(SOURCES) $(ANTLR_JAVA_FILES) $(ANTLR_LIBS)
 	$(ANTLR_JAVA_FILES)
 	@cd $(BUILD_DIR) && jar cfe ../$(JAR_DIR)/$(COMPILER_JAR) \
 	$(MAIN_CLASS_NAME) *.class org javax && cd ..
+	@chmod a+rx $(JAR_DIR)/$(COMPILER_JAR)
 
 $(ANTLR_JAVA_FILES): $(GRAMMAR)
 	@java -jar $(ANTLR) -o src -visitor $(GRAMMAR)
@@ -46,7 +48,8 @@ $(ANTLR_LIBS):
 	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && jar xf $(ANTLR) && cd .. @rm -rf $(BUILD_DIR)/META-INF
 
-.PHONY: clean:
+.PHONY:
+clean:
 	@rm -f $(JAR_DIR)/$(COMPILER_JAR) $(ANTLR_FILES) \
 	$(BUILD_DIR)/*.class
 	@rm -rf $(ANTLR_LIBS)

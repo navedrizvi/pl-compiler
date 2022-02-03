@@ -184,6 +184,7 @@ public class Tiger {
             writeTokenFile(lexer, fileName); // also checks for scanner errors
 
         else if (pFlagProvided) {
+            checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
             ParseTree tree = parser.main(); // Note: this will throw parser error

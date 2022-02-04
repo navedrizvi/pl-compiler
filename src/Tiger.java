@@ -94,47 +94,88 @@ public class Tiger {
         writeFileWithContent(outputFile, graph);
     }
 
+    private static int getIFlagIdx(String[] args) {
+        /* Returns -1 if there are more that one or none "-i" in @args, if there is just 1 "-i" in args, returns its index */
+        int n = 0;
+        int i = 0;
+        for (String arg: args) {
+            if (arg.equals("-i")) {
+                n+=1;
+            }
+        }
+        for (; i < args.length; i++) {
+            if (args[i].equals("-i")) {
+                break;
+            }
+        }
+        if (n == 1) { // we've verified -i exists only once
+            return i;
+        }
+        else if (n==0) { // -i is not provided
+            return -1;
+        }
+        else {
+            return -1;
+        }
+    }
+
     public static void main(String[] args) {
-        // TODO should we print descriptive error messages before error exit? we are right now for sake of debugging
+        // Validate args length
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
+        else if (args.length > 4) {
+            System.out.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/source>' are supported)");
+            System.exit(1); // Error in program arguments
+        }
 
         /* Ensure args are valid */
-        String[] validArgFlags = new String[] {"-l", "-p"};
         boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 4
         boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
 
-        // validate first 2 args
-        String fileName = args[1];
-        if (!args[0].equals("-i")) {
+        // assert -i and filename provided somewhere //
+        String fileName = "";
+        if (!Arrays.asList(args).contains("-i")) {
             System.out.println("Error in program arguments: necessary arg -i not provided");
             System.exit(1); // Error in program arguments: necessary arg not provided.
         }
+
+        int iIdx = getIFlagIdx(args);
+        if (iIdx == -1){
+            System.out.println("Error in program arguments: -i must be specified only once");
+            System.exit(1); // Error in program arguments: duplicate "-i"
+        }
         else {
-            // if -i arg, check the next arg is presumably the source tiger file
-            if (!fileName.endsWith(".tiger")) {
+            // validate filename
+            int fileNameIdx = iIdx + 1;
+            if (!args[fileNameIdx].endsWith(".tiger")) {
                 System.out.println("Error in program arguments: file doesn't end with '.tiger'");
-                System.exit(1); // Error in program arguments: file doesn't end with '.tiger'. TODO confirm this is correct error to throw
+                System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
             }
-            else if (!srcFileExists(fileName)) {
+            else if (!srcFileExists(args[fileNameIdx])) {
                 System.out.println("Error in program arguments: source file not found");
                 System.exit(1); // Error in program arguments: source file not found
             }
+            else {
+                fileName = args[fileNameIdx];
+            }
         }
 
-        // start from 3rd idx b/c first 2 args are verified
-        for (int i=2; i < args.length; i++) {
-            if (!Arrays.asList(validArgFlags).contains(args[i])) {
+        // validate optional flags //
+        for (int i=0; i < args.length; i++) {
+            if (args[i].equals(("-i"))) {
+                // assuming thing after -i is filename; validation is done above
+                i += 1;
+            }
+            else if (args[i].equals(("-l")))
+                lFlagProvided = true;
+            else if (args[i].equals(("-p")))
+                pFlagProvided = true;
+            else {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
             }
-            if (args[i].equals(("-l")))
-                lFlagProvided = true;
-
-           else if (args[i].equals(("-p")))
-                pFlagProvided = true;
         }
 
         TigerLexer lexer = getLexer(fileName);
@@ -143,6 +184,7 @@ public class Tiger {
             writeTokenFile(lexer, fileName); // also checks for scanner errors
 
         else if (pFlagProvided) {
+            checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
             ParseTree tree = parser.main(); // Note: this will throw parser error

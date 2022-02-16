@@ -133,6 +133,7 @@ public class Tiger {
         /* Ensure args are valid */
         boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 4
         boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
+        boolean stFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         String fileName = "";
@@ -172,6 +173,8 @@ public class Tiger {
                 lFlagProvided = true;
             else if (args[i].equals(("-p")))
                 pFlagProvided = true;
+            else if (args[i].equals(("--st")))
+                stFlagProvided = true;
             else {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -190,6 +193,15 @@ public class Tiger {
             ParseTree tree = parser.main(); // Note: this will throw parser error
             String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
             writeGraphToFile(fileName, parseTreeAsGraph);
+        }
+        else if (stFlagProvided) {
+            checkScannerErrors(lexer); // checks for scanner errors
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            TigerParser parser = getTigerParser(tokens);
+            ParseTree tree = parser.main();
+            ParseTreeWalker walker = new ParseTreeWalker();
+            TigerSTListener tigerSTListener = new TigerSTListener();
+            walker.walk(tigerSTListener, tree);
         }
         else {
             System.out.println("No action required.");

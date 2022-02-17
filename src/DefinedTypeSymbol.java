@@ -11,4 +11,8 @@ public class DefinedTypeSymbol extends Symbol {
     public String getBuiltInType() {
         return builtInType;
     }
+
+    public String toString() {
+        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + builtInType + ">";
+    }
 }

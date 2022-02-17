@@ -202,6 +202,7 @@ public class Tiger {
             ParseTreeWalker walker = new ParseTreeWalker();
             TigerSTListener tigerSTListener = new TigerSTListener();
             walker.walk(tigerSTListener, tree);
+            System.out.println(tigerSTListener.getST().getST());
         }
         else {
             System.out.println("No action required.");

@@ -1,19 +1,13 @@
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.Vocabulary;
-import org.antlr.v4.runtime.misc.MultiMap;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.ErrorNode;
-
-import java.util.*;
 
 public class TigerSTListener extends TigerBaseListener {
 
     private int level = -1;
     private SymbolTable st;
     private SymbolTable currentST;
+    private Symbol.Scope currentScope;
 
     public SymbolTable getST() {
         return st;
@@ -21,7 +15,7 @@ public class TigerSTListener extends TigerBaseListener {
 
     private void initializeScope() {
         level++;
-        st = new SymbolTable(level);
+        st = new SymbolTable(level, currentScope);
         if (level != 0)
             st.setParent(currentST);
         currentST = st;
@@ -29,7 +23,7 @@ public class TigerSTListener extends TigerBaseListener {
 
     private void finalizeScope() {
         level--;
-        if (level != 0)
+        if (level > 0)
             currentST = st.getParent();
     }
 
@@ -38,19 +32,26 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterMain(TigerParser.MainContext ctx) { }
+    @Override public void enterMain(TigerParser.MainContext ctx) {
+        currentScope = Symbol.Scope.GLOBAL;
+        initializeScope();
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitMain(TigerParser.MainContext ctx) { }
+    @Override public void exitMain(TigerParser.MainContext ctx) {
+        finalizeScope();
+        currentScope = currentST.getScope();
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterDecl_seg(TigerParser.Decl_segContext ctx) { }
+    @Override public void enterDecl_seg(TigerParser.Decl_segContext ctx) {
+    }
     /**
      * {@inheritDoc}
      *
@@ -134,7 +135,9 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) { }
+    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) {
+
+    }
     /**
      * {@inheritDoc}
      *
@@ -170,7 +173,40 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterVar_decl(TigerParser.Var_declContext ctx) { }
+    @Override public void enterVar_decl(TigerParser.Var_declContext ctx) {
+        String storageClass = ctx.storage_class().getText();
+        VariableSymbol.StorageClass storageClassForSymbol = VariableSymbol.StorageClass.VAR;
+        if (currentScope == Symbol.Scope.GLOBAL) {
+            if (storageClass != "static") {
+                // raise exception
+            }
+            storageClassForSymbol = VariableSymbol.StorageClass.STATIC;
+        }
+
+        if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
+            System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
+            String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
+            String type = ctx.type().getText();
+            System.out.println(type);
+            currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
+        }
+        else {
+            TigerParser.IdListContext temp = (TigerParser.IdListContext) ctx.id_list();
+            String name;
+            while (true) {
+                System.out.println(temp.ID());
+                name = temp.ID().getText();
+                currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
+                if (temp.id_list() instanceof TigerParser.IdListIdContext) {
+                    System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
+                    name = ((TigerParser.IdListIdContext) temp.id_list()).ID().getText();
+                    currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
+                    break;
+                }
+                temp = (TigerParser.IdListContext) temp.id_list();
+            }
+        }
+    }
     /**
      * {@inheritDoc}
      *
@@ -206,7 +242,9 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterIdListId(TigerParser.IdListIdContext ctx) { }
+    @Override public void enterIdListId(TigerParser.IdListIdContext ctx) {
+//        System.out.println(ctx.ID());
+    }
     /**
      * {@inheritDoc}
      *
@@ -218,7 +256,8 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterIdList(TigerParser.IdListContext ctx) { }
+    @Override public void enterIdList(TigerParser.IdListContext ctx) {
+    }
     /**
      * {@inheritDoc}
      *

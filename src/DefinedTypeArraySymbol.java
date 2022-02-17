@@ -11,4 +11,8 @@ public class DefinedTypeArraySymbol extends DefinedTypeSymbol {
     public int getDimension() {
         return dimension;
     }
+
+    public String toString() {
+        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + super.getBuiltInType() + "[" + dimension + "]" + ">";
+    }
 }

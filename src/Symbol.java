@@ -44,4 +44,8 @@ public abstract class Symbol {
     public Scope getScope() {
         return scope;
     }
+
+    public String toString() {
+        return "<" + name + " " + type + " " + scope + ">";
+    }
 }

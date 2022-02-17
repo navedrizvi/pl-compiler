@@ -15,4 +15,8 @@ public class VariableSymbol extends Symbol {
     public StorageClass getStorageClass() {
         return storageClass;
     }
+
+    public String toString() {
+        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + storageClass + ">";
+    }
 }

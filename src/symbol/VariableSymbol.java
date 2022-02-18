@@ -1,6 +1,7 @@
+package symbol;
 
 public class VariableSymbol extends Symbol {
-    enum StorageClass {
+    public enum StorageClass {
         VAR,
         STATIC
     }

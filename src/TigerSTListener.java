@@ -1,5 +1,10 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import symbol.Symbol;
+import symbol.SymbolTable;
+import symbol.VariableSymbol;
+
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 public class TigerSTListener extends TigerBaseListener {

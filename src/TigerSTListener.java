@@ -281,13 +281,20 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterFunct(TigerParser.FunctContext ctx) { }
+    @Override public void enterFunct(TigerParser.FunctContext ctx) {
+        initializeScope();
+    }
+    
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitFunct(TigerParser.FunctContext ctx) { }
+    @Override public void exitFunct(TigerParser.FunctContext ctx) {
+        finalizeScope();
+        //TODO refactor calls
+        System.out.println(getST().getST().toString());
+    }
     /**
      * {@inheritDoc}
      *

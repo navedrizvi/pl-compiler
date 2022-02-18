@@ -10,17 +10,17 @@ import java.nio.file.StandardOpenOption;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-public class Tiger {
+public class TigerCompiler {
     private static boolean srcFileExists(String fpath) {
         File f = new File(fpath);
         return f.exists();
     }
 
-    private static void writeFileWithContent(String fpath, String contents) {
+    private static void writeFileWithContent(String fpath, String content) {
         // File destination = new File(fpath);
         Path targetPath = Paths.get(fpath);
         try {
-            Files.write(targetPath, contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+            Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
             System.out.println("Error in creating new file"); 
             // minor TODO what error to return here, or silently exit?
@@ -63,7 +63,6 @@ public class Tiger {
         }
         lexer.reset();
     }
-
 
     private static void writeTokenFile(TigerLexer lexer, String fileName) {
         /* Req 4: When the -l flag is provided, write the stream of tokens to a file. The output file should have the same name and path as the input file with the extension changed to .tokens. Output one tuple per line using the syntax <token type, "token value">.
@@ -143,7 +142,7 @@ public class Tiger {
         }
 
         int iIdx = getIFlagIdx(args);
-        if (iIdx == -1){
+        if (iIdx == -1) {
             System.out.println("Error in program arguments: -i must be specified only once");
             System.exit(1); // Error in program arguments: duplicate "-i"
         }
@@ -185,7 +184,6 @@ public class Tiger {
 
         if (lFlagProvided)
             writeTokenFile(lexer, fileName); // also checks for scanner errors
-
         else if (pFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);

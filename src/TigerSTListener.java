@@ -12,10 +12,11 @@ public class TigerSTListener extends TigerBaseListener {
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
     private List<SymbolTable> stAsList = new ArrayList<>();
+    private List<SemanticError> errors = new ArrayList<>();
 
-    public SymbolTable getST() {
-        return st;
-    }
+    public SymbolTable getST() { return st; }
+
+    public List<SemanticError> getErrors() { return errors; }
 
     public List<SymbolTable> getSTAsList() { return stAsList; }
 
@@ -221,6 +222,14 @@ public class TigerSTListener extends TigerBaseListener {
             Symbol lookUp = currentST.lookUp(name);
             if (lookUp != null) {
                 // collect error during ST step
+//                System.out.println(ctx.);
+                errors.add(
+                    new SemanticError(
+                            ctx.id_list().getStart().getLine(),
+                            ctx.id_list().getStart().getCharPositionInLine(),
+                            "Variable '" + name + "' is already defined in the scope"
+                    )
+                );
             }
             currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
         }
@@ -234,6 +243,13 @@ public class TigerSTListener extends TigerBaseListener {
                 lookUp = currentST.lookUp(name);
                 if (lookUp != null) {
                     // collect error during ST step
+                    errors.add(
+                            new SemanticError(
+                                    ctx.id_list().getStart().getLine(),
+                                    ctx.id_list().getStart().getCharPositionInLine(),
+                                    "Variable '" + name + "' is already defined in the scope"
+                            )
+                    );
                 }
                 currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
                 if (temp.id_list() instanceof TigerParser.IdListIdContext) {
@@ -242,6 +258,13 @@ public class TigerSTListener extends TigerBaseListener {
                     lookUp = currentST.lookUp(name);
                     if (lookUp != null) {
                         // collect error during ST step
+                        errors.add(
+                                new SemanticError(
+                                        ctx.id_list().getStart().getLine(),
+                                        ctx.id_list().getStart().getCharPositionInLine(),
+                                        "Variable '" + name + "' is already defined in the scope"
+                                )
+                        );
                     }
                     currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
                     break;

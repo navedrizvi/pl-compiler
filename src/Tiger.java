@@ -232,6 +232,14 @@ public class Tiger {
             ParseTreeWalker walker = new ParseTreeWalker();
             TigerSTListener tigerSTListener = new TigerSTListener();
             walker.walk(tigerSTListener, tree);
+            List<SemanticError> errors = tigerSTListener.getErrors();
+            if (errors.size() > 0) {
+                System.out.println("Semantic errors found:");
+                for (SemanticError error : errors) {
+                    System.out.println(error);
+                }
+                System.exit(4);
+            }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
             writeSTToFile(fileName, stAsList);
         }

@@ -2,28 +2,35 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.ErrorNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TigerSTListener extends TigerBaseListener {
 
     private int level = -1;
     private SymbolTable st;
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
+    private List<SymbolTable> stAsList = new ArrayList<>();
 
     public SymbolTable getST() {
         return st;
     }
 
+    public List<SymbolTable> getSTAsList() { return stAsList; }
+
     private void initializeScope() {
         level++;
         st = new SymbolTable(level, currentScope);
-        if (level != 0)
+        stAsList.add(st);
+        if (level > 0)
             st.setParent(currentST);
         currentST = st;
     }
 
     private void finalizeScope() {
         level--;
-        if (level > 0)
+        if (level > -1)
             currentST = st.getParent();
     }
 
@@ -99,7 +106,32 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterType_decl(TigerParser.Type_declContext ctx) { }
+    @Override public void enterType_decl(TigerParser.Type_declContext ctx) {
+        // Should we collect error if type is repeated in same scope?
+        System.out.println("enterType_decl");
+        String name = ctx.ID().getText();
+        TigerParser.TypeContext typeContext = ctx.type();
+        String type;
+        Symbol symbol;
+        if (typeContext instanceof TigerParser.TypeBaseTypeContext) {
+            // TypeBaseType
+            type = typeContext.getText();
+            symbol = new DefinedTypeSymbol(name, ctx.TYPE().getText(), currentScope, type);
+        }
+        else if (typeContext instanceof TigerParser.TypeArrayContext) {
+            // TypeArray
+            type = ((TigerParser.TypeArrayContext) typeContext).base_type().getText();
+            int dimension = Integer.parseInt(((TigerParser.TypeArrayContext) typeContext).INTLIT().getText());
+            symbol = new DefinedTypeArraySymbol(name, ctx.TYPE().getText(), currentScope, type, dimension);
+        }
+        else {
+            // TypeID
+            type = typeContext.getText();
+            symbol = new DefinedTypeSymbol(name, ctx.TYPE().getText(), currentScope, type);
+        }
+//        System.out.println(symbol);
+        currentST.insert(name, symbol);
+    }
     /**
      * {@inheritDoc}
      *
@@ -178,28 +210,39 @@ public class TigerSTListener extends TigerBaseListener {
         VariableSymbol.StorageClass storageClassForSymbol = VariableSymbol.StorageClass.VAR;
         if (currentScope == Symbol.Scope.GLOBAL) {
             if (storageClass != "static") {
-                // raise exception
+                // collect error
             }
             storageClassForSymbol = VariableSymbol.StorageClass.STATIC;
         }
 
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
-            System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
+            //System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
             String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
-            String type = ctx.type().getText();
-            System.out.println(type);
+            Symbol lookUp = currentST.lookUp(name);
+            if (lookUp != null) {
+                // collect error during ST step
+            }
             currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
         }
         else {
             TigerParser.IdListContext temp = (TigerParser.IdListContext) ctx.id_list();
             String name;
+            Symbol lookUp;
             while (true) {
-                System.out.println(temp.ID());
+               // System.out.println(temp.ID());
                 name = temp.ID().getText();
+                lookUp = currentST.lookUp(name);
+                if (lookUp != null) {
+                    // collect error during ST step
+                }
                 currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
                 if (temp.id_list() instanceof TigerParser.IdListIdContext) {
-                    System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
+                    //System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
                     name = ((TigerParser.IdListIdContext) temp.id_list()).ID().getText();
+                    lookUp = currentST.lookUp(name);
+                    if (lookUp != null) {
+                        // collect error during ST step
+                    }
                     currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
                     break;
                 }
@@ -461,13 +504,19 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterStatLet(TigerParser.StatLetContext ctx) { }
+    @Override public void enterStatLet(TigerParser.StatLetContext ctx) {
+        currentScope = Symbol.Scope.LET;
+        initializeScope();
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitStatLet(TigerParser.StatLetContext ctx) { }
+    @Override public void exitStatLet(TigerParser.StatLetContext ctx) {
+        finalizeScope();
+        currentScope = currentST.getScope();
+    }
     /**
      * {@inheritDoc}
      *

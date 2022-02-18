@@ -45,6 +45,10 @@ public abstract class Symbol {
         return scope;
     }
 
+    public String toFormattedString() {
+        return name + ", " + type;
+    }
+
     public String toString() {
         return "<" + name + " " + type + " " + scope + ">";
     }

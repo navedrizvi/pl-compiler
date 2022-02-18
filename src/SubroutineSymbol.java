@@ -16,6 +16,10 @@ public class SubroutineSymbol extends Symbol {
         return returnType;
     }
 
+    public String toFormattedString() {
+        return super.getName() + ", " + super.getType() + ", " + returnType;
+    }
+
     public String toString() {
         return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + args + " " + returnType + ">";
     }

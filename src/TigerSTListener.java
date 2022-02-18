@@ -108,9 +108,18 @@ public class TigerSTListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterType_decl(TigerParser.Type_declContext ctx) {
-        // Should we collect error if type is repeated in same scope?
-        System.out.println("enterType_decl");
         String name = ctx.ID().getText();
+        Symbol lookUp = currentST.lookUp(name);
+        if (lookUp != null) {
+            System.out.println(ctx.getStart().getLine());
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "Type '" + name + "' is already defined in the scope"
+                    )
+            );
+        }
         TigerParser.TypeContext typeContext = ctx.type();
         String type;
         Symbol symbol;
@@ -208,12 +217,30 @@ public class TigerSTListener extends TigerBaseListener {
      */
     @Override public void enterVar_decl(TigerParser.Var_declContext ctx) {
         String storageClass = ctx.storage_class().getText();
-        VariableSymbol.StorageClass storageClassForSymbol = VariableSymbol.StorageClass.VAR;
-        if (currentScope == Symbol.Scope.GLOBAL) {
-            if (storageClass != "static") {
-                // collect error
-            }
+        VariableSymbol.StorageClass storageClassForSymbol;
+        if (storageClass.equals("static"))
             storageClassForSymbol = VariableSymbol.StorageClass.STATIC;
+        else
+            storageClassForSymbol = VariableSymbol.StorageClass.VAR;
+
+        if (currentScope == Symbol.Scope.GLOBAL && storageClassForSymbol == VariableSymbol.StorageClass.VAR) {
+            errors.add(
+                new SemanticError(
+                        ctx.storage_class().getStart().getLine(),
+                        ctx.storage_class().getStart().getCharPositionInLine(),
+                        "Variable(s) in scope must be declared as static"
+                )
+            );
+        }
+
+        if (currentScope == Symbol.Scope.LET && storageClassForSymbol == VariableSymbol.StorageClass.STATIC) {
+            errors.add(
+                    new SemanticError(
+                            ctx.storage_class().getStart().getLine(),
+                            ctx.storage_class().getStart().getCharPositionInLine(),
+                            "Variable(s) in scope must be declared as var"
+                    )
+            );
         }
 
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {

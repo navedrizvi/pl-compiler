@@ -25,12 +25,10 @@ public abstract class Symbol {
     //    }
 
     private String name;
-    private String type;
     private Scope scope;
 
-    public Symbol(String name, String type, Scope scope) {
+    public Symbol(String name, Scope scope) {
         this.name = name;
-        this.type = type;
         this.scope = scope;
     }
 
@@ -38,19 +36,15 @@ public abstract class Symbol {
         return name;
     }
 
-    public String getType() {
-        return type;
-    }
-
     public Scope getScope() {
         return scope;
     }
 
     public String toFormattedString() {
-        return name + ", " + type;
+        return name;
     }
 
     public String toString() {
-        return "<" + name + " " + type + " " + scope + ">";
+        return "<" + name + " " + scope + ">";
     }
 }

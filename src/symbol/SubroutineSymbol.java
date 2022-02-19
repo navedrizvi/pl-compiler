@@ -8,7 +8,7 @@ public class SubroutineSymbol extends Symbol {
     private Map<String, String> args = new LinkedHashMap<>();
 
     public SubroutineSymbol(String name, String type, Scope scope, Map<String, String> args, String returnType) {
-        super(name, type, scope);
+        super(name, scope);
         this.args = args;
         this.returnType = returnType;
     }
@@ -18,10 +18,10 @@ public class SubroutineSymbol extends Symbol {
     }
 
     public String toFormattedString() {
-        return super.getName() + ", " + super.getType() + ", " + returnType;
+        return super.getName() + ", " + ", " + returnType;
     }
 
     public String toString() {
-        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + args + " " + returnType + ">";
+        return "<" + super.getName() + " " + super.getScope() + " " + args + " " + returnType + ">";
     }
 }

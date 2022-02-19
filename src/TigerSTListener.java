@@ -430,8 +430,7 @@ public class TigerSTListener extends TigerBaseListener {
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         finalizeScope();
         // handle if it enters a function expression (recursive call)
-        // ok to exit from parent calls since this is symbol table generation
-        while (currentST.getScope() != Symbol.Scope.GLOBAL) {
+        if (currentST.getParent() != null) {
             currentST = currentST.getParent();
         }
         currentScope = currentST.getScope();

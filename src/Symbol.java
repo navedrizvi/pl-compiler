@@ -1,5 +1,3 @@
-package symbol;
-
 public abstract class Symbol {
 
     /* Symbols to include:

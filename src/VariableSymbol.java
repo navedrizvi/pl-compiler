@@ -1,5 +1,3 @@
-package symbol;
-
 public class VariableSymbol extends Symbol {
     public enum StorageClass {
         VAR,

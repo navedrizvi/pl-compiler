@@ -27,8 +27,16 @@ ANTLR_LIBS := \
 SOURCES := \
 	src/Tiger.java \
 	src/TigerGraphListener.java \
+	src/TigerSTListener.java \
 	src/LexicalErrorListener.java \
-	src/ParserErrorListener.java
+	src/ParserErrorListener.java \
+	src/SemanticError.java \
+	src/SymbolTable.java \
+	src/Symbol.java \
+	src/SubroutineSymbol.java \
+	src/DefinedTypeArraySymbol.java \
+	src/DefinedTypeSymbol.java \
+	src/VariableSymbol.java
 
 .PHONY:
 all: $(COMPILER_JAR)

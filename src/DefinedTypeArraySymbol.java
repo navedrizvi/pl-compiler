@@ -1,5 +1,3 @@
-package symbol;
-
 public class DefinedTypeArraySymbol extends DefinedTypeSymbol {
 
     private int dimension;

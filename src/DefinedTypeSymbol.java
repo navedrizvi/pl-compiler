@@ -1,4 +1,3 @@
-package symbol;
 public class DefinedTypeSymbol extends Symbol {
 
     private String baseType;

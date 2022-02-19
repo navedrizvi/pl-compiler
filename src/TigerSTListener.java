@@ -1,14 +1,6 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import symbol.Symbol;
-import symbol.SymbolTable;
-import symbol.VariableSymbol;
-import symbol.VariableSymbol.StorageClass;
-import symbol.DefinedTypeSymbol;
-import symbol.SubroutineSymbol;
-import symbol.DefinedTypeArraySymbol;
-
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 import java.util.ArrayList;
@@ -417,7 +409,7 @@ public class TigerSTListener extends TigerBaseListener {
         initializeScope();
 
         for (SubroutineSymbol.Tuple arg: args) {
-            currentST.insert(arg.name, new VariableSymbol(arg.name, arg.type, currentScope, StorageClass.VAR));
+            currentST.insert(arg.name, new VariableSymbol(arg.name, arg.type, currentScope, VariableSymbol.StorageClass.VAR));
         }
 
     }
@@ -430,8 +422,7 @@ public class TigerSTListener extends TigerBaseListener {
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         finalizeScope();
         // handle if it enters a function expression (recursive call)
-        // ok to exit from parent calls since this is symbol table generation
-        while (currentST.getScope() != Symbol.Scope.GLOBAL) {
+        if (currentST.getParent() != null) {
             currentST = currentST.getParent();
         }
         currentScope = currentST.getScope();

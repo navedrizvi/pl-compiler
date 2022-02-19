@@ -40,3 +40,9 @@ antlr-4*
 tmp*
 
 .DS_Store
+
+build/
+
+# Ignore files generated during testing
+*.st
+*.gv

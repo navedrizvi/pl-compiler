@@ -1,3 +1,6 @@
+(cd submission-p2 && zip -r ../submission.zip .)
+
+
 Just a text file w rough info. about building
 
 $ javac Tiger*.java

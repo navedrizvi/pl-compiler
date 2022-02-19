@@ -141,6 +141,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitMain(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitMain(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final MainContext main() throws RecognitionException {
@@ -197,6 +202,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitDecl_seg(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitDecl_seg(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Decl_segContext decl_seg() throws RecognitionException {
@@ -240,6 +250,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitType_decl_list(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitType_decl_list(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -300,6 +315,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitVar_decl_list(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitVar_decl_list(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Var_decl_listContext var_decl_list() throws RecognitionException {
@@ -358,6 +378,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitFunct_list(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitFunct_list(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Funct_listContext funct_list() throws RecognitionException {
@@ -415,6 +440,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitType_decl(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitType_decl(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -476,6 +506,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitTypeArray(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitTypeArray(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class TypeIDContext extends TypeContext {
 		public TerminalNode ID() { return getToken(TigerParser.ID, 0); }
@@ -487,6 +522,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitTypeID(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitTypeID(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class TypeBaseTypeContext extends TypeContext {
@@ -501,6 +541,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitTypeBaseType(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitTypeBaseType(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -583,6 +628,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitBaseTypeFloat(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitBaseTypeFloat(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class BaseTypeIntContext extends Base_typeContext {
 		public TerminalNode INT() { return getToken(TigerParser.INT, 0); }
@@ -594,6 +644,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitBaseTypeInt(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitBaseTypeInt(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -662,6 +717,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitVar_decl(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitVar_decl(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Var_declContext var_decl() throws RecognitionException {
@@ -717,6 +777,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStorageClassStatic(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStorageClassStatic(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StorageClassVarContext extends Storage_classContext {
 		public TerminalNode VAR() { return getToken(TigerParser.VAR, 0); }
@@ -728,6 +793,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStorageClassVar(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStorageClassVar(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -791,6 +861,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitIdListId(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitIdListId(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class IdListContext extends Id_listContext {
 		public TerminalNode ID() { return getToken(TigerParser.ID, 0); }
@@ -806,6 +881,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitIdList(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitIdList(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -865,6 +945,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitOptional_init(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitOptional_init(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -932,6 +1017,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitFunct(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitFunct(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final FunctContext funct() throws RecognitionException {
@@ -989,6 +1079,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitParam_list(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitParam_list(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1048,6 +1143,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitParam_list_tail(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitParam_list_tail(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Param_list_tailContext param_list_tail() throws RecognitionException {
@@ -1105,6 +1205,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitReturn_type(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitReturn_type(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Return_typeContext return_type() throws RecognitionException {
@@ -1161,6 +1266,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitParam(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitParam(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final ParamContext param() throws RecognitionException {
@@ -1212,6 +1322,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatSingle(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatSingle(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatSeqContext extends Stat_seqContext {
 		public StatContext stat() {
@@ -1228,6 +1343,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatSeq(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatSeq(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1306,6 +1426,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatFor(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatFor(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatIfContext extends StatContext {
 		public TerminalNode IF() { return getToken(TigerParser.IF, 0); }
@@ -1327,6 +1452,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatIf(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatIf(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatLetContext extends StatContext {
 		public TerminalNode LET() { return getToken(TigerParser.LET, 0); }
@@ -1347,6 +1477,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatLet(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatLet(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatBreakContext extends StatContext {
 		public TerminalNode BREAK() { return getToken(TigerParser.BREAK, 0); }
@@ -1359,6 +1494,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatBreak(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatBreak(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class StatFunctionCallContext extends StatContext {
@@ -1380,6 +1520,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatFunctionCall(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatFunctionCall(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class StatIfElseContext extends StatContext {
@@ -1406,6 +1551,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatIfElse(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatIfElse(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatWhileContext extends StatContext {
 		public TerminalNode WHILE() { return getToken(TigerParser.WHILE, 0); }
@@ -1427,6 +1577,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatWhile(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatWhile(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class StatReturnContext extends StatContext {
 		public TerminalNode RETURN() { return getToken(TigerParser.RETURN, 0); }
@@ -1442,6 +1597,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatReturn(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatReturn(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class StatAssignContext extends StatContext {
@@ -1461,6 +1621,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitStatAssign(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitStatAssign(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1654,6 +1819,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitOpt_return(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitOpt_return(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Opt_returnContext opt_return() throws RecognitionException {
@@ -1709,6 +1879,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitOpt_prefix(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitOpt_prefix(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1775,6 +1950,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprAddSub(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprAddSub(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExprAndContext extends ExprContext {
 		public List<ExprContext> expr() {
@@ -1792,6 +1972,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprAnd(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprAnd(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ExprPowContext extends ExprContext {
@@ -1811,6 +1996,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprPow(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprPow(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExporOrContext extends ExprContext {
 		public List<ExprContext> expr() {
@@ -1829,6 +2019,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExporOr(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExporOr(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExprParenContext extends ExprContext {
 		public TerminalNode OPENPAREN() { return getToken(TigerParser.OPENPAREN, 0); }
@@ -1845,6 +2040,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprParen(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprParen(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExprValueContext extends ExprContext {
 		public ValueContext value() {
@@ -1858,6 +2058,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprValue(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprValue(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ExprCompContext extends ExprContext {
@@ -1882,6 +2087,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprComp(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprComp(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExprMultDivContext extends ExprContext {
 		public List<ExprContext> expr() {
@@ -1901,6 +2111,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprMultDiv(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprMultDiv(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ExprConstantContext extends ExprContext {
 		public ConstantContext constant() {
@@ -1914,6 +2129,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExprConstant(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExprConstant(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -2122,6 +2342,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitConstantIntLit(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitConstantIntLit(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 	public static class ConstantFloatLitContext extends ConstantContext {
 		public TerminalNode FLOATLIT() { return getToken(TigerParser.FLOATLIT, 0); }
@@ -2133,6 +2358,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitConstantFloatLit(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitConstantFloatLit(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -2192,6 +2422,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExpr_list(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExpr_list(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -2254,6 +2489,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitExpr_list_tail(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitExpr_list_tail(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final Expr_list_tailContext expr_list_tail() throws RecognitionException {
@@ -2311,6 +2551,11 @@ public class TigerParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitValue(this);
 		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitValue(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final ValueContext value() throws RecognitionException {
@@ -2353,6 +2598,11 @@ public class TigerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof TigerListener ) ((TigerListener)listener).exitValue_tail(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof TigerVisitor ) return ((TigerVisitor<? extends T>)visitor).visitValue_tail(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 

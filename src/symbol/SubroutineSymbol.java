@@ -4,10 +4,11 @@ import java.util.Map;
 
 public class SubroutineSymbol extends Symbol {
 
-    private String returnType;
+    private String returnType; // is null for procedures
     private Map<String, String> args = new LinkedHashMap<>();
 
-    public SubroutineSymbol(String name, String type, Scope scope, Map<String, String> args, String returnType) {
+    // @args maps arg name to arg type
+    public SubroutineSymbol(String name, Scope scope, Map<String, String> args, String returnType) {
         super(name, scope);
         this.args = args;
         this.returnType = returnType;
@@ -18,7 +19,7 @@ public class SubroutineSymbol extends Symbol {
     }
 
     public String toFormattedString() {
-        return super.getName() + ", " + ", " + returnType;
+        return super.getName() + ", return-type: " + returnType + ". arguments: " + this.args.toString();
     }
 
     public String toString() {

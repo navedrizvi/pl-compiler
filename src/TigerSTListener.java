@@ -4,15 +4,20 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import symbol.Symbol;
 import symbol.SymbolTable;
 import symbol.VariableSymbol;
+import symbol.DefinedTypeSymbol;
+import symbol.SubroutineSymbol;
+import symbol.DefinedTypeArraySymbol;
 
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TigerSTListener extends TigerBaseListener {
 
-    private int level = -1;
+    private int level = -1; // Represents the lexical level where (current) symbol is declared
     private SymbolTable st;
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
@@ -25,6 +30,7 @@ public class TigerSTListener extends TigerBaseListener {
 
     public List<SymbolTable> getSTAsList() { return stAsList; }
 
+    // Initializes a new symbol table for a scope
     private void initializeScope() {
         level++;
         st = new SymbolTable(level, currentScope);
@@ -34,6 +40,7 @@ public class TigerSTListener extends TigerBaseListener {
         currentST = st;
     }
 
+    // Finalizes the symbol table for a scope
     private void finalizeScope() {
         level--;
         if (level > -1)
@@ -248,6 +255,9 @@ public class TigerSTListener extends TigerBaseListener {
             );
         }
 
+        // TODO can declare both STATIC and VAR in function scope? or throw semanticerror?. Can declare VAR w/o let binding?
+
+
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
             //System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
             String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
@@ -380,6 +390,36 @@ public class TigerSTListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
+        // the parser will throw error on any other scope, this if branch is just for readability
+        // if (currentScope == Symbol.Scope.GLOBAL) { # TODO can be other than global? can't be let. can be function?
+        String name = ctx.ID().getText();
+
+        // returnType is null for procedures
+        String returnType = null;
+        try {
+            returnType = ctx.return_type().type().getText();
+        }
+        catch (NullPointerException e) {
+        }
+
+        TigerParser.Param_listContext temp = (TigerParser.Param_listContext) ctx.param_list();
+        // handle empty param_list
+        Map<String, String> args = new LinkedHashMap<>();
+        if (temp.param() != null) {
+            args.put(temp.param().ID().getText(), temp.param().type().getText());
+            TigerParser.Param_list_tailContext temp2 = (TigerParser.Param_list_tailContext) ctx.param_list().param_list_tail();
+            if (temp2.param() != null) {
+                while (true) {
+                    args.put(temp2.param().ID().getText(), temp2.param().type().getText());
+                    temp2 = temp2.param_list_tail();
+                    if (temp2.param() == null) {
+                        break;
+                    }
+                }
+            }
+        }
+        currentST.insert(name, new SubroutineSymbol(name, currentScope, args, returnType));
+        currentScope = Symbol.Scope.SUBROUTINE;
         initializeScope();
     }
     
@@ -390,8 +430,7 @@ public class TigerSTListener extends TigerBaseListener {
      */
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         finalizeScope();
-        //TODO refactor calls
-        System.out.println(getST().getST().toString());
+        currentScope = currentST.getScope();
     }
     /**
      * {@inheritDoc}

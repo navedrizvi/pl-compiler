@@ -25,7 +25,7 @@ ANTLR_LIBS := \
 	$(BUILD_DIR)/org
 
 SOURCES := \
-	src/TigerCompiler.java \
+	src/Tiger.java \
 	src/TigerGraphListener.java \
 	src/LexicalErrorListener.java \
 	src/ParserErrorListener.java

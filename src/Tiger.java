@@ -12,7 +12,10 @@ import java.util.Map;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-public class TigerCompiler {
+import symbol.SymbolTable;
+import symbol.Symbol;
+
+public class Tiger {
     private static boolean srcFileExists(String fpath) {
         File f = new File(fpath);
         return f.exists();

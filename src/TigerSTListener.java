@@ -255,9 +255,6 @@ public class TigerSTListener extends TigerBaseListener {
             );
         }
 
-        // TODO can declare both STATIC and VAR in function scope? or throw semanticerror?. Can declare VAR w/o let binding?
-
-
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
             //System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
             String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
@@ -390,8 +387,7 @@ public class TigerSTListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
-        // the parser will throw error on any other scope, this if branch is just for readability
-        // if (currentScope == Symbol.Scope.GLOBAL) { # TODO can be other than global? can't be let. can be function?
+        // assumes currentScope == Symbol.Scope.GLOBAL, the parser will throw error on any other scope
         String name = ctx.ID().getText();
 
         // returnType is null for procedures
@@ -403,9 +399,8 @@ public class TigerSTListener extends TigerBaseListener {
         }
 
         TigerParser.Param_listContext temp = (TigerParser.Param_listContext) ctx.param_list();
-        // handle empty param_list
         Map<String, String> args = new LinkedHashMap<>();
-        if (temp.param() != null) {
+        if (temp.param() != null) { // handle empty param_list
             args.put(temp.param().ID().getText(), temp.param().type().getText());
             TigerParser.Param_list_tailContext temp2 = (TigerParser.Param_list_tailContext) ctx.param_list().param_list_tail();
             if (temp2.param() != null) {
@@ -421,6 +416,8 @@ public class TigerSTListener extends TigerBaseListener {
         currentST.insert(name, new SubroutineSymbol(name, currentScope, args, returnType));
         currentScope = Symbol.Scope.SUBROUTINE;
         initializeScope();
+
+        // TODO write the params to ST (to a variable symbol with var storageclass)
     }
     
     /**
@@ -430,6 +427,10 @@ public class TigerSTListener extends TigerBaseListener {
      */
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         finalizeScope();
+        // it enters a function expression (recursive call). 
+        while (currentST.getScope() != Symbol.Scope.GLOBAL) {
+            currentST = currentST.getParent();
+        }
         currentScope = currentST.getScope();
     }
     /**

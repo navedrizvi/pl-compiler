@@ -11,8 +11,7 @@ begin
 
     function main() : int
     begin
-        b := a();
-        a := 5 / b;
+        a := 5 / a();
         return a;
     end
 

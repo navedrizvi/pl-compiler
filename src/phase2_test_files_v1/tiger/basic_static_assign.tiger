@@ -3,7 +3,8 @@
 program basic_static_assign
 let
     static a : int;
-    static b, c, d  : int;
+    static b, c : int;
+    static a : float;
 begin
 
     function main() : int

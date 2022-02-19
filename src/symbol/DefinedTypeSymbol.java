@@ -1,18 +1,22 @@
 package symbol;
 public class DefinedTypeSymbol extends Symbol {
 
-    private String builtInType;
+    private String baseType;
 
-    public DefinedTypeSymbol(String name, String type, Scope scope, String builtInType) {
+    public DefinedTypeSymbol(String name, String type, Scope scope, String baseType) {
         super(name, type, scope);
-        this.builtInType = builtInType;
+        this.baseType = baseType;
     }
 
-    public String getBuiltInType() {
-        return builtInType;
+    public String getBaseType() {
+        return baseType;
+    }
+
+    public String toFormattedString() {
+        return super.getName() + ", " + super.getType() + ", " + baseType;
     }
 
     public String toString() {
-        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + builtInType + ">";
+        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + baseType + ">";
     }
 }

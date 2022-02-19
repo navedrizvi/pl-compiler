@@ -1,5 +1,6 @@
 package symbol;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SymbolTable {
@@ -10,7 +11,7 @@ public class SymbolTable {
     private Symbol.Scope scope;
 
     public SymbolTable(int level, Symbol.Scope scope) {
-        this.ST = new HashMap<>();
+        this.ST = new LinkedHashMap<>();
         this.parent = null;
         this.level = level;
         this.scope = scope;
@@ -45,7 +46,8 @@ public class SymbolTable {
     }
 
     public Symbol lookUp(String name) {
-        return null;
+        // Update to include looking up during semantic checking
+        return ST.get(name);
     }
 
 //    public void setLevel(int level) {

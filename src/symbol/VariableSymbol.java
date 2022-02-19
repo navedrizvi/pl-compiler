@@ -17,6 +17,10 @@ public class VariableSymbol extends Symbol {
         return storageClass;
     }
 
+    public String toFormattedString() {
+        return super.getName() + ", " + storageClass + ", " + super.getType();
+    }
+
     public String toString() {
         return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + storageClass + ">";
     }

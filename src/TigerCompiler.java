@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -91,6 +93,34 @@ public class TigerCompiler {
     private static void writeGraphToFile(String fileName, String graph) {
         String outputFile = fileName.replace(".tiger", ".tree.gv");
         writeFileWithContent(outputFile, graph);
+    }
+
+    private static void writeSTToFile(String fileName, List<SymbolTable> stAsList) {
+        String outputFile = fileName.replace(".tiger", ".st");
+        //String st = "";
+        StringBuilder buf = new StringBuilder();
+        int scope = 1;
+//        buf.append("Scope " + scope + ":\n");
+        for (SymbolTable st: stAsList) {
+            //System.out.println(st.getLevel() + " " + st.getST());
+            String tabs = "";
+            String scopeTabs = "";
+            for (int i = 0; i < st.getLevel() + 1; i++) {
+                tabs += "\t";
+            }
+            for (int i = 0; i < st.getLevel(); i++) {
+                scopeTabs += "\t";
+            }
+
+            buf.append(scopeTabs + "Scope " + scope + " - " + st.getScope() + ":\n");
+            for (Map.Entry<String, Symbol> entry : st.getST().entrySet()) {
+                Symbol symbol = entry.getValue();
+                buf.append(tabs + symbol.toFormattedString() + "\n");
+            }
+            scope++;
+        }
+        System.out.println(buf.toString());
+        writeFileWithContent(outputFile, buf.toString());
     }
 
     private static int getIFlagIdx(String[] args) {
@@ -200,7 +230,16 @@ public class TigerCompiler {
             ParseTreeWalker walker = new ParseTreeWalker();
             TigerSTListener tigerSTListener = new TigerSTListener();
             walker.walk(tigerSTListener, tree);
-            System.out.println(tigerSTListener.getST().getST());
+            List<SemanticError> errors = tigerSTListener.getErrors();
+            if (errors.size() > 0) {
+                System.out.println("Semantic errors found:");
+                for (SemanticError error : errors) {
+                    System.out.println(error);
+                }
+                System.exit(4);
+            }
+            List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
+            writeSTToFile(fileName, stAsList);
         }
         else {
             System.out.println("No action required.");

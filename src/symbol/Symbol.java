@@ -1,3 +1,4 @@
+package symbol;
 
 public abstract class Symbol {
 
@@ -10,7 +11,7 @@ public abstract class Symbol {
 
      */
 
-    enum Scope {
+    public enum Scope {
         GLOBAL,
         SUBROUTINE,
         LET

@@ -1,5 +1,14 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import symbol.Symbol;
+import symbol.SymbolTable;
+import symbol.VariableSymbol;
+import symbol.VariableSymbol.StorageClass;
+import symbol.DefinedTypeSymbol;
+import symbol.SubroutineSymbol;
+import symbol.DefinedTypeArraySymbol;
+
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 import java.util.ArrayList;
@@ -7,7 +16,7 @@ import java.util.List;
 
 public class TigerSTListener extends TigerBaseListener {
 
-    private int level = -1;
+    private int level = -1; // Represents the lexical level where (current) symbol is declared
     private SymbolTable st;
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
@@ -20,6 +29,7 @@ public class TigerSTListener extends TigerBaseListener {
 
     public List<SymbolTable> getSTAsList() { return stAsList; }
 
+    // Initializes a new symbol table for a scope
     private void initializeScope() {
         level++;
         st = new SymbolTable(level, currentScope);
@@ -29,6 +39,7 @@ public class TigerSTListener extends TigerBaseListener {
         currentST = st;
     }
 
+    // Finalizes the symbol table for a scope
     private void finalizeScope() {
         level--;
         if (level > -1)
@@ -374,13 +385,57 @@ public class TigerSTListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterFunct(TigerParser.FunctContext ctx) { }
+    @Override public void enterFunct(TigerParser.FunctContext ctx) {
+        // assumes currentScope == Symbol.Scope.GLOBAL, the parser will throw error on any other scope
+        String name = ctx.ID().getText();
+
+        // returnType is null for procedures
+        String returnType = null;
+        try {
+            returnType = ctx.return_type().type().getText();
+        }
+        catch (NullPointerException e) {
+        }
+
+        TigerParser.Param_listContext temp = (TigerParser.Param_listContext) ctx.param_list();
+        SubroutineSymbol.CustomArrayList args = new SubroutineSymbol.CustomArrayList();
+        if (temp.param() != null) { // handle empty param_list
+            args.insert(temp.param().ID().getText(), temp.param().type().getText());
+            TigerParser.Param_list_tailContext temp2 = (TigerParser.Param_list_tailContext) ctx.param_list().param_list_tail();
+            if (temp2.param() != null) {
+                while (true) {
+                    args.insert(temp2.param().ID().getText(), temp2.param().type().getText());
+                    temp2 = temp2.param_list_tail();
+                    if (temp2.param() == null) {
+                        break;
+                    }
+                }
+            }
+        }
+        currentST.insert(name, new SubroutineSymbol(name, currentScope, args, returnType));
+        currentScope = Symbol.Scope.SUBROUTINE;
+        initializeScope();
+
+        for (SubroutineSymbol.Tuple arg: args) {
+            currentST.insert(arg.name, new VariableSymbol(arg.name, arg.type, currentScope, StorageClass.VAR));
+        }
+
+    }
+    
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitFunct(TigerParser.FunctContext ctx) { }
+    @Override public void exitFunct(TigerParser.FunctContext ctx) {
+        finalizeScope();
+        // handle if it enters a function expression (recursive call)
+        // ok to exit from parent calls since this is symbol table generation
+        while (currentST.getScope() != Symbol.Scope.GLOBAL) {
+            currentST = currentST.getParent();
+        }
+        currentScope = currentST.getScope();
+    }
     /**
      * {@inheritDoc}
      *

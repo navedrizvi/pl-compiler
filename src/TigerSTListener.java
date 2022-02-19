@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import symbol.Symbol;
 import symbol.SymbolTable;
 import symbol.VariableSymbol;
+import symbol.VariableSymbol.StorageClass;
 import symbol.DefinedTypeSymbol;
 import symbol.SubroutineSymbol;
 import symbol.DefinedTypeArraySymbol;
@@ -11,9 +12,7 @@ import symbol.DefinedTypeArraySymbol;
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class TigerSTListener extends TigerBaseListener {
 
@@ -399,13 +398,13 @@ public class TigerSTListener extends TigerBaseListener {
         }
 
         TigerParser.Param_listContext temp = (TigerParser.Param_listContext) ctx.param_list();
-        Map<String, String> args = new LinkedHashMap<>();
+        SubroutineSymbol.CustomArrayList args = new SubroutineSymbol.CustomArrayList();
         if (temp.param() != null) { // handle empty param_list
-            args.put(temp.param().ID().getText(), temp.param().type().getText());
+            args.insert(temp.param().ID().getText(), temp.param().type().getText());
             TigerParser.Param_list_tailContext temp2 = (TigerParser.Param_list_tailContext) ctx.param_list().param_list_tail();
             if (temp2.param() != null) {
                 while (true) {
-                    args.put(temp2.param().ID().getText(), temp2.param().type().getText());
+                    args.insert(temp2.param().ID().getText(), temp2.param().type().getText());
                     temp2 = temp2.param_list_tail();
                     if (temp2.param() == null) {
                         break;
@@ -417,7 +416,10 @@ public class TigerSTListener extends TigerBaseListener {
         currentScope = Symbol.Scope.SUBROUTINE;
         initializeScope();
 
-        // TODO write the params to ST (to a variable symbol with var storageclass)
+        for (SubroutineSymbol.Tuple arg: args) {
+            currentST.insert(arg.name, new VariableSymbol(arg.name, arg.type, currentScope, StorageClass.VAR));
+        }
+
     }
     
     /**
@@ -427,7 +429,8 @@ public class TigerSTListener extends TigerBaseListener {
      */
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         finalizeScope();
-        // it enters a function expression (recursive call). 
+        // handle if it enters a function expression (recursive call)
+        // ok to exit from parent calls since this is symbol table generation
         while (currentST.getScope() != Symbol.Scope.GLOBAL) {
             currentST = currentST.getParent();
         }

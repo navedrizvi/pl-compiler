@@ -40,3 +40,5 @@ antlr-4*
 tmp*
 
 .DS_Store
+
+build/

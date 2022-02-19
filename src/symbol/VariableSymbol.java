@@ -7,27 +7,21 @@ public class VariableSymbol extends Symbol {
     }
 
     private StorageClass storageClass;
-    private String type;
 
     public VariableSymbol(String name, String type, Scope scope, StorageClass storageClass) {
-        super(name, scope);
+        super(name, type, scope);
         this.storageClass = storageClass;
-        this.type = type;
     }
 
     public StorageClass getStorageClass() {
         return storageClass;
     }
 
-    public String getType() {
-        return type;
-    }
-
     public String toFormattedString() {
-        return super.getName() + ", " + storageClass + ", " + getType();
+        return super.getName() + ", " + storageClass + ", " + super.getType();
     }
 
     public String toString() {
-        return "<" + super.getName() + " " + getType() + " " + super.getScope() + " " + storageClass + ">";
+        return "<" + super.getName() + " " + super.getType() + " " + super.getScope() + " " + storageClass + ">";
     }
 }

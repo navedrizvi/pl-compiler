@@ -119,7 +119,6 @@ public class Tiger {
             }
             scope++;
         }
-        System.out.println(buf.toString());
         writeFileWithContent(outputFile, buf.toString());
     }
 

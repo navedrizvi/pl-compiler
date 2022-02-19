@@ -6,9 +6,10 @@ public class SubroutineSymbol extends Symbol {
 
     private String returnType; // is null for procedures
     private Map<String, String> args = new LinkedHashMap<>();
+    private static String type = "func";
 
     // @args maps arg name to arg type
-    public SubroutineSymbol(String name, String type, Scope scope, Map<String, String> args, String returnType) {
+    public SubroutineSymbol(String name, Scope scope, Map<String, String> args, String returnType) {
         super(name, type, scope);
         this.args = args;
         this.returnType = returnType;

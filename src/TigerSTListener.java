@@ -418,7 +418,7 @@ public class TigerSTListener extends TigerBaseListener {
                 }
             }
         }
-        currentST.insert(name, new SubroutineSymbol(name, "func", currentScope, args, returnType));
+        currentST.insert(name, new SubroutineSymbol(name, currentScope, args, returnType));
         currentScope = Symbol.Scope.SUBROUTINE;
         initializeScope();
     }

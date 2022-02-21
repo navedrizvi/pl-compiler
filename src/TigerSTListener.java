@@ -31,8 +31,11 @@ public class TigerSTListener extends TigerBaseListener {
     private void initializeScope() {
         level++;
         st = new SymbolTable(level, currentScope, scopeNumber);
-        scopeNumber++;
+        // Add standard library functions to the global scope
+        if (scopeNumber == 0)
+            addStdLibFunctionsToScope(st);
         stAsList.add(st);
+        scopeNumber++;
         if (level > 0)
             st.setParent(currentST);
         currentST = st;
@@ -43,6 +46,31 @@ public class TigerSTListener extends TigerBaseListener {
         level--;
         if (level > -1)
             currentST = currentST.getParent();
+    }
+
+    private void addStdLibFunctionsToScope(SymbolTable st) {
+        SubroutineSymbol.CustomArrayList args = new SubroutineSymbol.CustomArrayList();
+
+        // printi
+        args.insert("i", "int");
+        st.insert("printi", new SubroutineSymbol("printi", Symbol.Scope.GLOBAL, args, null));
+
+        // printf
+        args = new SubroutineSymbol.CustomArrayList();
+        args.insert("f", "float");
+        st.insert("printf", new SubroutineSymbol("printf", Symbol.Scope.GLOBAL, args, null));
+
+        // not
+        args = new SubroutineSymbol.CustomArrayList();
+        args.insert("i", "int");
+        st.insert("not", new SubroutineSymbol("not", Symbol.Scope.GLOBAL, args, "int"));
+
+        // exit
+        args = new SubroutineSymbol.CustomArrayList();
+        args.insert("i", "int");
+        st.insert("exit", new SubroutineSymbol("exit", Symbol.Scope.GLOBAL, args, null));
+
+        System.out.println("Add std lib funcs to global scope: " + st);
     }
 
     @Override public void enterMain(TigerParser.MainContext ctx) {

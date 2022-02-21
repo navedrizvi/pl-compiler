@@ -20,6 +20,8 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     }
     ParseTreeProperty<ExprReturnValue> exprReturnValues = new ParseTreeProperty<>();
 
+    ParserRuleContext returnStatement = null;
+
     public void setExprReturnValue(ParseTree node, ExprReturnValue value) { exprReturnValues.put(node, value); }
 
     public ExprReturnValue getExprReturnValue(ParseTree node) { return exprReturnValues.get(node); }
@@ -265,13 +267,63 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      */
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         scopeNumber++;
+        returnStatement = null;
     }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitFunct(TigerParser.FunctContext ctx) { }
+    @Override public void exitFunct(TigerParser.FunctContext ctx) {
+        String name = ctx.ID().getText();
+        Symbol lookUp = getCurrentST().lookUp(name);
+        String returnType = ((SubroutineSymbol) lookUp).getReturnType();
+//        System.out.println(getExprReturnValue(returnStatement).name() + " " + returnType);
+        if (returnStatement == null && returnType != null) {
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "Function '" + name + "' contains no return statement"
+                    )
+            );
+            return;
+        }
+
+        if (returnStatement != null && returnType == null) {
+            errors.add(
+                    new SemanticError(
+                            returnStatement.getStart().getLine(),
+                            returnStatement.getStart().getCharPositionInLine(),
+                            "Procedure '" + name + "' returned  non-void type"
+                    )
+            );
+            return;
+        }
+
+        if (returnStatement != null && returnType != null && ((TigerParser.StatReturnContext) returnStatement).opt_return().expr() == null) {
+            errors.add(
+                    new SemanticError(
+                            returnStatement.getStart().getLine(),
+                            returnStatement.getStart().getCharPositionInLine(),
+                            "Function '" + name + "' returned void, expected " + returnType
+                    )
+            );
+            return;
+        }
+
+        if (returnStatement != null && getExprReturnValue(returnStatement) == ExprReturnValue.ARRAY) {
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "Function '" + name + "' cannot return an array type"
+                    )
+            );
+            return;
+        }
+
+    }
     /**
      * {@inheritDoc}
      *
@@ -473,6 +525,15 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
+
+
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
         String name = ctx.ID().getText();
         Symbol lookUp = getCurrentST().lookUp(name);
         if (lookUp == null) {
@@ -487,7 +548,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
 
         String lvalueType = null;
-        if (ctx.opt_prefix() != null) {
+        if (ctx.opt_prefix().value() != null) {
             lvalueType = getCurrentST().lookUp(ctx.opt_prefix().value().getText()).getType();
         }
 
@@ -497,19 +558,12 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
                     new SemanticError(
                             ctx.getStart().getLine(),
                             ctx.getStart().getCharPositionInLine(),
-                            "Narrowing conversion not allowed"
+                            "Narrowing conversion  on function call is not allowed"
                     )
             );
             return;
         }
-
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) { }
     /**
      * {@inheritDoc}
      *
@@ -538,13 +592,23 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) {
+
     }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) { }
+    @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
+        if (getExprReturnValue(ctx.opt_return()) != null) {
+            setExprReturnValue(ctx, getExprReturnValue(ctx.opt_return()));
+            returnStatement = ctx;
+        }
+
+        if (ctx.RETURN() != null) {
+            returnStatement = ctx;
+        }
+    }
     /**
      * {@inheritDoc}
      *
@@ -570,7 +634,10 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) { }
+    @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) {
+        if (ctx != null)
+            setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
+    }
     /**
      * {@inheritDoc}
      *
@@ -618,7 +685,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         else {
             setExprReturnValue(ctx, ExprReturnValue.INT);
         }
-        System.out.println("exitExprAddSub: " + left + " " + right);
+//        System.out.println("exitExprAddSub: " + left + " " + right);
     }
     /**
      * {@inheritDoc}

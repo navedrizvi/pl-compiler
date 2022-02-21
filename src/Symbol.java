@@ -15,13 +15,6 @@ public abstract class Symbol {
         LET
     }
 
-    // Might define an enum for type later. There is confusion around
-    // defined types
-    //    enum Type {
-    //        INT,
-    //        FLOAT
-    //    }
-
     private String name;
     private String type;
     private Scope scope;

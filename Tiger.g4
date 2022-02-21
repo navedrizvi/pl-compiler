@@ -47,12 +47,12 @@ opt_prefix: value ASSIGN |  /* epsilon */ ;
 expr: constant # ExprConstant
     | value    # ExprValue
     | OPENPAREN expr CLOSEPAREN # ExprParen
-    | <assoc=right> expr POW expr # ExprPow
-    | expr (MULT | DIV) expr # ExprMultDiv
-    | expr (PLUS | MINUS) expr # ExprAddSub
-    | expr (EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ) expr # ExprComp
-    | expr AND expr # ExprAnd
-    | expr OR expr # ExporOr
+    | <assoc=right> expr op=POW expr # ExprPow
+    | expr op=(MULT | DIV) expr # ExprMultDiv
+    | expr op=(PLUS | MINUS) expr # ExprAddSub
+    | expr op=(EQUAL | NEQUAL | LESS | GREAT | LESSEQ | GREATEQ) expr # ExprComp
+    | expr op=AND expr # ExprAnd
+    | expr op=OR expr # ExporOr
     ;
 constant: INTLIT # ConstantIntLit
         | FLOATLIT # ConstantFloatLit

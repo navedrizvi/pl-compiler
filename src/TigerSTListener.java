@@ -9,11 +9,17 @@ import java.util.List;
 public class TigerSTListener extends TigerBaseListener {
 
     private int level = -1; // Represents the lexical level where (current) symbol is declared
+    int scopeNumber = 0;
     private SymbolTable st;
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
-    private List<SymbolTable> stAsList = new ArrayList<>();
-    private List<SemanticError> errors = new ArrayList<>();
+    private List<SymbolTable> stAsList;
+    private List<SemanticError> errors;
+
+    public  TigerSTListener() {
+        this.stAsList = new ArrayList<>();
+        this.errors = new ArrayList<>();
+    }
 
     public SymbolTable getST() { return st; }
 
@@ -24,7 +30,8 @@ public class TigerSTListener extends TigerBaseListener {
     // Initializes a new symbol table for a scope
     private void initializeScope() {
         level++;
-        st = new SymbolTable(level, currentScope);
+        st = new SymbolTable(level, currentScope, scopeNumber);
+        scopeNumber++;
         stAsList.add(st);
         if (level > 0)
             st.setParent(currentST);
@@ -52,12 +59,11 @@ public class TigerSTListener extends TigerBaseListener {
         String name = ctx.ID().getText();
         Symbol lookUp = currentST.lookUp(name);
         if (lookUp != null) {
-            System.out.println(ctx.getStart().getLine());
             errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
                             ctx.getStart().getCharPositionInLine(),
-                            "Type '" + name + "' is already defined in the scope"
+                            "'" + name + "' is already defined in the scope"
                     )
             );
         }
@@ -95,19 +101,29 @@ public class TigerSTListener extends TigerBaseListener {
         if (currentScope == Symbol.Scope.GLOBAL && storageClassForSymbol == VariableSymbol.StorageClass.VAR) {
             errors.add(
                 new SemanticError(
-                        ctx.storage_class().getStart().getLine(),
-                        ctx.storage_class().getStart().getCharPositionInLine(),
-                        "Variable(s) in scope must be declared as static"
+                    ctx.storage_class().getStart().getLine(),
+                    ctx.storage_class().getStart().getCharPositionInLine(),
+                    "Variable(s) in scope must be declared as static"
                 )
             );
         }
 
         if (currentScope == Symbol.Scope.LET && storageClassForSymbol == VariableSymbol.StorageClass.STATIC) {
             errors.add(
+                new SemanticError(
+                    ctx.storage_class().getStart().getLine(),
+                    ctx.storage_class().getStart().getCharPositionInLine(),
+                    "Variable(s) in scope must be declared as var"
+                )
+            );
+        }
+
+        if (ctx.type() instanceof TigerParser.TypeArrayContext) {
+            errors.add(
                     new SemanticError(
-                            ctx.storage_class().getStart().getLine(),
-                            ctx.storage_class().getStart().getCharPositionInLine(),
-                            "Variable(s) in scope must be declared as var"
+                            ctx.type().getStart().getLine(),
+                            ctx.type().getStart().getCharPositionInLine(),
+                            "Array defined without a type"
                     )
             );
         }
@@ -121,9 +137,9 @@ public class TigerSTListener extends TigerBaseListener {
 //                System.out.println(ctx.);
                 errors.add(
                     new SemanticError(
-                            ctx.id_list().getStart().getLine(),
-                            ctx.id_list().getStart().getCharPositionInLine(),
-                            "Variable '" + name + "' is already defined in the scope"
+                        ctx.id_list().getStart().getLine(),
+                        ctx.id_list().getStart().getCharPositionInLine(),
+                        "Variable '" + name + "' is already defined in the scope"
                     )
                 );
             }
@@ -141,10 +157,10 @@ public class TigerSTListener extends TigerBaseListener {
                     // collect error during ST step
                     errors.add(
                             new SemanticError(
-                                    ctx.id_list().getStart().getLine(),
-                                    ctx.id_list().getStart().getCharPositionInLine(),
-                                    "Variable '" + name + "' is already defined in the scope"
-                            )
+                            ctx.id_list().getStart().getLine(),
+                            ctx.id_list().getStart().getCharPositionInLine(),
+                            "Variable '" + name + "' is already defined in the scope"
+                        )
                     );
                 }
                 currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
@@ -155,11 +171,11 @@ public class TigerSTListener extends TigerBaseListener {
                     if (lookUp != null) {
                         // collect error during ST step
                         errors.add(
-                                new SemanticError(
-                                        ctx.id_list().getStart().getLine(),
-                                        ctx.id_list().getStart().getCharPositionInLine(),
-                                        "Variable '" + name + "' is already defined in the scope"
-                                )
+                            new SemanticError(
+                                    ctx.id_list().getStart().getLine(),
+                                    ctx.id_list().getStart().getCharPositionInLine(),
+                                    "Variable '" + name + "' is already defined in the scope"
+                            )
                         );
                     }
                     currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
@@ -173,6 +189,17 @@ public class TigerSTListener extends TigerBaseListener {
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         // assumes currentScope == Symbol.Scope.GLOBAL, the parser will throw error on any other scope
         String name = ctx.ID().getText();
+        Symbol lookUp = currentST.lookUp(name);
+        if (lookUp != null) {
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "'" + name + "' is already defined in the scope"
+                    )
+            );
+            return;
+        }
 
         // returnType is null for procedures
         String returnType = null;

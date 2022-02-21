@@ -96,6 +96,7 @@ public class Tiger {
     }
 
     private static void writeSTToFile(String fileName, List<SymbolTable> stAsList) {
+        //private static void writeSTToFile(String fileName, List<SymbolTable> stAsList) {
         String outputFile = fileName.replace(".tiger", ".st");
         //String st = "";
         StringBuilder buf = new StringBuilder();
@@ -119,7 +120,7 @@ public class Tiger {
             }
             scope++;
         }
-        //System.out.println(buf.toString());
+        System.out.println(buf.toString());
         writeFileWithContent(outputFile, buf.toString());
     }
 
@@ -163,6 +164,7 @@ public class Tiger {
         boolean lFlagProvided = false; // if provided, write a `<source_fname>.tokens` file with tokens per Req. 4
         boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
         boolean stFlagProvided = false;
+        boolean irFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         String fileName = "";
@@ -198,12 +200,14 @@ public class Tiger {
                 // assuming thing after -i is filename; validation is done above
                 i += 1;
             }
-            else if (args[i].equals(("-l")))
+            else if (args[i].equals("-l"))
                 lFlagProvided = true;
-            else if (args[i].equals(("-p")))
+            else if (args[i].equals("-p"))
                 pFlagProvided = true;
-            else if (args[i].equals(("--st")))
+            else if (args[i].equals("--st"))
                 stFlagProvided = true;
+            else if (args[i].equals("--ir"))
+                irFlagProvided = true;
             else {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -212,8 +216,11 @@ public class Tiger {
 
         TigerLexer lexer = getLexer(fileName);
 
+        // Write tokens to file
         if (lFlagProvided)
             writeTokenFile(lexer, fileName); // also checks for scanner errors
+
+        // Run parser and write parse tree as graph in DOT format
         else if (pFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -222,24 +229,63 @@ public class Tiger {
             String parseTreeAsGraph = parseTreeToGraph(parser, lexer, tree);
             writeGraphToFile(fileName, parseTreeAsGraph);
         }
+        // Generate ST and write to .st file
         else if (stFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
-            ParseTree tree = parser.main();
+            ParseTree tree = parser.main(); // Note: this will throw parser error
             ParseTreeWalker walker = new ParseTreeWalker();
+
+            // ST generation
             TigerSTListener tigerSTListener = new TigerSTListener();
             walker.walk(tigerSTListener, tree);
             List<SemanticError> errors = tigerSTListener.getErrors();
             if (errors.size() > 0) {
-                System.out.println("Semantic errors found:");
+                System.err.println("Semantic errors found:");
                 for (SemanticError error : errors) {
-                    System.out.println(error);
+                    System.err.println(error);
                 }
                 System.exit(4);
             }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
             writeSTToFile(fileName, stAsList);
+        }
+        // Run semantic checks. If no failures, generate IR for provided tiger file
+        // and write to .ir file.
+        else if (irFlagProvided) {
+            checkScannerErrors(lexer); // checks for scanner errors
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            TigerParser parser = getTigerParser(tokens);
+            ParseTree tree = parser.main(); // Note: this will throw parser error
+            ParseTreeWalker walker = new ParseTreeWalker();
+
+            // ST generation
+            TigerSTListener tigerSTListener = new TigerSTListener();
+            walker.walk(tigerSTListener, tree);
+            List<SemanticError> errors = tigerSTListener.getErrors();
+            if (errors.size() > 0) {
+                System.err.println("Semantic errors found:");
+                for (SemanticError error : errors) {
+                    System.err.println(error);
+                }
+                System.exit(4);
+            }
+            List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
+            writeSTToFile(fileName, stAsList);
+
+            // Semantic analysis
+            TigerSemanticAnalysisListener tigerSemanticAnalysisListener = new TigerSemanticAnalysisListener(stAsList);
+            walker.walk(tigerSemanticAnalysisListener, tree);
+            errors = tigerSemanticAnalysisListener.getErrors();
+            if (errors.size() > 0) {
+                System.err.println("Semantic errors found:");
+                for (SemanticError error : errors) {
+                    System.err.println(error);
+                }
+                System.exit(4);
+            }
+
         }
         else {
             System.out.println("No action required.");

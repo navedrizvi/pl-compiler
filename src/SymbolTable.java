@@ -45,6 +45,10 @@ public class SymbolTable {
         ST.put(name, symbol);
     }
 
+    public Symbol lookUpCurrentScope(String name) {
+        return ST.get(name);
+    }
+
     public Symbol lookUp(String name) {
         Symbol symbol = ST.get(name);
         if (symbol != null)

@@ -69,8 +69,6 @@ public class TigerSTListener extends TigerBaseListener {
         args = new SubroutineSymbol.CustomArrayList();
         args.insert("i", "int");
         st.insert("exit", new SubroutineSymbol("exit", Symbol.Scope.GLOBAL, args, null));
-
-        System.out.println("Add std lib funcs to global scope: " + st);
     }
 
     @Override public void enterMain(TigerParser.MainContext ctx) {
@@ -85,7 +83,7 @@ public class TigerSTListener extends TigerBaseListener {
 
     @Override public void enterType_decl(TigerParser.Type_declContext ctx) {
         String name = ctx.ID().getText();
-        Symbol lookUp = currentST.lookUp(name);
+        Symbol lookUp = currentST.lookUpCurrentScope(name);
         if (lookUp != null) {
             errors.add(
                     new SemanticError(
@@ -156,10 +154,21 @@ public class TigerSTListener extends TigerBaseListener {
             );
         }
 
+        // Undefined type
+        if (ctx.type() instanceof TigerParser.TypeIDContext && currentST.lookUp(((TigerParser.TypeIDContext) ctx.type()).ID().getText()) == null) {
+            errors.add(
+                    new SemanticError(
+                            ctx.type().getStart().getLine(),
+                            ctx.type().getStart().getCharPositionInLine(),
+                            "Cannot resolve symbol '" + ((TigerParser.TypeIDContext) ctx.type()).ID().getText() + "'"
+                    )
+            );
+        }
+
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
             //System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
             String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
-            Symbol lookUp = currentST.lookUp(name);
+            Symbol lookUp = currentST.lookUpCurrentScope(name);
             if (lookUp != null) {
                 // collect error during ST step
 //                System.out.println(ctx.);
@@ -180,7 +189,7 @@ public class TigerSTListener extends TigerBaseListener {
             while (true) {
                // System.out.println(temp.ID());
                 name = temp.ID().getText();
-                lookUp = currentST.lookUp(name);
+                lookUp = currentST.lookUpCurrentScope(name);
                 if (lookUp != null) {
                     // collect error during ST step
                     errors.add(
@@ -195,7 +204,7 @@ public class TigerSTListener extends TigerBaseListener {
                 if (temp.id_list() instanceof TigerParser.IdListIdContext) {
                     //System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
                     name = ((TigerParser.IdListIdContext) temp.id_list()).ID().getText();
-                    lookUp = currentST.lookUp(name);
+                    lookUp = currentST.lookUpCurrentScope(name);
                     if (lookUp != null) {
                         // collect error during ST step
                         errors.add(
@@ -217,7 +226,7 @@ public class TigerSTListener extends TigerBaseListener {
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         // assumes currentScope == Symbol.Scope.GLOBAL, the parser will throw error on any other scope
         String name = ctx.ID().getText();
-        Symbol lookUp = currentST.lookUp(name);
+        Symbol lookUp = currentST.lookUpCurrentScope(name);
         if (lookUp != null) {
             errors.add(
                     new SemanticError(

@@ -145,19 +145,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) {
-        String name = ctx.ID().getText();
-        Symbol lookUp = getCurrentST().lookUp(name);
-        if (lookUp == null) {
-            errors.add(
-                    new SemanticError(
-                            ctx.getStart().getLine(),
-                            ctx.getStart().getCharPositionInLine(),
-                            "Cannot resolve symbol '" + name + "'"
-                    )
-            );
-        }
-    }
+    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) { }
     /**
      * {@inheritDoc}
      *
@@ -440,7 +428,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             String rvalueArrayBaseType = null;
             Symbol rvalue = getCurrentST().lookUp(((TigerParser.ExprValueContext) expr).value().getText());
             type = getCurrentST().lookUp(rvalue.getType());
-            System.out.println("exitStatAssign: " + lvalue + " " + rvalue);
+//            System.out.println("exitStatAssign: " + lvalue + " " + rvalue);
             if (type instanceof DefinedTypeArraySymbol) {
                 rvalueArrayBaseType = ((DefinedTypeArraySymbol) type).getBaseType();
                 rvalueArrayDimension = ((DefinedTypeArraySymbol) type).getDimension();
@@ -496,13 +484,17 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) { }
+    @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) {
+        controlFlowStack.get("while").push(ctx);
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) { }
+    @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) {
+        controlFlowStack.get("while").pop();
+    }
     /**
      * {@inheritDoc}
      *
@@ -510,6 +502,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      */
     @Override public void enterStatFor(TigerParser.StatForContext ctx) {
         controlFlowStack.get("for").push(ctx);
+//        System.out.println("entering for loop" + ctx.getText() + " " + controlFlowStack.get("for"));
     }
     /**
      * {@inheritDoc}
@@ -518,6 +511,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      */
     @Override public void exitStatFor(TigerParser.StatForContext ctx) {
         controlFlowStack.get("for").pop();
+//        System.out.println("entering for loop" + ctx.getText() + " " + controlFlowStack.get("for"));
     }
     /**
      * {@inheritDoc}
@@ -570,7 +564,10 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void enterStatBreak(TigerParser.StatBreakContext ctx) {
-        if (controlFlowStack.get("for").size() == 0) {
+//        System.out.println("enterStatBreak: in break statement: " + controlFlowStack.get("for"));
+        // This is not the best test for break outside of loops so might need to modify it later
+        // or we come up with a different strategy during IR
+        if (controlFlowStack.get("for").size() == 0 && controlFlowStack.get("while").size() == 0) {
             errors.add(
                     new SemanticError(
                             ctx.BREAK().getSymbol().getLine(),
@@ -714,7 +711,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         ExprReturnValue left = getExprReturnValue(ctx.expr(0));
         ExprReturnValue right = getExprReturnValue(ctx.expr(1));
 
-        System.out.println("exitExprPow: " + left + " " + right);
+//        System.out.println("exitExprPow: " + left + " " + right);
         if (left == ExprReturnValue.ARRAY || right == ExprReturnValue.ARRAY) {
             errors.add(
                     new SemanticError(
@@ -811,7 +808,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         ExprReturnValue leftReturnValue = getExprReturnValue(ctx.expr(0));
         ExprReturnValue rightReturnValue = getExprReturnValue(ctx.expr(1));
 
-        System.out.println("left: " + left + ", right: " + right);
+//        System.out.println("left: " + left + ", right: " + right);
 
         if (leftReturnValue == ExprReturnValue.ARRAY || rightReturnValue == ExprReturnValue.ARRAY) {
             errors.add(
@@ -968,37 +965,44 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             return;
         }
 
-        if (getExprReturnValue(ctx.value_tail()) == ExprReturnValue.ARRAY) {
-            errors.add(
-                    new SemanticError(
-                            ctx.getStart().getLine(),
-                            ctx.getStart().getCharPositionInLine(),
-                            "Cannot index an array with an array type"
-                    )
-            );
-            return;
-        }
         // TODO: Double-check this logic
-        ExprReturnValue returnValue;
-//        System.out.println("exitValue lookup: " + lookUp + " " + lookUp.getType());
+        ExprReturnValue returnValue = null;
         if (lookUp.getType().equals("int"))
             returnValue = ExprReturnValue.INT;
         else if (lookUp.getType().equals("float"))
             returnValue = ExprReturnValue.FLOAT;
         // get base type
         else {
-            Symbol type = getCurrentST().lookUp(name);
-            if (type instanceof DefinedTypeSymbol) {
-                String baseType = ((DefinedTypeSymbol) type).getBaseType();
+            // Array by index
+//            System.out.println("exitValue lookup type: " + lookUp.getClass() + " " + getCurrentST().lookUp(lookUp.getType()).getClass());
+            if (ctx.value_tail().getText().isEmpty() && (getCurrentST().lookUp(lookUp.getType()) instanceof DefinedTypeArraySymbol)) {
+                returnValue = ExprReturnValue.ARRAY;
+            }
+            // Referring to array object
+            else {
+
+//                System.out.println("base type: " + lookUp + " " + lookUp.getType());
+                String baseType = getBaseType(lookUp.getType());
                 if (baseType.equals("int"))
                     returnValue = ExprReturnValue.INT;
                 else
                     returnValue = ExprReturnValue.FLOAT;
             }
-            else
-                returnValue = ExprReturnValue.ARRAY;
         }
         setExprReturnValue(ctx, returnValue);
+    }
+
+    private String getBaseType(String type) {
+        DefinedTypeSymbol typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(type);
+        String baseType = typeSymbol.getBaseType();
+//        System.out.println("base type 1: " + baseType + " " + typeSymbol);
+        while(!(baseType.equals("int") || baseType.equals("float"))) {
+//            System.out.println("base type 2: " + baseType + " " + typeSymbol + " " + (!baseType.equals("int") || !baseType.equals("float")));
+            typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(baseType);
+            baseType = typeSymbol.getBaseType();
+        }
+//        System.out.println("base type 3: " + baseType + " " + typeSymbol.getType());
+        return baseType;
     }
     /**
      * {@inheritDoc}
@@ -1012,9 +1016,33 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void exitValue_tail(TigerParser.Value_tailContext ctx) {
-        if (ctx != null) {
-            setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
+//        System.out.println("exitValue_tail ctx: " + ctx.getText());
+        if (ctx.getText().isEmpty())
+            return;
+
+        if(getExprReturnValue(ctx.expr()) == ExprReturnValue.FLOAT) {
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "Cannot index an array with a float type"
+                    )
+            );
+            return;
         }
+
+        if(getExprReturnValue(ctx.expr()) == ExprReturnValue.ARRAY) {
+            errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.getStart().getCharPositionInLine(),
+                            "Cannot index an array with an array type"
+                    )
+            );
+            return;
+        }
+
+        setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
     }
 
 }

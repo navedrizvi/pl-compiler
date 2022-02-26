@@ -460,25 +460,58 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterStatIf(TigerParser.StatIfContext ctx) { }
+    @Override public void enterStatIf(TigerParser.StatIfContext ctx) {
+   
+
+    }
+
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitStatIf(TigerParser.StatIfContext ctx) { }
+    @Override public void exitStatIf(TigerParser.StatIfContext ctx) {
+        List<ParseTree> children = ctx.expr().children;
+        for (ParseTree t: children) {
+            if (getExprReturnValue(t) == ExprReturnValue.ARRAY) {
+                    errors.add(
+                        new SemanticError(
+                                ctx.IF().getSymbol().getLine(),
+                                ctx.IF().getSymbol().getCharPositionInLine(),
+                                "Expression in `if` condition is array type"
+                        )
+                );
+                return;
+            }
+        }
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) { }
+    @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) {
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
-    @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) { }
+    @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) {
+        List<ParseTree> children = ctx.expr().children;
+        for (ParseTree t: children) {
+            if (getExprReturnValue(t) == ExprReturnValue.ARRAY) {
+                    errors.add(
+                        new SemanticError(
+                                ctx.IF().getSymbol().getLine(),
+                                ctx.IF().getSymbol().getCharPositionInLine(),
+                                "Expression in `if` condition is array type"
+                        )
+                );
+                return;
+            }
+        }
+    }
     /**
      * {@inheritDoc}
      *
@@ -528,14 +561,14 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
-        String name = ctx.ID().getText();
-        Symbol lookUp = getCurrentST().lookUp(name);
+        String functionName = ctx.ID().getText();
+        Symbol lookUp = getCurrentST().lookUp(functionName);
         if (lookUp == null) {
             errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
                             ctx.getStart().getCharPositionInLine(),
-                            "Cannot resolve symbol '" + name + "'"
+                            "Cannot resolve symbol '" + functionName + "'"
                     )
             );
             return;

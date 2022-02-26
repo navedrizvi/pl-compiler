@@ -11,6 +11,8 @@ begin
         begin
             if (a) then
                 b := 1;
+            else
+                b := 2; 
             endif;
         end
         return 0;

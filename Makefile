@@ -29,6 +29,8 @@ SOURCES := \
 	src/TigerGraphListener.java \
 	src/TigerSTListener.java \
 	src/TigerSemanticAnalysisListener.java \
+	src/TigerIRListener.java \
+	src/IR.java \
 	src/LexicalErrorListener.java \
 	src/ParserErrorListener.java \
 	src/SemanticError.java \

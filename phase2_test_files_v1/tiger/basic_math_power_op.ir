@@ -1,0 +1,25 @@
+start_program basic_math_power_op
+static-int-list:
+static-float-list:
+start_function main
+int main()
+int-list: _2_a, _2_b, _t0, _t1, _t2
+float-list:
+main:
+assign, _2_a, 2
+and, 10, 2, _t0
+assign, _2_b, _t0
+call, printi, _2_b
+and, _2_a, 3, _t1
+and, 3, _t1, _t2
+assign, _2_b, _t2
+call, printi, _2_b
+return, 0, ,
+end_function main
+end_program basic_math_power_op
+, _t5
+assign, _2_b, _t5
+call, printi, _2_b
+return, 0, ,
+end_function main
+end_program basic_math_power_op

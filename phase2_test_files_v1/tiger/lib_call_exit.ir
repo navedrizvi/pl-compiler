@@ -1,10 +1,10 @@
 start_program lib_call_exit
-static-int-list: 
-static-float-list: 
+static-int-list:
+static-float-list:
 start_function main
 int main()
-int-list: 
-float-list: 
+int-list:
+float-list:
 main:
 call, printi, 5
 call, exit, 1
@@ -12,3 +12,4 @@ call, printi, 6
 return, 0, ,
 end_function main
 end_program lib_call_exit
+xit

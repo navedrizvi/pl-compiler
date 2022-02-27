@@ -58,11 +58,13 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         public final String symbol; 
         public final int line; 
         public final int pos;
+        public final int argidx;
 
-        public SymbolPosTuple(String symbol, int line, int pos) { 
+        public SymbolPosTuple(String symbol, int line, int pos, int argidx) { 
           this.symbol = symbol; 
           this.line = line; 
           this.pos = pos; 
+          this.argidx = argidx; 
         } 
     } 
 
@@ -76,15 +78,14 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         TigerParser.Param_listContext fnParamList = ctx.param_list();
         if (fnParamList.param()!=null) {
             TerminalNode fstParam = fnParamList.param().ID();
-
-            SymbolPosTuple paramDetails = new SymbolPosTuple(fstParam.getText(), fstParam.getSymbol().getLine(), fstParam.getSymbol().getCharPositionInLine());
+            SymbolPosTuple paramDetails = new SymbolPosTuple(fstParam.getText(), fstParam.getSymbol().getLine(), fstParam.getSymbol().getCharPositionInLine(), -1);
             fnParams.add(paramDetails);
             TigerParser.Param_list_tailContext c = fnParamList.param_list_tail();
             TigerParser.ParamContext param = c.param();
             while (param!=null) {
                 if (param != null) {
                     TerminalNode childParam = param.ID();
-                    SymbolPosTuple cparamDetails = new SymbolPosTuple(childParam.getText(), childParam.getSymbol().getLine(), childParam.getSymbol().getCharPositionInLine());
+                    SymbolPosTuple cparamDetails = new SymbolPosTuple(childParam.getText(), childParam.getSymbol().getLine(), childParam.getSymbol().getCharPositionInLine(), -1);
                     fnParams.add(cparamDetails);
                     c = c.param_list_tail();
                     param = c.param();
@@ -409,15 +410,19 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         SubroutineSymbol.CustomArrayList fnParams = lookUp.getParameters();
         TigerParser.Expr_listContext args = ctx.expr_list();
         
+        int argidx = 0;
         if (args.expr()!=null) {
-            SymbolPosTuple argSyb = new SymbolPosTuple(args.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
-            fnArgSymbs.add(argSyb);
+            if (getCurrentST().lookUp(args.expr().getText()) != null) {
+                SymbolPosTuple argSyb = new SymbolPosTuple(args.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine(), 0);
+                fnArgSymbs.add(argSyb);
+            }
             fnArgsCount += 1;
             TigerParser.Expr_list_tailContext arg = args.expr_list_tail();
             while (arg.expr()!=null) {
+                argidx += 1;
                 fnArgsCount += 1;
                 if (getCurrentST().lookUp(arg.expr().getText()) != null) {
-                    SymbolPosTuple argSyb2 = new SymbolPosTuple(arg.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
+                    SymbolPosTuple argSyb2 = new SymbolPosTuple(arg.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine(), argidx);
                     fnArgSymbs.add(argSyb2);
                 }
                 arg = arg.expr_list_tail();
@@ -446,7 +451,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
         for (int i=0; i < fnArgSymbs.size(); i++) {
             SymbolPosTuple fnA = fnArgSymbs.get(i);
-            SubroutineSymbol.Tuple fnP = fnParams.get(i);
+            SubroutineSymbol.Tuple fnP = fnParams.get(fnA.argidx);
 
             System.out.println(fnA.symbol);
             System.out.println(fnP.name);

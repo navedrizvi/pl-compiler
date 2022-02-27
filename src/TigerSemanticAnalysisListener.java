@@ -1,8 +1,6 @@
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
 
@@ -22,9 +20,9 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
     ParserRuleContext returnStatement = null;
 
-    public void setExprReturnValue(ParseTree node, ExprReturnValue value) { exprReturnValues.put(node, value); }
+    private void setExprReturnValue(ParseTree node, ExprReturnValue value) { exprReturnValues.put(node, value); }
 
-    public ExprReturnValue getExprReturnValue(ParseTree node) { return exprReturnValues.get(node); }
+    private ExprReturnValue getExprReturnValue(ParseTree node) { return exprReturnValues.get(node); }
 
     public TigerSemanticAnalysisListener(List<SymbolTable> stAsList) {
         this.stAsList = stAsList;

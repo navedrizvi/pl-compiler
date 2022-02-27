@@ -95,10 +95,7 @@ public class Tiger {
         writeFileWithContent(outputFile, graph);
     }
 
-    private static void writeSTToFile(String fileName, List<SymbolTable> stAsList) {
-        //private static void writeSTToFile(String fileName, List<SymbolTable> stAsList) {
-        String outputFile = fileName.replace(".tiger", ".st");
-        //String st = "";
+    private static String getSTAsFormattedString(List<SymbolTable> stAsList) {
         StringBuilder buf = new StringBuilder();
         int scope = 1;
 //        buf.append("Scope " + scope + ":\n");
@@ -120,8 +117,18 @@ public class Tiger {
             }
             scope++;
         }
-        // System.out.println(buf.toString());
-        writeFileWithContent(outputFile, buf.toString());
+
+        return buf.toString();
+    }
+
+    private static void writeSTToFile(String fileName, String st) {
+        String outputFile = fileName.replace(".tiger", ".st");
+        writeFileWithContent(outputFile, st);
+    }
+
+    private static void writeIRToFile(String fileName, String ir) {
+        String outputFile = fileName.replace(".tiger", ".ir");
+        writeFileWithContent(outputFile, ir);
     }
 
     private static int getIFlagIdx(String[] args) {
@@ -249,7 +256,10 @@ public class Tiger {
                 System.exit(4);
             }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
-            writeSTToFile(fileName, stAsList);
+            String stAsFormattedString = getSTAsFormattedString(stAsList);
+            // Remove when done
+            System.out.println(stAsFormattedString);
+            writeSTToFile(fileName, stAsFormattedString);
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
         // and write to .ir file.
@@ -272,7 +282,8 @@ public class Tiger {
                 System.exit(4);
             }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
-            writeSTToFile(fileName, stAsList);
+            // Remove when done
+            //System.out.println(getSTAsFormattedString(stAsList));
 
             // Semantic analysis
             TigerSemanticAnalysisListener tigerSemanticAnalysisListener = new TigerSemanticAnalysisListener(stAsList);
@@ -286,6 +297,11 @@ public class Tiger {
                 System.exit(4);
             }
 
+            // IR generation
+            TigerIRListener tigerIRListener = new TigerIRListener(stAsList);
+            walker.walk(tigerIRListener, tree);
+            System.out.println(IR.toFormattedString());
+            writeIRToFile(fileName, IR.toFormattedString());
         }
         else {
             System.out.println("No action required.");

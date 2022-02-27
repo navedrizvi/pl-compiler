@@ -64,4 +64,20 @@ public class SymbolTable {
         }
         return null;
     }
+
+    public int getScopeNumber(String name) {
+        Symbol symbol = ST.get(name);
+        if (symbol != null)
+            return scopeNumber;
+
+        SymbolTable parent = getParent();
+        while (parent != null) {
+            Map<String, Symbol> map = parent.getST();
+            symbol = map.get(name);
+            if (symbol != null)
+                return parent.getScopeNumber();
+            parent = parent.getParent();
+        }
+        return -1;
+    }
 }

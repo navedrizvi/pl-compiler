@@ -257,14 +257,63 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         scopeNumber++;
         returnStatement = null;
     }
+
+    public class SymbolPosTuple { 
+        public final String symbol; 
+        public final int line; 
+        public final int pos; 
+        public SymbolPosTuple(String symbol, int line, int pos) { 
+          this.symbol = symbol; 
+          this.line = line; 
+          this.pos = pos; 
+        } 
+    } 
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
+        // wip
+        ArrayList<SymbolPosTuple> fnParams = new ArrayList<SymbolPosTuple>();
         String name = ctx.ID().getText();
-        Symbol lookUp = getCurrentST().lookUp(name);
+        SubroutineSymbol lookUp = (SubroutineSymbol) getCurrentST().lookUp(name);
+       
+        TigerParser.Param_listContext fnParamList = ctx.param_list();
+        if (fnParamList.param()!=null) {
+            TerminalNode fstParam = fnParamList.param().ID();
+
+            SymbolPosTuple paramDetails = new SymbolPosTuple(fstParam.getText(), fstParam.getSymbol().getLine(), fstParam.getSymbol().getCharPositionInLine());
+            fnParams.add(paramDetails);
+            TigerParser.Param_list_tailContext c = fnParamList.param_list_tail();
+            TigerParser.ParamContext param = c.param();
+            while (param!=null) {
+                if (param != null) {
+                    TerminalNode childParam = param.ID();
+                    SymbolPosTuple cparamDetails = new SymbolPosTuple(childParam.getText(), childParam.getSymbol().getLine(), childParam.getSymbol().getCharPositionInLine());
+                    fnParams.add(cparamDetails);
+                    c = c.param_list_tail();
+                    param = c.param();
+                }
+            }
+
+            for (SymbolPosTuple e: fnParams) {
+                Symbol val = getCurrentST().lookUp(e.symbol);
+                String type = val.getType();
+                Symbol lookUp2 = getCurrentST().lookUp(type);
+                if (lookUp2 instanceof DefinedTypeArraySymbol) {
+                    errors.add(
+                        new SemanticError(
+                                e.line,
+                                e.pos,
+                                "Cannot pass array as an argument to a subroutine"
+                        )
+                    );
+                    return;
+                }
+            }
+        }
+ 
         String returnType = ((SubroutineSymbol) lookUp).getReturnType();
 //        System.out.println(getExprReturnValue(returnStatement).name() + " " + returnType);
         if (returnStatement == null && returnType != null) {
@@ -483,6 +532,16 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
                 );
                 return;
             }
+            if (getExprReturnValue(t) == ExprReturnValue.FLOAT) {
+                errors.add(
+                    new SemanticError(
+                            ctx.IF().getSymbol().getLine(),
+                            ctx.IF().getSymbol().getCharPositionInLine(),
+                            "Expression in `if` condition is float type"
+                    )
+                );
+                return;
+            } 
         }
     }
     /**
@@ -510,6 +569,16 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
                 );
                 return;
             }
+            if (getExprReturnValue(t) == ExprReturnValue.FLOAT) {
+                errors.add(
+                    new SemanticError(
+                            ctx.IF().getSymbol().getLine(),
+                            ctx.IF().getSymbol().getCharPositionInLine(),
+                            "Expression in `if` condition is float type"
+                    )
+                );
+                return;
+            } 
         }
     }
     /**
@@ -527,6 +596,29 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      */
     @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) {
         controlFlowStack.get("while").pop();
+        List<ParseTree> children = ctx.expr().children;
+        for (ParseTree t: children) {
+            if (getExprReturnValue(t) == ExprReturnValue.ARRAY) {
+                    errors.add(
+                        new SemanticError(
+                                ctx.WHILE().getSymbol().getLine(),
+                                ctx.WHILE().getSymbol().getCharPositionInLine(),
+                                "Expression in `while` condition is array type"
+                        )
+                );
+                return;
+            }
+            if (getExprReturnValue(t) == ExprReturnValue.FLOAT) {
+                errors.add(
+                    new SemanticError(
+                            ctx.WHILE().getSymbol().getLine(),
+                            ctx.WHILE().getSymbol().getCharPositionInLine(),
+                            "Expression in `while` condition is float type"
+                    )
+                );
+                return;
+            } 
+        }
     }
     /**
      * {@inheritDoc}
@@ -535,7 +627,72 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      */
     @Override public void enterStatFor(TigerParser.StatForContext ctx) {
         controlFlowStack.get("for").push(ctx);
-//        System.out.println("entering for loop" + ctx.getText() + " " + controlFlowStack.get("for"));
+        TigerParser.ExprContext left = ctx.expr(0);
+        TigerParser.ExprContext right = ctx.expr(1);
+        List<ParseTree> childsLeft = left.children;
+        List<ParseTree> childsRight = right.children;
+
+        List<String> symbols = new ArrayList<String>();
+        // TODO should handle both types and names? (double-check)
+        for (ParseTree cl: childsLeft) {
+            if (cl.getChildCount() > 1) {
+                ParseTree child = cl.getChild(0);
+                int i = 1;
+                while (child != null) {
+                    child = cl.getChild(i);
+                    symbols.add(cl.getText());
+                    i++;
+                }
+            }
+            if (cl.getChildCount() == 1) {
+                symbols.add(cl.getText());
+            }
+        }
+        for (ParseTree cr: childsRight) {
+            if (cr.getChildCount() > 1) {
+                ParseTree child = cr.getChild(0);
+                int i = 1;
+                while (child != null) {
+                    symbols.add(child.getText());
+                    child = cr.getChild(i);
+                    if (child == null) {
+                        break;
+                    }
+                    i++;
+                }
+            }
+            if (cr.getChildCount() == 1) {
+                symbols.add(cr.getText());
+            }
+        }
+
+        for (String symbol: symbols) {
+            Symbol lookUp = getCurrentST().lookUp(symbol);
+            if (lookUp != null) {
+                if (lookUp.getType().equals("float")) {
+                    errors.add(
+                        new SemanticError(
+                                ctx.FOR().getSymbol().getLine(),
+                                ctx.FOR().getSymbol().getCharPositionInLine(),
+                                "For loop range is float type"
+                        )
+                    );
+                    return;
+                }
+                String type = lookUp.getType();
+                Symbol lookUp2 = getCurrentST().lookUp(type);
+                if (lookUp2 instanceof DefinedTypeArraySymbol) {
+                    errors.add(
+                        new SemanticError(
+                                ctx.FOR().getSymbol().getLine(),
+                                ctx.FOR().getSymbol().getCharPositionInLine(),
+                                "For loop range is array type"
+                        )
+                    );
+                    return;
+                }
+            }
+        }
     }
     /**
      * {@inheritDoc}
@@ -561,8 +718,10 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
+        ArrayList<SymbolPosTuple> fnArgs = new ArrayList<SymbolPosTuple>();
+    
         String functionName = ctx.ID().getText();
-        Symbol lookUp = getCurrentST().lookUp(functionName);
+        SubroutineSymbol lookUp = (SubroutineSymbol) getCurrentST().lookUp(functionName);
         if (lookUp == null) {
             errors.add(
                     new SemanticError(
@@ -573,22 +732,74 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             );
             return;
         }
-
-        String lvalueType = null;
-        if (ctx.opt_prefix().value() != null) {
-            lvalueType = getCurrentST().lookUp(ctx.opt_prefix().value().getText()).getType();
+        SubroutineSymbol.CustomArrayList fnParams = lookUp.getParameters();
+        TigerParser.Expr_listContext args = ctx.expr_list();
+        
+        if (args.expr()!=null) {
+            SymbolPosTuple argSyb = new SymbolPosTuple(args.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
+            fnArgs.add(argSyb);
+            TigerParser.Expr_list_tailContext arg = args.expr_list_tail();
+            while (arg.expr()!=null) {
+                if (getCurrentST().lookUp(arg.expr().getText()) != null) {
+                    SymbolPosTuple argSyb2 = new SymbolPosTuple(arg.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
+                    fnArgs.add(argSyb2);
+                }
+                arg = arg.expr_list_tail();
+            }
         }
 
-//        System.out.println("enterStatFunctionCall: " + lvalueType + " " + ((SubroutineSymbol) lookUp).getReturnType());
-        if ((lvalueType != null) && lvalueType.equals("int") && ((SubroutineSymbol) lookUp).getReturnType().equals("float")) {
-            errors.add(
+        for (int i=0; i<fnArgs.size(); i++) {
+            if (fnArgs.size() > fnParams.size()) {
+                errors.add(
+                        new SemanticError(
+                                ctx.getStart().getLine(),
+                                ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                                "Too many arguments provided to function call"
+                        )
+                );
+                return;
+            }
+            if (fnArgs.size() < fnParams.size()) {
+                errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
-                            ctx.getStart().getCharPositionInLine(),
-                            "Narrowing conversion  on function call is not allowed"
+                            ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                            "Not all arguments provided to function call"
                     )
             );
-            return;
+                return;
+            }
+            SymbolPosTuple fnA = fnArgs.get(i);
+            SubroutineSymbol.Tuple fnP = fnParams.get(i);
+
+            try {
+                Float.parseFloat(fnA.symbol);
+                if (fnP.type.equals("int")) {
+                    errors.add(
+                            new SemanticError(
+                                    ctx.getStart().getLine(),
+                                    ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                                    "Narrowing conversion on function call"
+                            )
+                    );
+                    return;
+                }
+            }
+            catch (Exception e){
+            }
+            
+            String fnAType = getCurrentST().lookUp(fnA.symbol).getType();
+
+            if (fnAType.equals("float") && fnP.type.equals("int")) {
+                errors.add(
+                        new SemanticError(
+                                ctx.getStart().getLine(),
+                                ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                                "Narrowing conversion on function call"
+                        )
+                );
+                return;
+            }
         }
     }
     /**

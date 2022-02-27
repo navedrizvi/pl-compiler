@@ -45,6 +45,10 @@ public class SubroutineSymbol extends Symbol {
         return returnType;
     }
 
+    public CustomArrayList getParameters() {
+        return args;
+    }
+
     public String toFormattedString() {
         return super.getName() + ", " + super.getType() + "(" + this.args.printArgTypes() + ") " + ", " + returnType;
     }

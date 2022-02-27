@@ -641,7 +641,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         List<ParseTree> childsRight = right.children;
 
         List<String> symbols = new ArrayList<String>();
-        // TODO should handle both types and names? (double-check)
         for (ParseTree cl: childsLeft) {
             if (cl.getChildCount() > 1) {
                 ParseTree child = cl.getChild(0);

@@ -36,4 +36,4 @@ javac Tiger*.java
 # java Tiger -i ../phase2_test_files_v1/semantic/err_func_call_narrowing.tiger --ir
 # java Tiger -i ../phase2_test_files_v1/semantic/err_func_call_too_few_args.tiger --ir
 # java Tiger -i ../phase2_test_files_v1/semantic/err_func_call_too_many_args.tiger --ir
-TODO fix linenum: java Tiger -i ../phase2_test_files_v1/semantic/err_func_return_narrowing.tiger --ir
+java Tiger -i ../phase2_test_files_v1/semantic/err_func_return_narrowing.tiger --ir

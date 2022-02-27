@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
 
@@ -23,6 +24,9 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     private void setExprReturnValue(ParseTree node, ExprReturnValue value) { exprReturnValues.put(node, value); }
 
     private ExprReturnValue getExprReturnValue(ParseTree node) { return exprReturnValues.get(node); }
+
+    private String currentFunctionName = null;
+    private boolean currentFunctionVoidReturn = false;
 
     public TigerSemanticAnalysisListener(List<SymbolTable> stAsList) {
         this.stAsList = stAsList;
@@ -254,6 +258,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         scopeNumber++;
         returnStatement = null;
+        currentFunctionName = ctx.ID().getText();
     }
 
     public class SymbolPosTuple { 
@@ -272,7 +277,8 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
-        // wip
+        currentFunctionName = null;
+
         ArrayList<SymbolPosTuple> fnParams = new ArrayList<SymbolPosTuple>();
         String name = ctx.ID().getText();
         SubroutineSymbol lookUp = (SubroutineSymbol) getCurrentST().lookUp(name);
@@ -315,6 +321,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         String returnType = ((SubroutineSymbol) lookUp).getReturnType();
 //        System.out.println(getExprReturnValue(returnStatement).name() + " " + returnType);
         if (returnStatement == null && returnType != null) {
+            currentFunctionVoidReturn = true;
             errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
@@ -326,6 +333,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
 
         if (returnStatement != null && returnType == null) {
+            currentFunctionVoidReturn = true;
             errors.add(
                     new SemanticError(
                             returnStatement.getStart().getLine(),
@@ -337,6 +345,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
 
         if (returnStatement != null && returnType != null && ((TigerParser.StatReturnContext) returnStatement).opt_return().expr() == null) {
+            currentFunctionVoidReturn = true;
             errors.add(
                     new SemanticError(
                             returnStatement.getStart().getLine(),
@@ -348,6 +357,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
 
         if (returnStatement != null && getExprReturnValue(returnStatement) == ExprReturnValue.ARRAY) {
+            currentFunctionVoidReturn = true;
             errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
@@ -720,6 +730,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     
         String functionName = ctx.ID().getText();
         SubroutineSymbol lookUp = (SubroutineSymbol) getCurrentST().lookUp(functionName);
+
         if (lookUp == null) {
             errors.add(
                     new SemanticError(
@@ -729,6 +740,19 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
                     )
             );
             return;
+        }
+    
+        if (ctx.opt_prefix().value() != null) {
+            if (lookUp.getReturnType().equals("float") && getCurrentST().lookUp(ctx.opt_prefix().value().getText()).getType().equals("int")) {
+                errors.add(
+                    new SemanticError(
+                            ctx.getStart().getLine(),
+                            ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                            "Narrowing conversion on function assignment"
+                    )
+                );
+                return;
+            }
         }
         SubroutineSymbol.CustomArrayList fnParams = lookUp.getParameters();
         TigerParser.Expr_listContext args = ctx.expr_list();
@@ -772,7 +796,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
             try {
                 Float.parseFloat(fnA.symbol);
-                if (fnP.type.equals("int")) {
+                if (fnP.type.equals("int") && currentFunctionVoidReturn!= true) {
                     errors.add(
                             new SemanticError(
                                     ctx.getStart().getLine(),
@@ -786,17 +810,21 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             catch (Exception e){
             }
             
-            String fnAType = getCurrentST().lookUp(fnA.symbol).getType();
-
-            if (fnAType.equals("float") && fnP.type.equals("int")) {
-                errors.add(
-                        new SemanticError(
-                                ctx.getStart().getLine(),
-                                ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
-                                "Narrowing conversion on function call"
-                        )
-                );
+            Symbol lookUp2 = getCurrentST().lookUp(fnA.symbol);
+            if (lookUp2 == null) {
                 return;
+            }
+            if (currentFunctionVoidReturn != true) {
+                if (lookUp2.getType().equals("float") && fnP.type.equals("int")) {
+                    errors.add(
+                            new SemanticError(
+                                    ctx.getStart().getLine(),
+                                    ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                                    "Narrowing conversion on function call"
+                            )
+                    );
+                    return;
+                }
             }
         }
     }
@@ -844,6 +872,24 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             returnStatement = ctx;
         }
 
+        SubroutineSymbol function = (SubroutineSymbol) getCurrentST().lookUp(currentFunctionName);
+        if (currentFunctionVoidReturn != true) {
+            if (function != null) {
+                if (function.getReturnType() != null && ctx.opt_return().expr() != null) {
+                    if ((function.getReturnType().equals("int")) && getExprReturnValue(ctx.opt_return().expr()) == ExprReturnValue.FLOAT) {
+                        errors.add(
+                                new SemanticError(
+                                        ctx.getStart().getLine(),
+                                        ctx.RETURN().getSymbol().getCharPositionInLine(),
+                                        "Narrowing conversion on function call"
+                                )
+                        );
+                        return;
+                    }
+                }
+           }
+        }
+        
         if (ctx.RETURN() != null) {
             returnStatement = ctx;
         }

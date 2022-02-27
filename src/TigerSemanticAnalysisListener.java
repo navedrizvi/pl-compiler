@@ -453,9 +453,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             SymbolPosTuple fnA = fnArgSymbs.get(i);
             SubroutineSymbol.Tuple fnP = fnParams.get(fnA.argidx);
 
-            System.out.println(fnA.symbol);
-            System.out.println(fnP.name);
-
             // TODO: remove when all IR is passing
 //            try {
 //                Float.parseFloat(fnA.symbol);

@@ -107,7 +107,6 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void exitVar_decl(TigerParser.Var_declContext ctx) {
         for (String var : varDecList) {
-            //String name = ctx.value().getText();
             boolean isArray = false;
             boolean isDefinedType = false;
             String baseType = null;
@@ -122,7 +121,6 @@ public class TigerIRListener extends TigerBaseListener {
                     IR.addVarInt(mangledName);
                 else {
                     IR.addStaticInt(mangledName);
-//                    System.out.println(ctx.optional_init().constant() == null);
                     if (ctx.optional_init().constant() != null)
                         staticVars.put(mangledName, ctx.optional_init().constant().getText());
                 }
@@ -172,7 +170,6 @@ public class TigerIRListener extends TigerBaseListener {
                         else
                             IR.addVarFloat(mangledName);
                     }
-//                        IR.addVarFloat(mangledName);
                     else {
                         if (isArray) {
                             IR.addStaticFloat(arrayMangledName);
@@ -204,17 +201,12 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     private DefinedTypeSymbol getBaseTypeSymbol(String type) {
-//        if (type.equals("int") || type.equals("float"))
-//            return type;
         DefinedTypeSymbol typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(type);
         String baseType = typeSymbol.getBaseType();
-//        System.out.println("base type 1: " + baseType + " " + typeSymbol);
         while(!(baseType.equals("int") || baseType.equals("float"))) {
-//            System.out.println("base type 2: " + baseType + " " + typeSymbol + " " + (!baseType.equals("int") || !baseType.equals("float")));
             typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(baseType);
             baseType = typeSymbol.getBaseType();
         }
-//        System.out.println("base type 3: " + baseType + " " + typeSymbol.getType());
         return typeSymbol;
     }
 
@@ -278,9 +270,7 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterReturn_type(TigerParser.Return_typeContext ctx) { }
 
-    @Override public void exitReturn_type(TigerParser.Return_typeContext ctx) {
-
-    }
+    @Override public void exitReturn_type(TigerParser.Return_typeContext ctx) { }
 
     @Override public void enterParam(TigerParser.ParamContext ctx) { }
 
@@ -297,10 +287,23 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterStatAssign(TigerParser.StatAssignContext ctx) { }
 
     @Override public void exitStatAssign(TigerParser.StatAssignContext ctx) {
-        String name = ctx.value().getText();
+        String name = ctx.value().ID().getText();
+        Value value = getValue(ctx.value());
+        Value expr = getValue(ctx.expr());
         int scopeNumber = getCurrentST().getScopeNumber(name);
         String mangledName = getMangledName(name, scopeNumber);
-        IR.emit("assign, " + mangledName + ", " + getValue(ctx.expr()).getValue());
+        // Array index on left
+        if (value.getValue().endsWith("]")) {
+            int leftBracket = value.getValue().indexOf("[");
+            String indexValue = value.getValue().substring(leftBracket + 1, value.getValue().indexOf("]"));
+            String varName = value.getValue().substring(0, leftBracket);
+            IR.emit("array_store, " + varName + ", " + indexValue + ", " + expr.getValue());
+
+        }
+
+        else {
+            IR.emit("assign, " + value.getValue() + ", " + expr.getValue());
+        }
     }
 
     @Override public void enterStatIf(TigerParser.StatIfContext ctx) { }
@@ -325,6 +328,8 @@ public class TigerIRListener extends TigerBaseListener {
         // Will need to expand this for when there is a list of expressions in a function call.
         Value expr = getValue(ctx.expr_list().expr());
         Value value = getValue(ctx.opt_prefix());
+
+        // Currently does not handle function call assignment to array indexing
         if (value == null) {
             IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
         }
@@ -431,7 +436,23 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterExprValue(TigerParser.ExprValueContext ctx) { }
 
     @Override public void exitExprValue(TigerParser.ExprValueContext ctx) {
-        setValue(ctx, getValue(ctx.value()));
+        Value value = getValue(ctx.value());
+        if (value.getValue().endsWith("]")) {
+            int leftBracket = value.getValue().indexOf("[");
+            String indexValue = value.getValue().substring(leftBracket + 1, value.getValue().indexOf("]"));
+            String varName = value.getValue().substring(0, leftBracket);
+            VariableSymbol temp = IR.createNewTemp(value.getType(), getCurrentST().getScope());
+            getCurrentST().insert(temp.getName(), temp);
+            if (value.getType().equals("int"))
+                IR.addVarInt(temp.getName());
+            else
+                IR.addVarFloat(temp.getName());
+            IR.emit("array_load, " + temp.getName() + ", " + varName + ", " + indexValue);
+            setValue(ctx, new Value(temp.getName(), temp.getType()));
+        }
+        else {
+            setValue(ctx, getValue(ctx.value()));
+        }
     }
 
     @Override public void enterExprComp(TigerParser.ExprCompContext ctx) { }
@@ -476,7 +497,6 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterConstantIntLit(TigerParser.ConstantIntLitContext ctx) { }
 
     @Override public void exitConstantIntLit(TigerParser.ConstantIntLitContext ctx) {
-//        System.out.println(ctx.getText());
         setValue(ctx, new Value(ctx.getText(), "int"));
     }
 
@@ -499,25 +519,14 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void exitValue(TigerParser.ValueContext ctx) {
         String name = ctx.ID().getText();
         Symbol lookup = getCurrentST().lookUp(name);
-//        System.out.println(name + ", " + lookup);
         String baseType = getBaseType(lookup.getType());
         int scopeNumber = getCurrentST().getScopeNumber(name);
         String mangledName = getMangledName(name, scopeNumber);
         if (!ctx.value_tail().getText().isEmpty()) {
-            name += ctx.value_tail().getText();
-            VariableSymbol temp = IR.createNewTemp(baseType, getCurrentST().getScope());
-            getCurrentST().insert(temp.getName(), temp);
-            if(baseType.equals("int"))
-                IR.addVarInt(temp.getName());
-            else
-                IR.addVarFloat(temp.getName());
-            IR.emit("array_load, " + temp.getName() + ", " + mangledName + ", " + getValue(ctx.value_tail()).getValue());
-            setValue(ctx, new Value(temp.getName(), temp.getType()));
+            mangledName += ctx.value_tail().getText();
         }
-        else {
-//            System.out.println("exitValue: " + name + " " + baseType);
-            setValue(ctx, new Value(mangledName, baseType));
-        }
+
+        setValue(ctx, new Value(mangledName, baseType));
 
     }
 

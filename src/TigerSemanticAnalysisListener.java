@@ -43,218 +43,11 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
     private SymbolTable getCurrentST() { return stAsList.get(scopeNumber); }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void enterMain(TigerParser.MainContext ctx) {
         scopeNumber++;
 
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitMain(TigerParser.MainContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterDecl_seg(TigerParser.Decl_segContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitDecl_seg(TigerParser.Decl_segContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterType_decl_list(TigerParser.Type_decl_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitType_decl_list(TigerParser.Type_decl_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterVar_decl_list(TigerParser.Var_decl_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitVar_decl_list(TigerParser.Var_decl_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterFunct_list(TigerParser.Funct_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitFunct_list(TigerParser.Funct_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterType_decl(TigerParser.Type_declContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitType_decl(TigerParser.Type_declContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterTypeBaseType(TigerParser.TypeBaseTypeContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitTypeBaseType(TigerParser.TypeBaseTypeContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterTypeArray(TigerParser.TypeArrayContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitTypeArray(TigerParser.TypeArrayContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitTypeID(TigerParser.TypeIDContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterBaseTypeInt(TigerParser.BaseTypeIntContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitBaseTypeInt(TigerParser.BaseTypeIntContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterBaseTypeFloat(TigerParser.BaseTypeFloatContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitBaseTypeFloat(TigerParser.BaseTypeFloatContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterVar_decl(TigerParser.Var_declContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitVar_decl(TigerParser.Var_declContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStorageClassVar(TigerParser.StorageClassVarContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStorageClassVar(TigerParser.StorageClassVarContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStorageClassStatic(TigerParser.StorageClassStaticContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStorageClassStatic(TigerParser.StorageClassStaticContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterIdListId(TigerParser.IdListIdContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitIdListId(TigerParser.IdListIdContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterIdList(TigerParser.IdListContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitIdList(TigerParser.IdListContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterOptional_init(TigerParser.Optional_initContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitOptional_init(TigerParser.Optional_initContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         scopeNumber++;
         returnStatement = null;
@@ -271,11 +64,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
           this.pos = pos; 
         } 
     } 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         currentFunctionName = null;
 
@@ -319,7 +108,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
  
         String returnType = ((SubroutineSymbol) lookUp).getReturnType();
-//        System.out.println(getExprReturnValue(returnStatement).name() + " " + returnType);
         if (returnStatement == null && returnType != null) {
             currentFunctionVoidReturn = true;
             errors.add(
@@ -369,89 +157,8 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         }
 
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterParam_list(TigerParser.Param_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitParam_list(TigerParser.Param_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterParam_list_tail(TigerParser.Param_list_tailContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitParam_list_tail(TigerParser.Param_list_tailContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterReturn_type(TigerParser.Return_typeContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitReturn_type(TigerParser.Return_typeContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterParam(TigerParser.ParamContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitParam(TigerParser.ParamContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatSingle(TigerParser.StatSingleContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatSeq(TigerParser.StatSeqContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStatSeq(TigerParser.StatSeqContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatAssign(TigerParser.StatAssignContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
+
     @Override public void exitStatAssign(TigerParser.StatAssignContext ctx) {
         TigerParser.ValueContext value = ctx.value();
         TigerParser.ExprContext expr = ctx.expr();
@@ -485,7 +192,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             String rvalueArrayBaseType = null;
             Symbol rvalue = getCurrentST().lookUp(((TigerParser.ExprValueContext) expr).value().getText());
             type = getCurrentST().lookUp(rvalue.getType());
-//            System.out.println("exitStatAssign: " + lvalue + " " + rvalue);
             if (type instanceof DefinedTypeArraySymbol) {
                 rvalueArrayBaseType = ((DefinedTypeArraySymbol) type).getBaseType();
                 rvalueArrayDimension = ((DefinedTypeArraySymbol) type).getDimension();
@@ -512,21 +218,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             }
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatIf(TigerParser.StatIfContext ctx) {
-   
 
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitStatIf(TigerParser.StatIfContext ctx) {
         List<ParseTree> children = ctx.expr().children;
         for (ParseTree t: children) {
@@ -552,18 +244,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             } 
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) {
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) {
         List<ParseTree> children = ctx.expr().children;
         for (ParseTree t: children) {
@@ -589,19 +270,11 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             } 
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) {
         controlFlowStack.get("while").push(ctx);
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) {
         controlFlowStack.get("while").pop();
         List<ParseTree> children = ctx.expr().children;
@@ -628,11 +301,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             } 
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterStatFor(TigerParser.StatForContext ctx) {
         controlFlowStack.get("for").push(ctx);
         TigerParser.ExprContext left = ctx.expr(0);
@@ -701,29 +370,11 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             }
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitStatFor(TigerParser.StatForContext ctx) {
         controlFlowStack.get("for").pop();
-//        System.out.println("entering for loop" + ctx.getText() + " " + controlFlowStack.get("for"));
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
 
-
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
         ArrayList<SymbolPosTuple> fnArgs = new ArrayList<SymbolPosTuple>();
     
@@ -827,13 +478,8 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             }
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterStatBreak(TigerParser.StatBreakContext ctx) {
-//        System.out.println("enterStatBreak: in break statement: " + controlFlowStack.get("for"));
         // This is not the best test for break outside of loops so might need to modify it later
         // or we come up with a different strategy during IR
         if (controlFlowStack.get("for").size() == 0 && controlFlowStack.get("while").size() == 0) {
@@ -846,25 +492,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             );
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStatBreak(TigerParser.StatBreakContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) {
 
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
         if (getExprReturnValue(ctx.opt_return()) != null) {
             setExprReturnValue(ctx, getExprReturnValue(ctx.opt_return()));
@@ -893,60 +521,16 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             returnStatement = ctx;
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {
         scopeNumber++;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitStatLet(TigerParser.StatLetContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterOpt_return(TigerParser.Opt_returnContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) {
         if (ctx != null)
             setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterOpt_prefix(TigerParser.Opt_prefixContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitOpt_prefix(TigerParser.Opt_prefixContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprAddSub(TigerParser.ExprAddSubContext ctx) {
 
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitExprAddSub(TigerParser.ExprAddSubContext ctx) {
         ExprReturnValue left = getExprReturnValue(ctx.expr(0));
         ExprReturnValue right = getExprReturnValue(ctx.expr(1));
@@ -969,36 +553,12 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         else {
             setExprReturnValue(ctx, ExprReturnValue.INT);
         }
-//        System.out.println("exitExprAddSub: " + left + " " + right);
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprAnd(TigerParser.ExprAndContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitExprAnd(TigerParser.ExprAndContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprPow(TigerParser.ExprPowContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitExprPow(TigerParser.ExprPowContext ctx) {
         ExprReturnValue left = getExprReturnValue(ctx.expr(0));
         ExprReturnValue right = getExprReturnValue(ctx.expr(1));
 
-//        System.out.println("exitExprPow: " + left + " " + right);
         if (left == ExprReturnValue.ARRAY || right == ExprReturnValue.ARRAY) {
             errors.add(
                     new SemanticError(
@@ -1026,59 +586,15 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         else
             setExprReturnValue(ctx, ExprReturnValue.INT);
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExporOr(TigerParser.ExporOrContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitExporOr(TigerParser.ExporOrContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprParen(TigerParser.ExprParenContext ctx) {
 
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitExprParen(TigerParser.ExprParenContext ctx) {
         setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprValue(TigerParser.ExprValueContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitExprValue(TigerParser.ExprValueContext ctx) {
         setExprReturnValue(ctx, getExprReturnValue(ctx.value()));
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprComp(TigerParser.ExprCompContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitExprComp(TigerParser.ExprCompContext ctx) {
         TigerParser.ExprContext left = ctx.expr(0);
         TigerParser.ExprContext right = ctx.expr(1);
@@ -1095,8 +611,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         ExprReturnValue leftReturnValue = getExprReturnValue(ctx.expr(0));
         ExprReturnValue rightReturnValue = getExprReturnValue(ctx.expr(1));
 
-//        System.out.println("left: " + left + ", right: " + right);
-
         if (leftReturnValue == ExprReturnValue.ARRAY || rightReturnValue == ExprReturnValue.ARRAY) {
             errors.add(
                     new SemanticError(
@@ -1107,7 +621,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             );
             return;
         }
-
 
         if (leftReturnValue != rightReturnValue) {
             errors.add(
@@ -1121,19 +634,7 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
         setExprReturnValue(ctx, ExprReturnValue.INT);
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprMultDiv(TigerParser.ExprMultDivContext ctx) {
 
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitExprMultDiv(TigerParser.ExprMultDivContext ctx) {
         ExprReturnValue left = getExprReturnValue(ctx.expr(0));
         ExprReturnValue right = getExprReturnValue(ctx.expr(1));
@@ -1157,86 +658,21 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
             setExprReturnValue(ctx, ExprReturnValue.INT);
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExprConstant(TigerParser.ExprConstantContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitExprConstant(TigerParser.ExprConstantContext ctx) {
         setExprReturnValue(ctx, getExprReturnValue(ctx.constant()));
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterConstantIntLit(TigerParser.ConstantIntLitContext ctx) {
         setExprReturnValue(ctx, ExprReturnValue.INT);
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitConstantIntLit(TigerParser.ConstantIntLitContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void enterConstantFloatLit(TigerParser.ConstantFloatLitContext ctx) {
         setExprReturnValue(ctx, ExprReturnValue.FLOAT);
-
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitConstantFloatLit(TigerParser.ConstantFloatLitContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExpr_list(TigerParser.Expr_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitExpr_list(TigerParser.Expr_listContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterExpr_list_tail(TigerParser.Expr_list_tailContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void exitExpr_list_tail(TigerParser.Expr_list_tailContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterValue(TigerParser.ValueContext ctx) {
 
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
     @Override public void exitValue(TigerParser.ValueContext ctx) {
         // err_undefined_var
         String name = ctx.ID().getText();
@@ -1261,14 +697,12 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         // get base type
         else {
             // Array by index
-//            System.out.println("exitValue lookup type: " + lookUp.getClass() + " " + getCurrentST().lookUp(lookUp.getType()).getClass());
             if (ctx.value_tail().getText().isEmpty() && (getCurrentST().lookUp(lookUp.getType()) instanceof DefinedTypeArraySymbol)) {
                 returnValue = ExprReturnValue.ARRAY;
             }
             // Referring to array object
             else {
 
-//                System.out.println("base type: " + lookUp + " " + lookUp.getType());
                 String baseType = getBaseType(lookUp.getType());
                 if (baseType.equals("int"))
                     returnValue = ExprReturnValue.INT;
@@ -1282,28 +716,14 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     private String getBaseType(String type) {
         DefinedTypeSymbol typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(type);
         String baseType = typeSymbol.getBaseType();
-//        System.out.println("base type 1: " + baseType + " " + typeSymbol);
         while(!(baseType.equals("int") || baseType.equals("float"))) {
-//            System.out.println("base type 2: " + baseType + " " + typeSymbol + " " + (!baseType.equals("int") || !baseType.equals("float")));
             typeSymbol = (DefinedTypeSymbol) getCurrentST().lookUp(baseType);
             baseType = typeSymbol.getBaseType();
         }
-//        System.out.println("base type 3: " + baseType + " " + typeSymbol.getType());
         return baseType;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override public void enterValue_tail(TigerParser.Value_tailContext ctx) { }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
+
     @Override public void exitValue_tail(TigerParser.Value_tailContext ctx) {
-//        System.out.println("exitValue_tail ctx: " + ctx.getText());
         if (ctx.getText().isEmpty())
             return;
 
@@ -1331,5 +751,4 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
         setExprReturnValue(ctx, getExprReturnValue(ctx.expr()));
     }
-
 }

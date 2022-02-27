@@ -85,7 +85,9 @@ public class IR {
     }
 
     public static String createNewLabel() {
-        return null;
+        String label = "_L" + labelCount;
+        labelCount++;
+        return label;
     }
 
     public static VariableSymbol createNewTemp(String type, Symbol.Scope scope) {

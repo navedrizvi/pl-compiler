@@ -248,7 +248,15 @@ public class TigerIRListener extends TigerBaseListener {
             for (Map.Entry<String, String> entry : staticVars.entrySet()) {
                 if (entry.getValue().isEmpty())
                     continue;
-                IR.emit("assign, " + entry.getKey() + ", " + entry.getValue());
+                String array = entry.getKey();
+                if (array.endsWith("]")) {
+                    String varName = array.substring(0, array.indexOf("["));
+                    String dimension = array.substring(array.indexOf("[") + 1, array.indexOf("]"));
+                    IR.emit("assign, " + varName + ", " + dimension + ", " + entry.getValue());
+                }
+                else {
+                    IR.emit("assign, " + entry.getKey() + ", " + entry.getValue());
+                }
             }
         }
     }
@@ -457,7 +465,50 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterExprComp(TigerParser.ExprCompContext ctx) { }
 
-    @Override public void exitExprComp(TigerParser.ExprCompContext ctx) { }
+    @Override public void exitExprComp(TigerParser.ExprCompContext ctx) {
+        Value left = getValue(ctx.expr(0));
+        Value right = getValue(ctx.expr(1));
+
+        String op = ctx.op.getText();
+        String code;
+        // Take opposite code
+        if (op.equals("==")) {
+            // !=
+            code = "brneq";
+        }
+        else if (op.equals("!=")) {
+            // ==
+            code = "breq";
+        }
+        else if (op.equals("<")) {
+            // >=
+            code = "brgeq";
+        }
+        else if (op.equals(">")) {
+            // <=
+            code = "brleq";
+        }
+        else if (op.equals("<=")) {
+            // >
+            code = "brgt";
+        }
+        // >=
+        else {
+            // <
+            code = "brlt";
+        }
+
+        VariableSymbol temp = IR.createNewTemp("int", getCurrentST().getScope());
+        getCurrentST().insert(temp.getName(), temp);
+        IR.addVarInt(temp.getName());
+        IR.emit("assign, " + temp.getName() + ", 0");
+        String label = IR.createNewLabel();
+        IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + label);
+        IR.emit("assign, " + temp.getName() + ", 1");
+        IR.emit(label + ":");
+
+        setValue(ctx, new Value(temp.getName(), temp.getType()));
+    }
 
     @Override public void enterExprMultDiv(TigerParser.ExprMultDivContext ctx) { }
 

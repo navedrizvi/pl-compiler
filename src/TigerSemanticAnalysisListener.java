@@ -377,7 +377,8 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
     }
 
     @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
-        ArrayList<SymbolPosTuple> fnArgs = new ArrayList<SymbolPosTuple>();
+        ArrayList<SymbolPosTuple> fnArgSymbs = new ArrayList<SymbolPosTuple>();
+        int fnArgsCount = 0;
     
         String functionName = ctx.ID().getText();
         SubroutineSymbol lookUp = (SubroutineSymbol) getCurrentST().lookUp(functionName);
@@ -410,39 +411,41 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         
         if (args.expr()!=null) {
             SymbolPosTuple argSyb = new SymbolPosTuple(args.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
-            fnArgs.add(argSyb);
+            fnArgSymbs.add(argSyb);
+            fnArgsCount += 1;
             TigerParser.Expr_list_tailContext arg = args.expr_list_tail();
             while (arg.expr()!=null) {
+                fnArgsCount += 1;
                 if (getCurrentST().lookUp(arg.expr().getText()) != null) {
                     SymbolPosTuple argSyb2 = new SymbolPosTuple(arg.expr().getText(), ctx.OPENPAREN().getSymbol().getLine(), ctx.OPENPAREN().getSymbol().getCharPositionInLine());
-                    fnArgs.add(argSyb2);
+                    fnArgSymbs.add(argSyb2);
                 }
                 arg = arg.expr_list_tail();
             }
         }
-
-        for (int i=0; i<fnArgs.size(); i++) {
-            if (fnArgs.size() > fnParams.size()) {
-                errors.add(
-                        new SemanticError(
-                                ctx.getStart().getLine(),
-                                ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
-                                "Too many arguments provided to function call"
-                        )
-                );
-                return;
-            }
-            if (fnArgs.size() < fnParams.size()) {
-                errors.add(
+        if (fnArgsCount > fnParams.size()) {
+            errors.add(
                     new SemanticError(
                             ctx.getStart().getLine(),
                             ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
-                            "Not all arguments provided to function call"
+                            "Too many arguments provided to function call"
                     )
             );
-                return;
-            }
-            SymbolPosTuple fnA = fnArgs.get(i);
+            return;
+        }
+        if (fnArgsCount < fnParams.size()) {
+            errors.add(
+                new SemanticError(
+                        ctx.getStart().getLine(),
+                        ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
+                        "Not all arguments provided to function call"
+                )
+            );
+            return;
+        }
+
+        for (int i=0; i < fnArgSymbs.size(); i++) {
+            SymbolPosTuple fnA = fnArgSymbs.get(i);
             SubroutineSymbol.Tuple fnP = fnParams.get(i);
 
             System.out.println(fnA.symbol);

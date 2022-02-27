@@ -9,7 +9,7 @@ import java.util.List;
 public class TigerSTListener extends TigerBaseListener {
 
     private int level = -1; // Represents the lexical level where (current) symbol is declared
-    int scopeNumber = 0;
+    private int scopeNumber = 0;
     private SymbolTable st;
     private SymbolTable currentST;
     private Symbol.Scope currentScope;
@@ -129,7 +129,7 @@ public class TigerSTListener extends TigerBaseListener {
                 new SemanticError(
                     ctx.storage_class().getStart().getLine(),
                     ctx.storage_class().getStart().getCharPositionInLine(),
-                    "Variable(s) in scope must be declared as static"
+                    "Variable(s) in GLOBAL scope must be declared as static"
                 )
             );
         }
@@ -139,7 +139,7 @@ public class TigerSTListener extends TigerBaseListener {
                 new SemanticError(
                     ctx.storage_class().getStart().getLine(),
                     ctx.storage_class().getStart().getCharPositionInLine(),
-                    "Variable(s) in scope must be declared as var"
+                    "Variable(s) in LET scope must be declared as var"
                 )
             );
         }

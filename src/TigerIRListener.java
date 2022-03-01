@@ -289,14 +289,8 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void exitParam(TigerParser.ParamContext ctx) { }
 
-    @Override public void enterStatSingle(TigerParser.StatSingleContext ctx) { }
-
-    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) {
-        if (controlFlowStack.get("else").size() > 0) {
-            IR.emit( "goto, " + controlFlowStack.get("if").peek());
-            String label = controlFlowStack.get("else").pop();
-            IR.emit(label + ":");
-        }
+    @Override public void enterStatSingle(TigerParser.StatSingleContext ctx) {
+//        System.out.println("enterStatSingle: " + ctx.stat().getText());
     }
 
     @Override public void enterStatSeq(TigerParser.StatSeqContext ctx) { }
@@ -326,7 +320,7 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     @Override public void enterStatIf(TigerParser.StatIfContext ctx) {
-        System.out.println("enterStatIf: " + getValue(ctx.expr()));
+//        System.out.println("enterStatIf: " + getValue(ctx.expr()));
         String label = IR.createNewLabel();
         controlFlowStack.get("if").push(label);
     }
@@ -340,7 +334,7 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) {
-        System.out.println("enterStatIfElse: " + getValue(ctx.expr()));
+//        System.out.println("enterStatIfElse: " + getValue(ctx.expr()));
         String label = IR.createNewLabel();
         controlFlowStack.get("else").push(label);
         label = IR.createNewLabel();
@@ -351,8 +345,39 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) {
 //        String label = controlFlowStack.get("ifElse").pop();
 //        IR.emit(label + ":");
-        String label = controlFlowStack.get("if").pop();
+        String label;
+//        label = controlFlowStack.get("else").pop();
+//        IR.emit(label + ":");
+//        System.out.println("exitStatIfElse if before: " + controlFlowStack.get("if"));
+//        System.out.println("exitStatIfElse else before: " + controlFlowStack.get("else"));
+        label = controlFlowStack.get("if").pop();
         IR.emit(label + ":");
+        if (controlFlowStack.get("if").size() > 0 && controlFlowStack.get("if").size() % 2 == 0) {
+            IR.emit("goto, " + controlFlowStack.get("if").peek());
+        }
+
+        if (controlFlowStack.get("else").size() > 0 && controlFlowStack.get("else").size() % 2 != 0) {
+            //IR.emit("goto, " + controlFlowStack.get("if").peek());
+            label = controlFlowStack.get("else").pop();
+            IR.emit(label + ":");
+        }
+//        System.out.println("if after: " + controlFlowStack.get("if"));
+//        System.out.println("else after: " + controlFlowStack.get("else"));
+    }
+
+    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) {
+//        System.out.println("exitStatSingle if before: " + controlFlowStack.get("if"));
+//        System.out.println("exitStatSingle else before: " + controlFlowStack.get("else"));
+        if (controlFlowStack.get("else").size() > 0 ) {
+            if (controlFlowStack.get("else").size() % 2 == 0) {
+                IR.emit("goto, " + controlFlowStack.get("if").peek());
+                String label = controlFlowStack.get("else").pop();
+                IR.emit(label + ":");
+            }
+
+        }
+//        System.out.println("exitStatSingle if after: " + controlFlowStack.get("if"));
+//        System.out.println("exitStatSingle else after: " + controlFlowStack.get("else"));
     }
 
     @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) { }

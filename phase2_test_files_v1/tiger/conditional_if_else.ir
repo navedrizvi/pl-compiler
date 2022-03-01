@@ -1,0 +1,113 @@
+start_program conditional_if_else
+static-int-list:
+static-float-list:
+start_function main
+int main()
+int-list: _2_a
+float-list:
+main:
+assign, _2_a, 1
+brleq, _2_a, 0, _L0
+call, printi, 1
+goto, _L1
+_L0:
+call, printi, 2
+_L1:
+brleq, _2_a, 1, _L2
+call, printi, 3
+goto, _L3
+_L2:
+call, printi, 4
+_L3:
+brleq, _2_a, 2, _L4
+call, printi, 5
+goto, _L5
+_L4:
+call, printi, 6
+_L5:
+brgeq, _2_a, 0, _L6
+call, printi, 7
+goto, _L7
+_L6:
+call, printi, 8
+_L7:
+brgeq, _2_a, 1, _L8
+call, printi, 9
+goto, _L9
+_L8:
+call, printi, 10
+_L9:
+brgeq, _2_a, 2, _L10
+call, printi, 11
+goto, _L11
+_L10:
+call, printi, 12
+_L11:
+brlt, _2_a, 0, _L12
+call, printi, 13
+goto, _L13
+_L12:
+call, printi, 14
+_L13:
+brlt, _2_a, 1, _L14
+call, printi, 15
+goto, _L15
+_L14:
+call, printi, 16
+_L15:
+brlt, _2_a, 2, _L16
+call, printi, 17
+goto, _L17
+_L16:
+call, printi, 18
+_L17:
+brgt, _2_a, 0, _L18
+call, printi, 19
+goto, _L19
+_L18:
+call, printi, 20
+_L19:
+brgt, _2_a, 1, _L20
+call, printi, 21
+goto, _L21
+_L20:
+call, printi, 22
+_L21:
+brgt, _2_a, 2, _L22
+call, printi, 23
+goto, _L23
+_L22:
+call, printi, 24
+_L23:
+brneq, _2_a, 0, _L24
+call, printi, 25
+goto, _L25
+_L24:
+call, printi, 26
+_L25:
+brneq, _2_a, 1, _L26
+call, printi, 27
+goto, _L27
+_L26:
+call, printi, 28
+_L27:
+breq, _2_a, 0, _L28
+call, printi, 29
+goto, _L29
+_L28:
+call, printi, 30
+_L29:
+breq, _2_a, 1, _L30
+call, printi, 31
+goto, _L31
+_L30:
+call, printi, 32
+_L31:
+return, 0, ,
+end_function main
+end_program conditional_if_else
+call, printi, 32
+_L31:
+return, 0, ,
+end_function main
+end_program conditional_if_else

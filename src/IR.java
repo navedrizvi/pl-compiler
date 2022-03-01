@@ -90,6 +90,10 @@ public class IR {
         return label;
     }
 
+    public static String getCurrentLabel() {
+        return "_L" + labelCount;
+    }
+
     public static VariableSymbol createNewTemp(String type, Symbol.Scope scope) {
         VariableSymbol temp = new VariableSymbol("_t" + tempVarCount, type, scope, VariableSymbol.StorageClass.VAR);
         tempVarCount++;

@@ -1,10 +1,8 @@
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TigerIRListener extends TigerBaseListener {
 
@@ -33,9 +31,16 @@ public class TigerIRListener extends TigerBaseListener {
     private Map<Integer, Map<String, String>> floatListMap = new HashMap<>();
     private List<String> varDecList = null;
     private Map<String, String> staticVars = new HashMap<>();
+    // maps labels for each level of for, while, if, else
+    private Map<String, Stack<String>> controlFlowStack;
 
     public TigerIRListener(List<SymbolTable> stAsList) {
         this.stAsList = stAsList;
+        this.controlFlowStack = new LinkedHashMap<>();
+        this.controlFlowStack.put("for", new Stack<>());
+        this.controlFlowStack.put("while", new Stack<>());
+        this.controlFlowStack.put("if", new Stack<>());
+        this.controlFlowStack.put("else", new Stack<>());
     }
 
     private void setValue(ParseTree node, Value value) { ctxValues.put(node, value); }
@@ -286,7 +291,13 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterStatSingle(TigerParser.StatSingleContext ctx) { }
 
-    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) { }
+    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) {
+        if (controlFlowStack.get("else").size() > 0) {
+            IR.emit( "goto, " + controlFlowStack.get("if").peek());
+            String label = controlFlowStack.get("else").pop();
+            IR.emit(label + ":");
+        }
+    }
 
     @Override public void enterStatSeq(TigerParser.StatSeqContext ctx) { }
 
@@ -314,13 +325,35 @@ public class TigerIRListener extends TigerBaseListener {
         }
     }
 
-    @Override public void enterStatIf(TigerParser.StatIfContext ctx) { }
+    @Override public void enterStatIf(TigerParser.StatIfContext ctx) {
+        System.out.println("enterStatIf: " + getValue(ctx.expr()));
+        String label = IR.createNewLabel();
+        controlFlowStack.get("if").push(label);
+    }
 
-    @Override public void exitStatIf(TigerParser.StatIfContext ctx) { }
+    @Override public void exitStatIf(TigerParser.StatIfContext ctx) {
+//        System.out.println("exitStatIf: " + getValue(ctx.expr()).getValue());
+//        System.out.println("exitStatIf: " + ctx.stat_seq().getText());
+        String label = controlFlowStack.get("if").pop();
+        IR.emit(label + ":");
 
-    @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) { }
+    }
 
-    @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) { }
+    @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) {
+        System.out.println("enterStatIfElse: " + getValue(ctx.expr()));
+        String label = IR.createNewLabel();
+        controlFlowStack.get("else").push(label);
+        label = IR.createNewLabel();
+        controlFlowStack.get("if").push(label);
+
+    }
+
+    @Override public void exitStatIfElse(TigerParser.StatIfElseContext ctx) {
+//        String label = controlFlowStack.get("ifElse").pop();
+//        IR.emit(label + ":");
+        String label = controlFlowStack.get("if").pop();
+        IR.emit(label + ":");
+    }
 
     @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) { }
 
@@ -501,11 +534,30 @@ public class TigerIRListener extends TigerBaseListener {
         VariableSymbol temp = IR.createNewTemp("int", getCurrentST().getScope());
         getCurrentST().insert(temp.getName(), temp);
         IR.addVarInt(temp.getName());
-        IR.emit("assign, " + temp.getName() + ", 0");
-        String label = IR.createNewLabel();
-        IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + label);
-        IR.emit("assign, " + temp.getName() + ", 1");
-        IR.emit(label + ":");
+
+        if (controlFlowStack.get("if").size() > 0) {
+            // IR.emit("assign, " + temp.getName() + ", 1");
+            if (controlFlowStack.get("else").size() > 0) {
+                IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("else").peek());
+            }
+            else {
+                IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("if").peek());
+            }
+            // IR.emit("assign, " + temp.getName() + ", 0");
+        }
+//        else if (controlFlowStack.get("else").size() > 0) {
+//            //IR.emit("assign, " + temp.getName() + ", 1");
+//            IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("else").peek());
+//            //IR.emit("assign, " + temp.getName() + ", 0");
+//        }
+        // Comparison operators inside a function call (for example)
+        else {
+            IR.emit("assign, " + temp.getName() + ", 0");
+            String label = IR.createNewLabel();
+            IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + label);
+            IR.emit("assign, " + temp.getName() + ", 1");
+            IR.emit(label + ":");
+        }
 
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }

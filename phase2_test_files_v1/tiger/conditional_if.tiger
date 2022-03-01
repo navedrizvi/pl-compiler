@@ -21,7 +21,6 @@ begin
                 printi(3);
             endif;
 
-
             if a < 0 then
                 printi(4);
             endif;

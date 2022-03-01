@@ -1,0 +1,94 @@
+start_program conditional_if
+static-int-list:
+static-float-list:
+start_function main
+int main()
+int-list: _2_a, _t0, _t1, _t2, _t3, _t4, _t5, _t6, _t7, _t8, _t9, _t10, _t11, _t12, _t13, _t14, _t15
+float-list:
+main:
+assign, _2_a, 1
+brleq, _2_a, 0, _L0
+call, printi, 1
+_L0:
+brleq, _2_a, 1, _L1
+call, printi, 2
+_L1:
+brleq, _2_a, 2, _L2
+call, printi, 3
+_L2:
+brgeq, _2_a, 0, _L3
+call, printi, 4
+_L3:
+brgeq, _2_a, 1, _L4
+call, printi, 5
+_L4:
+brgeq, _2_a, 2, _L5
+call, printi, 6
+_L5:
+brlt, _2_a, 0, _L6
+call, printi, 7
+_L6:
+brlt, _2_a, 1, _L7
+call, printi, 8
+_L7:
+brlt, _2_a, 2, _L8
+call, printi, 9
+_L8:
+brgt, _2_a, 0, _L9
+call, printi, 10
+_L9:
+brgt, _2_a, 1, _L10
+call, printi, 11
+_L10:
+brgt, _2_a, 2, _L11
+call, printi, 12
+_L11:
+brneq, _2_a, 0, _L12
+call, printi, 13
+_L12:
+brneq, _2_a, 1, _L13
+call, printi, 14
+_L13:
+breq, _2_a, 0, _L14
+call, printi, 15
+_L14:
+breq, _2_a, 1, _L15
+call, printi, 16
+_L15:
+return, 0, ,
+end_function main
+end_program conditional_if
+gt, _2_a, 1, _L10
+assign, _t10, 0
+call, printi, 11
+_L10:
+assign, _t11, 1
+brgt, _2_a, 2, _L11
+assign, _t11, 0
+call, printi, 12
+_L11:
+assign, _t12, 1
+brneq, _2_a, 0, _L12
+assign, _t12, 0
+call, printi, 13
+_L12:
+assign, _t13, 1
+brneq, _2_a, 1, _L13
+assign, _t13, 0
+call, printi, 14
+_L13:
+assign, _t14, 1
+breq, _2_a, 0, _L14
+assign, _t14, 0
+call, printi, 15
+_L14:
+assign, _t15, 1
+breq, _2_a, 1, _L15
+assign, _t15, 0
+call, printi, 16
+_L15:
+return, 0, ,
+end_function main
+end_program conditional_if
+f
+conditional_if

@@ -33,6 +33,7 @@ public class TigerIRListener extends TigerBaseListener {
     private Map<String, String> staticVars = new HashMap<>();
     // maps labels for each level of for, while, if, else
     private Map<String, Stack<String>> controlFlowStack;
+    boolean returnIsVoid = true;
 
     public TigerIRListener(List<SymbolTable> stAsList) {
         this.stAsList = stAsList;
@@ -245,6 +246,9 @@ public class TigerIRListener extends TigerBaseListener {
         String name = ctx.ID().getText();
         Symbol lookUp = getCurrentST().lookUp(name);
         String returnType = ((SubroutineSymbol) lookUp).getReturnType();
+        if (returnType == null)
+            returnType = "void";
+//        System.out.println(name + " " + returnType);
         IR.emit("start_function " + name);
         IR.emit(returnType + " " + name + "()");
         IR.emitForVarIntList();
@@ -270,6 +274,8 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void exitFunct(TigerParser.FunctContext ctx) {
         String name = ctx.ID().getText();
         IR.populateVarLists();
+        if (returnIsVoid)
+            IR.emit("return");
         IR.emit("end_function " + name);
         IR.reset();
     }
@@ -431,7 +437,10 @@ public class TigerIRListener extends TigerBaseListener {
 
         // Currently does not handle function call assignment to array indexing
         if (value == null) {
-            IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
+            if (expr == null)
+                IR.emit("call, " + ctx.ID().getText());
+            else
+                IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
         }
         else {
             IR.emit("callr, " + value.getValue() + ", " + ctx.ID().getText() + ", " + expr.getValue());
@@ -449,7 +458,10 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
 
     @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
-        IR.emit("return, 0, ,");
+//        Value value = getValue(ctx.opt_return());
+//        System.out.println("exitStatReturn: " + value);
+        returnIsVoid = false;
+        IR.emit("return, 0");
     }
 
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {

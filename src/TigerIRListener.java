@@ -325,6 +325,22 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit(label + ":");
     }
 
+    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) {
+        // This assumes that if-else is not nested.
+        if (controlFlowStack.get("else").size() == 1 && controlFlowStack.get("if").size() == 1) {
+            IR.emit("goto, " + controlFlowStack.get("if").peek());
+            String label = controlFlowStack.get("else").pop();
+            IR.emit(label + ":");
+        }
+        else if (controlFlowStack.get("else").size() > 0 ) {
+            if (controlFlowStack.get("else").size() % 2 == 0) {
+                IR.emit("goto, " + controlFlowStack.get("if").peek());
+                String label = controlFlowStack.get("else").pop();
+                IR.emit(label + ":");
+            }
+        }
+    }
+
     @Override public void enterStatIfElse(TigerParser.StatIfElseContext ctx) {
         String label = IR.createNewLabel();
         controlFlowStack.get("else").push(label);
@@ -347,25 +363,23 @@ public class TigerIRListener extends TigerBaseListener {
         }
     }
 
-    @Override public void exitStatSingle(TigerParser.StatSingleContext ctx) {
-        // This assumes that if-else is not nested.
-        if (controlFlowStack.get("else").size() == 1 && controlFlowStack.get("if").size() == 1) {
-            IR.emit("goto, " + controlFlowStack.get("if").peek());
-            String label = controlFlowStack.get("else").pop();
-            IR.emit(label + ":");
-        }
-        else if (controlFlowStack.get("else").size() > 0 ) {
-            if (controlFlowStack.get("else").size() % 2 == 0) {
-                IR.emit("goto, " + controlFlowStack.get("if").peek());
-                String label = controlFlowStack.get("else").pop();
-                IR.emit(label + ":");
-            }
-        }
+    @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) {
+        System.out.println("enterStatWhile");
+        String loopLabel = IR.createNewLabel();
+        String exitLabel = IR.createNewLabel();
+        IR.emit(loopLabel + ":");
+        controlFlowStack.get("while").push(loopLabel);
+        controlFlowStack.get("while").push(exitLabel);
     }
 
-    @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) { }
-
-    @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) { }
+    @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) {
+        System.out.println("exitStatWhile 1");
+        String exitLabel = controlFlowStack.get("while").pop();
+        String loopLabel = controlFlowStack.get("while").pop();
+        IR.emit("goto, " + loopLabel);
+        IR.emit(exitLabel + ":");
+        System.out.println("exitStatWhile 2");
+    }
 
     @Override public void enterStatFor(TigerParser.StatForContext ctx) { }
 
@@ -459,7 +473,44 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterExprPow(TigerParser.ExprPowContext ctx) { }
 
-    @Override public void exitExprPow(TigerParser.ExprPowContext ctx) { }
+    @Override public void exitExprPow(TigerParser.ExprPowContext ctx) {
+        Value left = getValue(ctx.expr(0));
+        Value right = getValue(ctx.expr(1));
+        if (right.getValue().equals("0")) {
+            VariableSymbol temp = IR.createNewTemp("int", getCurrentST().getScope());
+            getCurrentST().insert(temp.getName(), temp);
+            IR.addVarInt(temp.getName());
+            IR.emit("assign, " + temp.getName() + ", 1");
+            setValue(ctx, new Value(temp.getName(), temp.getType()));
+            return;
+        }
+        String code = "brgeq";
+        String loopLabel = IR.createNewLabel();
+        String exitLabel = IR.createNewLabel();
+        VariableSymbol tempIter = IR.createNewTemp("int", getCurrentST().getScope());
+        getCurrentST().insert(tempIter.getName(), tempIter);
+        IR.addVarInt(tempIter.getName());
+
+        VariableSymbol tempValue;
+        if (left.getType().equals("float")) {
+            tempValue = IR.createNewTemp("float", getCurrentST().getScope());
+            IR.addVarFloat(tempValue.getName());
+        }
+        else {
+            tempValue = IR.createNewTemp("int", getCurrentST().getScope());
+            IR.addVarInt(tempValue.getName());
+        }
+        getCurrentST().insert(tempValue.getName(), tempValue);
+        IR.emit("assign, " + tempIter.getName() + ", 1");
+        IR.emit("assign, " + tempValue.getName() + ", " + left.getValue());
+        IR.emit(loopLabel + ":");
+        IR.emit(code + ", " + tempIter.getName() + ", " + right.getValue() + ", " + exitLabel);
+        IR.emit("mult, " + tempValue.getName() + ", " + left.getValue() + ", " + tempValue.getName());
+        IR.emit("add, " + tempIter.getName() + ", " +  "1, " + tempIter.getName());
+        IR.emit("goto, " + loopLabel);
+        IR.emit(exitLabel + ":");
+        setValue(ctx, new Value(tempValue.getName(), tempValue.getType()));
+    }
 
     @Override public void enterExporOr(TigerParser.ExporOrContext ctx) { }
 
@@ -544,20 +595,20 @@ public class TigerIRListener extends TigerBaseListener {
         IR.addVarInt(temp.getName());
 
         if (controlFlowStack.get("if").size() > 0) {
-            // IR.emit("assign, " + temp.getName() + ", 1");
+            IR.emit("assign, " + temp.getName() + ", 0");
             if (controlFlowStack.get("else").size() > 0) {
                 IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("else").peek());
             }
             else {
                 IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("if").peek());
             }
-            // IR.emit("assign, " + temp.getName() + ", 0");
+            IR.emit("assign, " + temp.getName() + ", 1");
         }
-//        else if (controlFlowStack.get("else").size() > 0) {
-//            //IR.emit("assign, " + temp.getName() + ", 1");
-//            IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("else").peek());
-//            //IR.emit("assign, " + temp.getName() + ", 0");
-//        }
+        else if (controlFlowStack.get("while").size() > 0) {
+            IR.emit("assign, " + temp.getName() + ", 0");
+            IR.emit(code + ", " + left.getValue() + ", " + right.getValue() + ", " + controlFlowStack.get("while").peek());
+            IR.emit("assign, " + temp.getName() + ", 1");
+        }
         // Comparison operators inside a function call (for example)
         else {
             IR.emit("assign, " + temp.getName() + ", 0");
@@ -566,7 +617,6 @@ public class TigerIRListener extends TigerBaseListener {
             IR.emit("assign, " + temp.getName() + ", 1");
             IR.emit(label + ":");
         }
-
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
 
@@ -636,9 +686,7 @@ public class TigerIRListener extends TigerBaseListener {
         if (!ctx.value_tail().getText().isEmpty()) {
             mangledName += ctx.value_tail().getText();
         }
-
         setValue(ctx, new Value(mangledName, baseType));
-
     }
 
     @Override public void enterValue_tail(TigerParser.Value_tailContext ctx) { }

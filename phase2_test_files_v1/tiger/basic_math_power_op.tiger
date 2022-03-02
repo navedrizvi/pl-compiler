@@ -13,14 +13,13 @@ begin
             b := 10 ** 2;
             printi(b);
 
-            
+                        
             b := 3 ** a ** 3;
             printi(b);
 
-            /*
+            
             b := 9 / 3 ** a * 12;
             printi(b);
-            */
         end
         return 0;
     end

@@ -10,16 +10,24 @@ assign, _2_a, 1
 assign, _2_b, 2
 assign, _2_c, 3
 assign, _2_d, 4
+assign, _t0, 0
 brleq, _2_a, _2_b, _L0
+assign, _t0, 1
+assign, _t1, 0
 brleq, _2_a, _2_c, _L2
+assign, _t1, 1
 assign, _2_result, 1
 goto, _L3
 _L2:
 assign, _2_result, 2
 _L3:
 _L0:
+assign, _t2, 0
 brgeq, _2_a, _2_c, _L4
+assign, _t2, 1
+assign, _t3, 0
 brlt, _2_a, _2_d, _L6
+assign, _t3, 1
 assign, _2_result, 4
 goto, _L7
 _L6:
@@ -34,7 +42,3 @@ call, printi, _2_result
 return, 0, ,
 end_function main
 end_program conditional_nested_if_else
-onal_nested_if_else
-d_if_else
-d_if_else
-d_if_else

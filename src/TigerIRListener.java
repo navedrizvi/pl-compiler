@@ -373,17 +373,47 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     @Override public void exitStatWhile(TigerParser.StatWhileContext ctx) {
-        System.out.println("exitStatWhile 1");
         String exitLabel = controlFlowStack.get("while").pop();
         String loopLabel = controlFlowStack.get("while").pop();
         IR.emit("goto, " + loopLabel);
         IR.emit(exitLabel + ":");
-        System.out.println("exitStatWhile 2");
     }
 
-    @Override public void enterStatFor(TigerParser.StatForContext ctx) { }
+    @Override public void enterStatFor(TigerParser.StatForContext ctx) {
+        String loopLabel = IR.createNewLabel();
+        String exitLabel = IR.createNewLabel();
+        controlFlowStack.get("for").push(loopLabel);
+        controlFlowStack.get("for").push(exitLabel);
 
-    @Override public void exitStatFor(TigerParser.StatForContext ctx) { }
+        IR.emitForLoopIndex();
+        IR.emitForLoopIndex();
+        IR.emit(loopLabel + ":");
+        IR.emitForLoopCond();
+    }
+
+    @Override public void exitStatFor(TigerParser.StatForContext ctx) {
+        System.out.println("exitStatFor: " + getValue(ctx.expr(0)).getValue());
+        System.out.println("exitStatFor: " + getValue(ctx.expr(1)).getValue());
+        VariableSymbol tempFrom = IR.createNewTemp("int", getCurrentST().getScope());
+        getCurrentST().insert(tempFrom.getName(), tempFrom);
+        IR.addVarInt(tempFrom.getName());
+        VariableSymbol tempTo = IR.createNewTemp("int", getCurrentST().getScope());
+        getCurrentST().insert(tempTo.getName(), tempTo);
+        IR.addVarInt(tempTo.getName());
+        String from = getValue(ctx.expr(0)).getValue();
+        String to = getValue(ctx.expr(1)).getValue();
+        String exitLabel = controlFlowStack.get("for").pop();
+        String loopLabel = controlFlowStack.get("for").pop();
+        String name = ctx.ID().getText();
+        int scopeNumber = getCurrentST().getScopeNumber(name);
+        String mangledName = getMangledName(name, scopeNumber);
+        IR.updateForLoopCond("brgt", mangledName, tempTo.getName(), exitLabel);
+        IR.updateForLoopEntryPoint(tempTo.getName(), to);
+        IR.updateForLoopEntryPoint(mangledName, from);
+        IR.emit("add, " + mangledName + ", " +  "1, " + mangledName);
+        IR.emit("goto, " + loopLabel);
+        IR.emit(exitLabel + ":");
+    }
 
     @Override public void enterStatFunctionCall(TigerParser.StatFunctionCallContext ctx) { }
 
@@ -684,7 +714,7 @@ public class TigerIRListener extends TigerBaseListener {
         int scopeNumber = getCurrentST().getScopeNumber(name);
         String mangledName = getMangledName(name, scopeNumber);
         if (!ctx.value_tail().getText().isEmpty()) {
-            mangledName += ctx.value_tail().getText();
+            mangledName += "[" + getValue(ctx.value_tail()).getValue() + "]"; //ctx.value_tail().getText();
         }
         setValue(ctx, new Value(mangledName, baseType));
     }

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class IR {
 
@@ -11,6 +12,7 @@ public class IR {
     static List<String> staticFloatList = new ArrayList<>();
     static List<String> varIntList = new ArrayList<>();
     static List<String> varFloatList = new ArrayList<>();
+    static Stack<Integer> forLoopIndex = new Stack<>();
     static int intListIdx = 0;
     static int floatListIdx = 0;
     static int index = 0;
@@ -67,8 +69,6 @@ public class IR {
     }
 
     public static void populateStaticVarLists() {
-//        irOutput.set(intListIdx, String.format(irOutput.get(intListIdx), String.join(",", varIntList)));
-//        irOutput.set(floatListIdx, String.format(irOutput.get(floatListIdx), String.join(",", varFloatList)));
         if (staticIntList.isEmpty())
             emit("static-int-list:");
         else
@@ -77,6 +77,26 @@ public class IR {
             emit("static-float-list:");
         else
             emit("static-float-list: " + String.join(", ", staticFloatList));
+    }
+
+    public static void emitForLoopIndex() {
+        forLoopIndex.add(index);
+        emit("for-loop");
+    }
+
+    public static void emitForLoopCond() {
+        forLoopIndex.add(index);
+        emit("for-loop");
+    }
+
+    public static void updateForLoopEntryPoint(String var, String value) {
+        int index = forLoopIndex.pop();
+        irOutput.set(index, "assign, " + var + "," + value);
+    }
+
+    public static void updateForLoopCond(String code, String from, String to, String exitLabel) {
+        int index = forLoopIndex.pop();
+        irOutput.set(index, code + ", " + from + ", " + to + ", " + exitLabel);
     }
 
     public static void reset() {
@@ -88,10 +108,6 @@ public class IR {
         String label = "_L" + labelCount;
         labelCount++;
         return label;
-    }
-
-    public static String getCurrentLabel() {
-        return "_L" + labelCount;
     }
 
     public static VariableSymbol createNewTemp(String type, Symbol.Scope scope) {

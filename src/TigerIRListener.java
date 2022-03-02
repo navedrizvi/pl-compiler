@@ -41,6 +41,7 @@ public class TigerIRListener extends TigerBaseListener {
         this.controlFlowStack.put("while", new Stack<>());
         this.controlFlowStack.put("if", new Stack<>());
         this.controlFlowStack.put("else", new Stack<>());
+        this.controlFlowStack.put("break", new Stack<>());
     }
 
     private void setValue(ParseTree node, Value value) { ctxValues.put(node, value); }
@@ -377,6 +378,9 @@ public class TigerIRListener extends TigerBaseListener {
         String loopLabel = controlFlowStack.get("while").pop();
         IR.emit("goto, " + loopLabel);
         IR.emit(exitLabel + ":");
+        if (controlFlowStack.get("break").size() > 0) {
+            IR.emit(controlFlowStack.get("break").pop() + ":");
+        }
     }
 
     @Override public void enterStatFor(TigerParser.StatForContext ctx) {
@@ -413,6 +417,9 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit("add, " + mangledName + ", " +  "1, " + mangledName);
         IR.emit("goto, " + loopLabel);
         IR.emit(exitLabel + ":");
+        if (controlFlowStack.get("break").size() > 0) {
+            IR.emit(controlFlowStack.get("break").pop() + ":");
+        }
     }
 
     @Override public void enterStatFunctionCall(TigerParser.StatFunctionCallContext ctx) { }
@@ -433,7 +440,11 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterStatBreak(TigerParser.StatBreakContext ctx) { }
 
-    @Override public void exitStatBreak(TigerParser.StatBreakContext ctx) { }
+    @Override public void exitStatBreak(TigerParser.StatBreakContext ctx) {
+        String breakLabel = IR.createNewLabel();
+        IR.emit("goto, " + breakLabel);
+        controlFlowStack.get("break").push(breakLabel);
+    }
 
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
 

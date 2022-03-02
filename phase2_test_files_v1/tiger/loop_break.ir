@@ -1,0 +1,42 @@
+start_program loop_break
+static-int-list:
+static-float-list:
+start_function main
+int main()
+int-list: _2_a, _2_i, _t0, _t1, _t2, _t3, _t4, _t5
+float-list:
+main:
+assign, _2_a, 4
+assign, _2_i,1
+assign, _t2,10
+_L0:
+brgt, _2_i, _t2, _L1
+call, printi, _2_i
+assign, _t0, 0
+brneq, _2_i, _2_a, _L2
+assign, _t0, 1
+goto, _L3
+_L2:
+add, _2_i, 1, _2_i
+goto, _L0
+_L1:
+_L3:
+assign, _2_i, 10
+_L4:
+assign, _t3, 0
+brleq, _2_i, 0, _L5
+assign, _t3, 1
+call, printi, _2_i
+assign, _t4, 0
+brneq, _2_i, _2_a, _L6
+assign, _t4, 1
+goto, _L7
+_L6:
+sub, _2_i, 1, _t5
+assign, _2_i, _t5
+goto, _L4
+_L5:
+_L7:
+return, 0, ,
+end_function main
+end_program loop_break

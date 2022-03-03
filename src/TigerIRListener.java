@@ -250,7 +250,7 @@ public class TigerIRListener extends TigerBaseListener {
             returnType = "void";
 //        System.out.println(name + " " + returnType);
         IR.emit("start_function " + name);
-        
+
         List<String> varIntList = new ArrayList<String>();
         List<String> varFloatList = new ArrayList<String>();
         if (ctx.param_list().param()!=null) {
@@ -268,12 +268,13 @@ public class TigerIRListener extends TigerBaseListener {
             if (head!=null) {
                 while (head.param()!=null) {
                     String mangledName2 = getMangledName(head.param().ID().getText(), scopeNumber);
-                    args.add(head.param().type().getText() + " " + mangledName2);
-                    if (type.equals("int")) {
-                        varIntList.add(mangledName);
+                    String type2 = head.param().type().getText();
+                    args.add(type2 + " " + mangledName2);
+                    if (type2.equals("int")) {
+                        varIntList.add(mangledName2);
                     }
-                    if (type.equals("float")) {
-                        varFloatList.add(mangledName);
+                    if (type2.equals("float")) {
+                        varFloatList.add(mangledName2);
                     }
                     head = head.param_list_tail();
                 }
@@ -429,6 +430,7 @@ public class TigerIRListener extends TigerBaseListener {
         controlFlowStack.get("for").push(exitLabel);
 
         IR.emitForLoopIndex();
+        IR.emitForLoopIndex();
         IR.emit(loopLabel + ":");
         IR.emitForLoopCond();
     }
@@ -449,7 +451,8 @@ public class TigerIRListener extends TigerBaseListener {
         String name = ctx.ID().getText();
         int scopeNumber = getCurrentST().getScopeNumber(name);
         String mangledName = getMangledName(name, scopeNumber);
-        IR.updateForLoopCond("brgt", mangledName, to, exitLabel);
+        IR.updateForLoopCond("brgt", mangledName, tempTo.getName(), exitLabel);
+        IR.updateForLoopEntryPoint(tempTo.getName(), to);
         IR.updateForLoopEntryPoint(mangledName, from);
         IR.emit("add, " + mangledName + ", " +  "1, " + mangledName);
         IR.emit("goto, " + loopLabel);
@@ -466,7 +469,7 @@ public class TigerIRListener extends TigerBaseListener {
         Value expr = getValue(ctx.expr_list().expr());
         Value value = getValue(ctx.opt_prefix());
 
-        // Currently does not handle function call assignment to array indexing
+        // TODO Currently does not handle function call assignment to array indexing
         if (value == null) {
             if (expr == null)
                 IR.emit("call, " + ctx.ID().getText());
@@ -474,7 +477,18 @@ public class TigerIRListener extends TigerBaseListener {
                 IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
         }
         else {
-            IR.emit("callr, " + value.getValue() + ", " + ctx.ID().getText() + ", " + expr.getValue());
+            if (expr != null) {
+                List<String> args = new ArrayList<String>();
+                args.add(getValue(ctx.expr_list().expr()).value);
+                TigerParser.Expr_list_tailContext head = ctx.expr_list().expr_list_tail();
+                if (head!=null) {
+                    while (head.expr()!=null) {
+                        args.add(getValue(head.expr()).value);
+                        head = head.expr_list_tail();
+                    }
+                }
+                IR.emit("callr, " + value.getValue() + ", " + ctx.ID().getText() + ", " + String.join(", ", args));
+            }
         }
     }
 
@@ -489,10 +503,14 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
 
     @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
-//        Value value = getValue(ctx.opt_return());
-//        System.out.println("exitStatReturn: " + value);
-        returnIsVoid = false;
-        IR.emit("return, 0");
+        Value value = getValue(ctx.opt_return().expr());
+        if (value==null) {
+            IR.emit("return, 0");
+        }
+        else {
+            returnIsVoid = false;
+            IR.emit("return, " + value.value);
+        }
     }
 
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {

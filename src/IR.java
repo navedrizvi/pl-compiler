@@ -43,18 +43,28 @@ public class IR {
         index++;
     }
 
-    public static void emitForVarIntList() {
+    public static void emitForVarIntList(List<String> scopeVars) {
         intListIdx = index;
-        emit("int-list:");
+        if (scopeVars.size() > 0) {
+            emit("int-list: " + String.join(", ", scopeVars) + ",");
+        }
+        else {
+            emit("int-list:");
+        }
     }
 
     public static void addVarInt(String var) {
         varIntList.add(var);
     }
 
-    public static void emitForVarFloatList() {
+    public static void emitForVarFloatList(List<String> varFloatList) {
         floatListIdx = index;
-        emit("float-list:");
+        if (varFloatList.size() > 0) {
+            emit("float-list: " + String.join(", ", varFloatList) + ",");
+        }
+        else {
+            emit("float-list:");
+        }
     }
 
     public static void addVarFloat(String var) {

@@ -250,29 +250,8 @@ public class TigerIRListener extends TigerBaseListener {
             returnType = "void";
 //        System.out.println(name + " " + returnType);
         IR.emit("start_function " + name);
-        
-        List<String> varList = new ArrayList<String>();
-        if (ctx.param_list().param()!=null) {
-            List<String> args = new ArrayList<String>();
-            String mangledName = getMangledName(ctx.param_list().param().ID().getText(), scopeNumber) ;
-            args.add(ctx.param_list().param().type().getText() + " " + mangledName);
-            varList.add(mangledName);
-            TigerParser.Param_list_tailContext head = ctx.param_list().param_list_tail();
-            if (head!=null) {
-                while (head.param()!=null) {
-                    String mangledName2 = getMangledName(head.param().ID().getText(), scopeNumber);
-                    args.add(head.param().type().getText() + " " + mangledName2);
-                    varList.add(mangledName2);
-                    head = head.param_list_tail();
-                }
-            }
-            IR.emit(returnType + " " + name + "(" + String.join(", ", args) + ")");
-        }
-        else {
-            IR.emit(returnType + " " + name + "()");
-        }
-
-        IR.emitForVarIntList(varList);
+        IR.emit(returnType + " " + name + "()");
+        IR.emitForVarIntList();
         IR.emitForVarFloatList();
         IR.emit(name + ":");
         if (name.equals("main")) {
@@ -453,27 +432,7 @@ public class TigerIRListener extends TigerBaseListener {
         // Will need to expand this for when there is a list of expressions in a function call.
         Value expr = getValue(ctx.expr_list().expr());
         Value value = getValue(ctx.opt_prefix());
-        // TODO Currently does not handle function call assignment to array indexing
-        if (value == null) {
-            if (expr == null)
-                IR.emit("call, " + ctx.ID().getText());
-            else
-                IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
-        }
-        else {
-            if (expr != null) {
-                List<String> args = new ArrayList<String>();
-                args.add(getValue(ctx.expr_list().expr()).value);
-                TigerParser.Expr_list_tailContext head = ctx.expr_list().expr_list_tail();
-                if (head!=null) {
-                    while (head.expr()!=null) {
-                        args.add(getValue(head.expr()).value);
-                        head = head.expr_list_tail();
-                    }
-                }
-                IR.emit("callr, " + value.getValue() + ", " + ctx.ID().getText() + ", " + String.join(", ", args));
-            }
-        }
+
         // Currently does not handle function call assignment to array indexing
         if (value == null) {
             if (expr == null)
@@ -497,14 +456,10 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
 
     @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
-        Value value = getValue(ctx.opt_return().expr());
-        if (value==null) {
-            IR.emit("return, 0");
-        }
-        else {
-            returnIsVoid = false;
-            IR.emit("return, " + value.value);
-        }
+//        Value value = getValue(ctx.opt_return());
+//        System.out.println("exitStatReturn: " + value);
+        returnIsVoid = false;
+        IR.emit("return, 0");
     }
 
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {

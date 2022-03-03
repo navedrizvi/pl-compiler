@@ -57,9 +57,14 @@ public class IR {
         varIntList.add(var);
     }
 
-    public static void emitForVarFloatList() {
+    public static void emitForVarFloatList(List<String> varFloatList) {
         floatListIdx = index;
-        emit("float-list:");
+        if (varFloatList.size() > 0) {
+            emit("float-list: " + String.join(", ", varFloatList) + ",");
+        }
+        else {
+            emit("float-list:");
+        }
     }
 
     public static void addVarFloat(String var) {

@@ -251,18 +251,30 @@ public class TigerIRListener extends TigerBaseListener {
 //        System.out.println(name + " " + returnType);
         IR.emit("start_function " + name);
         
-        List<String> varList = new ArrayList<String>();
+        List<String> varIntList = new ArrayList<String>();
+        List<String> varFloatList = new ArrayList<String>();
         if (ctx.param_list().param()!=null) {
             List<String> args = new ArrayList<String>();
             String mangledName = getMangledName(ctx.param_list().param().ID().getText(), scopeNumber) ;
-            args.add(ctx.param_list().param().type().getText() + " " + mangledName);
-            varList.add(mangledName);
+            String type = ctx.param_list().param().type().getText();
+            args.add(type + " " + mangledName);
+            if (type.equals("int")) {
+                varIntList.add(mangledName);
+            }
+            if (type.equals("float")) {
+                varFloatList.add(mangledName);
+            }
             TigerParser.Param_list_tailContext head = ctx.param_list().param_list_tail();
             if (head!=null) {
                 while (head.param()!=null) {
                     String mangledName2 = getMangledName(head.param().ID().getText(), scopeNumber);
                     args.add(head.param().type().getText() + " " + mangledName2);
-                    varList.add(mangledName2);
+                    if (type.equals("int")) {
+                        varIntList.add(mangledName);
+                    }
+                    if (type.equals("float")) {
+                        varFloatList.add(mangledName);
+                    }
                     head = head.param_list_tail();
                 }
             }
@@ -272,8 +284,8 @@ public class TigerIRListener extends TigerBaseListener {
             IR.emit(returnType + " " + name + "()");
         }
 
-        IR.emitForVarIntList(varList);
-        IR.emitForVarFloatList();
+        IR.emitForVarIntList(varIntList);
+        IR.emitForVarFloatList(varFloatList);
         IR.emit(name + ":");
         if (name.equals("main")) {
             for (Map.Entry<String, String> entry : staticVars.entrySet()) {

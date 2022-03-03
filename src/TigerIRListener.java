@@ -430,7 +430,6 @@ public class TigerIRListener extends TigerBaseListener {
         controlFlowStack.get("for").push(exitLabel);
 
         IR.emitForLoopIndex();
-        IR.emitForLoopIndex();
         IR.emit(loopLabel + ":");
         IR.emitForLoopCond();
     }
@@ -441,9 +440,9 @@ public class TigerIRListener extends TigerBaseListener {
         VariableSymbol tempFrom = IR.createNewTemp("int", getCurrentST().getScope());
         getCurrentST().insert(tempFrom.getName(), tempFrom);
         IR.addVarInt(tempFrom.getName());
-        VariableSymbol tempTo = IR.createNewTemp("int", getCurrentST().getScope());
-        getCurrentST().insert(tempTo.getName(), tempTo);
-        IR.addVarInt(tempTo.getName());
+//        VariableSymbol tempTo = IR.createNewTemp("int", getCurrentST().getScope());
+//        getCurrentST().insert(tempTo.getName(), tempTo);
+//        IR.addVarInt(tempTo.getName());
         String from = getValue(ctx.expr(0)).getValue();
         String to = getValue(ctx.expr(1)).getValue();
         String exitLabel = controlFlowStack.get("for").pop();
@@ -451,8 +450,7 @@ public class TigerIRListener extends TigerBaseListener {
         String name = ctx.ID().getText();
         int scopeNumber = getCurrentST().getScopeNumber(name);
         String mangledName = getMangledName(name, scopeNumber);
-        IR.updateForLoopCond("brgt", mangledName, tempTo.getName(), exitLabel);
-        IR.updateForLoopEntryPoint(tempTo.getName(), to);
+        IR.updateForLoopCond("brgt", mangledName, to, exitLabel);
         IR.updateForLoopEntryPoint(mangledName, from);
         IR.emit("add, " + mangledName + ", " +  "1, " + mangledName);
         IR.emit("goto, " + loopLabel);

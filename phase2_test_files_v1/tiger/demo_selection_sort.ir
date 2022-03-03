@@ -3,7 +3,7 @@ static-int-list:
 static-float-list:
 start_function main
 int main()
-int-list: _2_cats[8], _2_index, _2_lowestIndex, _2_subIndex, _2_size, _2_smallest, _2_first, _t0, _t1, _t2, _t3, _t4, _t5, _t6, _t7, _t8, _t9, _t10, _t11, _t12, _t13, _t14, _t15
+int-list: _2_cats[8], _2_index, _2_lowestIndex, _2_subIndex, _2_size, _2_smallest, _2_first, _t0, _t1, _t2, _t3, _t4, _t5, _t6, _t7, _t8, _t9, _t10, _t11, _t12
 float-list:
 main:
 array_store, _2_cats, 0, 7
@@ -35,10 +35,10 @@ _L4:
 add, _2_subIndex, 1, _2_subIndex
 goto, _L2
 _L3:
-array_load, _t8, _2_cats, _2_index
-assign, _2_first, _t8
-array_load, _t9, _2_cats, _2_lowestIndex
-assign, _2_smallest, _t9
+array_load, _t7, _2_cats, _2_index
+assign, _2_first, _t7
+array_load, _t8, _2_cats, _2_lowestIndex
+assign, _2_smallest, _t8
 array_store, _2_cats, _2_index, _2_smallest
 array_store, _2_cats, _2_lowestIndex, _2_first
 add, _2_index, 1, _2_index
@@ -46,16 +46,17 @@ goto, _L0
 _L1:
 assign, _2_index,0
 _L5:
-brgt, _2_index, _t12, _L6
-sub, _2_size, 1, _t12
-array_load, _t13, _2_cats, _2_index
-call, printi, _t13
+brgt, _2_index, _t10, _L6
+sub, _2_size, 1, _t10
+array_load, _t11, _2_cats, _2_index
+call, printi, _t11
 add, _2_index, 1, _2_index
 goto, _L5
 _L6:
 return, 0
 end_function main
 end_program demo_selection_sort
+mo_selection_sort
 0
 end_function main
 end_program demo_selection_sort

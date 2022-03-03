@@ -250,7 +250,6 @@ public class TigerIRListener extends TigerBaseListener {
         String returnType = ((SubroutineSymbol) lookUp).getReturnType();
         if (returnType == null)
             returnType = "void";
-//        System.out.println(name + " " + returnType);
         IR.emit("start_function " + name);
 
         List<String> varIntList = new ArrayList<String>();
@@ -410,7 +409,6 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     @Override public void enterStatWhile(TigerParser.StatWhileContext ctx) {
-        System.out.println("enterStatWhile");
         String loopLabel = IR.createNewLabel();
         String exitLabel = IR.createNewLabel();
         IR.emit(loopLabel + ":");
@@ -440,14 +438,9 @@ public class TigerIRListener extends TigerBaseListener {
     }
 
     @Override public void exitStatFor(TigerParser.StatForContext ctx) {
-        System.out.println("exitStatFor: " + getValue(ctx.expr(0)).getValue());
-        System.out.println("exitStatFor: " + getValue(ctx.expr(1)).getValue());
         VariableSymbol tempFrom = IR.createNewTemp("int", getCurrentST().getScope());
         getCurrentST().insert(tempFrom.getName(), tempFrom);
         IR.addVarInt(tempFrom.getName());
-//        VariableSymbol tempTo = IR.createNewTemp("int", getCurrentST().getScope());
-//        getCurrentST().insert(tempTo.getName(), tempTo);
-//        IR.addVarInt(tempTo.getName());
         String from = getValue(ctx.expr(0)).getValue();
         String to = getValue(ctx.expr(1)).getValue();
         String exitLabel = controlFlowStack.get("for").pop();
@@ -490,7 +483,7 @@ public class TigerIRListener extends TigerBaseListener {
             }
         }
         else {
-            // if ideentifier is defined in global scope as static, use scope=0 in mangled name
+            // if identifier is defined in global scope as static, use scope=0 in mangled name
             String identifier = ctx.opt_prefix().value().getText();
             Symbol sbl = getSTByScope(0).lookUp(identifier);
             String mangledString = "";
@@ -660,6 +653,26 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void enterExprParen(TigerParser.ExprParenContext ctx) { }
 
     @Override public void exitExprParen(TigerParser.ExprParenContext ctx) {
+        if (!(ctx.expr() instanceof TigerParser.ExprCompContext)) {
+            // Within if-else clause
+            if (controlFlowStack.get("else").size() > 0) {
+                VariableSymbol temp = IR.createNewTemp("int", getCurrentST().getScope());
+                getCurrentST().insert(temp.getName(), temp);
+                IR.addVarInt(temp.getName());
+                IR.emit("assign, " + temp.getName() + ", 0");
+                IR.emit("brleq" + ", " + getValue(ctx.expr()).getValue() + ", " + 0 + ", " + controlFlowStack.get("else").peek());
+                IR.emit("assign, " + temp.getName() + ", 1");
+            }
+            // With if clause
+            else if (controlFlowStack.get("if").size() > 0) {
+                VariableSymbol temp = IR.createNewTemp("int", getCurrentST().getScope());
+                getCurrentST().insert(temp.getName(), temp);
+                IR.addVarInt(temp.getName());
+                IR.emit("assign, " + temp.getName() + ", 0");
+                IR.emit("brleq" + ", " + getValue(ctx.expr()).getValue() + ", " + 0 + ", " + controlFlowStack.get("if").peek());
+                IR.emit("assign, " + temp.getName() + ", 1");
+            }
+        }
         setValue(ctx, getValue(ctx.expr()));
     }
 

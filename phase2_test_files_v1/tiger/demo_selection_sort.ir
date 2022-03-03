@@ -16,15 +16,13 @@ array_store, _2_cats, 6, 49
 array_store, _2_cats, 7, 33
 assign, _2_size, 8
 assign, _2_index,0
-assign, _t11,_t0
 _L0:
-brgt, _2_index, _t11, _L1
+brgt, _2_index, _t0, _L1
 sub, _2_size, 1, _t0
 assign, _2_lowestIndex, _2_index
 assign, _2_subIndex,_t1
-assign, _t7,_t2
 _L2:
-brgt, _2_subIndex, _t7, _L3
+brgt, _2_subIndex, _t2, _L3
 add, _2_index, 1, _t1
 sub, _2_size, 1, _t2
 array_load, _t3, _2_cats, _2_subIndex
@@ -47,15 +45,18 @@ add, _2_index, 1, _2_index
 goto, _L0
 _L1:
 assign, _2_index,0
-assign, _t15,_t12
 _L5:
-brgt, _2_index, _t15, _L6
+brgt, _2_index, _t12, _L6
 sub, _2_size, 1, _t12
 array_load, _t13, _2_cats, _2_index
 call, printi, _t13
 add, _2_index, 1, _2_index
 goto, _L5
 _L6:
-return, 0, ,
+return, 0
 end_function main
 end_program demo_selection_sort
+0
+end_function main
+end_program demo_selection_sort
+rt

@@ -51,6 +51,8 @@ public class TigerIRListener extends TigerBaseListener {
 
     private SymbolTable getCurrentST() { return stAsList.get(scopeNumber); }
 
+    private SymbolTable getSTByScope(int scope) { return stAsList.get(scope); }
+
     @Override public void enterMain(TigerParser.MainContext ctx) {
         scopeNumber++;
         IR.emit("start_program " + ctx.ID().getText());
@@ -474,13 +476,9 @@ public class TigerIRListener extends TigerBaseListener {
         if (value == null) {
             if (expr == null)
                 IR.emit("call, " + ctx.ID().getText());
-            else
-                IR.emit("call, " + ctx.ID().getText() + ", " + expr.getValue());
-        }
-        else {
-            if (expr != null) {
+            else {
                 List<String> args = new ArrayList<String>();
-                args.add(getValue(ctx.expr_list().expr()).value);
+                args.add(expr.value);
                 TigerParser.Expr_list_tailContext head = ctx.expr_list().expr_list_tail();
                 if (head!=null) {
                     while (head.expr()!=null) {
@@ -488,7 +486,36 @@ public class TigerIRListener extends TigerBaseListener {
                         head = head.expr_list_tail();
                     }
                 }
-                IR.emit("callr, " + value.getValue() + ", " + ctx.ID().getText() + ", " + String.join(", ", args));
+                IR.emit("call, " + ctx.ID().getText() + ", " + String.join(", ", args));
+            }
+        }
+        else {
+            // if ideentifier is defined in global scope as static, use scope=0 in mangled name
+            String identifier = ctx.opt_prefix().value().getText();
+            Symbol sbl = getSTByScope(0).lookUp(identifier);
+            String mangledString = "";
+            if (sbl != null && sbl instanceof VariableSymbol) {
+                VariableSymbol a = (VariableSymbol) sbl;
+                if (a.getStorageClass() == VariableSymbol.StorageClass.STATIC)
+                    mangledString = "_0_" + identifier;
+            }
+            else {
+                mangledString = getMangledName(identifier, scopeNumber);
+            }
+            if (expr == null) {
+                IR.emit("callr, " + mangledString + ", " + ctx.ID().getText());
+            }
+           else {
+                List<String> args = new ArrayList<String>();
+                args.add(expr.value);
+                TigerParser.Expr_list_tailContext head = ctx.expr_list().expr_list_tail();
+                if (head!=null) {
+                    while (head.expr()!=null) {
+                        args.add(getValue(head.expr()).value);
+                        head = head.expr_list_tail();
+                    }
+                }
+                IR.emit("callr, " + mangledString + ", " + ctx.ID().getText() + ", " + String.join(", ", args));
             }
         }
     }

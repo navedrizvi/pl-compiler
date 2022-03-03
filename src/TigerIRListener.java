@@ -310,6 +310,9 @@ public class TigerIRListener extends TigerBaseListener {
         IR.populateVarLists();
         if (returnIsVoid)
             IR.emit("return");
+        else
+            // flip
+            returnIsVoid = true;
         IR.emit("end_function " + name);
         IR.reset();
     }
@@ -500,16 +503,7 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
 
-    @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) {
-        Value value = getValue(ctx.opt_return().expr());
-        if (value==null) {
-            IR.emit("return, 0");
-        }
-        else {
-            returnIsVoid = false;
-            IR.emit("return, " + value.value);
-        }
-    }
+    @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) { }
 
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {
         scopeNumber++;
@@ -519,7 +513,16 @@ public class TigerIRListener extends TigerBaseListener {
 
     @Override public void enterOpt_return(TigerParser.Opt_returnContext ctx) { }
 
-    @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) { }
+    @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) {
+        Value value = getValue(ctx.expr());
+        if (value == null) {
+            IR.emit("return, 0");
+        }
+        else {
+            returnIsVoid = false;
+            IR.emit("return, " + value.value);
+        }
+    }
 
     @Override public void enterOpt_prefix(TigerParser.Opt_prefixContext ctx) { }
 

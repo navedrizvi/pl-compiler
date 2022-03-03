@@ -43,10 +43,10 @@ public class IR {
         index++;
     }
 
-    public static void emitForVarIntList(List<String> scopeVars) {
+    public static void emitForVarIntList(List<String> varIntList) {
         intListIdx = index;
-        if (scopeVars.size() > 0) {
-            emit("int-list: " + String.join(", ", scopeVars) + ",");
+        if (varIntList.size() > 0) {
+            emit("int-list: " + String.join(", ", varIntList) + ",");
         }
         else {
             emit("int-list:");

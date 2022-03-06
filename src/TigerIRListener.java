@@ -1,4 +1,3 @@
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
@@ -66,49 +65,11 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit("end_program " + ctx.ID().getText());
     }
 
-    @Override public void enterDecl_seg(TigerParser.Decl_segContext ctx) { }
-
     @Override public void exitDecl_seg(TigerParser.Decl_segContext ctx) {
         if (scopeNumber == 0) {
             IR.populateStaticVarLists();
         }
     }
-
-    @Override public void enterType_decl_list(TigerParser.Type_decl_listContext ctx) { }
-
-    @Override public void exitType_decl_list(TigerParser.Type_decl_listContext ctx) { }
-
-    @Override public void enterVar_decl_list(TigerParser.Var_decl_listContext ctx) { }
-
-    @Override public void exitVar_decl_list(TigerParser.Var_decl_listContext ctx) { }
-
-    @Override public void enterFunct_list(TigerParser.Funct_listContext ctx) { }
-
-    @Override public void exitFunct_list(TigerParser.Funct_listContext ctx) { }
-
-    @Override public void enterType_decl(TigerParser.Type_declContext ctx) { }
-
-    @Override public void exitType_decl(TigerParser.Type_declContext ctx) { }
-
-    @Override public void enterTypeBaseType(TigerParser.TypeBaseTypeContext ctx) { }
-
-    @Override public void exitTypeBaseType(TigerParser.TypeBaseTypeContext ctx) { }
-
-    @Override public void enterTypeArray(TigerParser.TypeArrayContext ctx) { }
-
-    @Override public void exitTypeArray(TigerParser.TypeArrayContext ctx) { }
-
-    @Override public void enterTypeID(TigerParser.TypeIDContext ctx) { }
-
-    @Override public void exitTypeID(TigerParser.TypeIDContext ctx) { }
-
-    @Override public void enterBaseTypeInt(TigerParser.BaseTypeIntContext ctx) { }
-
-    @Override public void exitBaseTypeInt(TigerParser.BaseTypeIntContext ctx) { }
-
-    @Override public void enterBaseTypeFloat(TigerParser.BaseTypeFloatContext ctx) { }
-
-    @Override public void exitBaseTypeFloat(TigerParser.BaseTypeFloatContext ctx) { }
 
     @Override public void enterVar_decl(TigerParser.Var_declContext ctx) {
         varDecList = new ArrayList<>();
@@ -219,16 +180,6 @@ public class TigerIRListener extends TigerBaseListener {
         return typeSymbol;
     }
 
-    @Override public void enterStorageClassVar(TigerParser.StorageClassVarContext ctx) { }
-
-    @Override public void exitStorageClassVar(TigerParser.StorageClassVarContext ctx) { }
-
-    @Override public void enterStorageClassStatic(TigerParser.StorageClassStaticContext ctx) { }
-
-    @Override public void exitStorageClassStatic(TigerParser.StorageClassStaticContext ctx) { }
-
-    @Override public void enterIdListId(TigerParser.IdListIdContext ctx) { }
-
     @Override public void exitIdListId(TigerParser.IdListIdContext ctx) {
         varDecList.add(ctx.ID().getText());
     }
@@ -238,10 +189,6 @@ public class TigerIRListener extends TigerBaseListener {
     @Override public void exitIdList(TigerParser.IdListContext ctx) {
         varDecList.add(ctx.ID().getText());
     }
-
-    @Override public void enterOptional_init(TigerParser.Optional_initContext ctx) { }
-
-    @Override public void exitOptional_init(TigerParser.Optional_initContext ctx) { }
 
     @Override public void enterFunct(TigerParser.FunctContext ctx) {
         scopeNumber++;
@@ -317,30 +264,6 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit("end_function " + name);
         IR.reset();
     }
-
-    @Override public void enterParam_list(TigerParser.Param_listContext ctx) { }
-
-    @Override public void exitParam_list(TigerParser.Param_listContext ctx) { }
-
-    @Override public void enterParam_list_tail(TigerParser.Param_list_tailContext ctx) { }
-
-    @Override public void exitParam_list_tail(TigerParser.Param_list_tailContext ctx) { }
-
-    @Override public void enterReturn_type(TigerParser.Return_typeContext ctx) { }
-
-    @Override public void exitReturn_type(TigerParser.Return_typeContext ctx) { }
-
-    @Override public void enterParam(TigerParser.ParamContext ctx) { }
-
-    @Override public void exitParam(TigerParser.ParamContext ctx) { }
-
-    @Override public void enterStatSingle(TigerParser.StatSingleContext ctx) { }
-
-    @Override public void enterStatSeq(TigerParser.StatSeqContext ctx) { }
-
-    @Override public void exitStatSeq(TigerParser.StatSeqContext ctx) { }
-
-    @Override public void enterStatAssign(TigerParser.StatAssignContext ctx) { }
 
     @Override public void exitStatAssign(TigerParser.StatAssignContext ctx) {
         String name = ctx.value().ID().getText();
@@ -458,8 +381,6 @@ public class TigerIRListener extends TigerBaseListener {
         }
     }
 
-    @Override public void enterStatFunctionCall(TigerParser.StatFunctionCallContext ctx) { }
-
     @Override public void exitStatFunctionCall(TigerParser.StatFunctionCallContext ctx) {
         // Will need to expand this for when there is a list of expressions in a function call.
         Value expr = getValue(ctx.expr_list().expr());
@@ -513,25 +434,15 @@ public class TigerIRListener extends TigerBaseListener {
         }
     }
 
-    @Override public void enterStatBreak(TigerParser.StatBreakContext ctx) { }
-
     @Override public void exitStatBreak(TigerParser.StatBreakContext ctx) {
         String breakLabel = IR.createNewLabel();
         IR.emit("goto, " + breakLabel);
         controlFlowStack.get("break").push(breakLabel);
     }
 
-    @Override public void enterStatReturn(TigerParser.StatReturnContext ctx) { }
-
-    @Override public void exitStatReturn(TigerParser.StatReturnContext ctx) { }
-
     @Override public void enterStatLet(TigerParser.StatLetContext ctx) {
         scopeNumber++;
     }
-
-    @Override public void exitStatLet(TigerParser.StatLetContext ctx) { }
-
-    @Override public void enterOpt_return(TigerParser.Opt_returnContext ctx) { }
 
     @Override public void exitOpt_return(TigerParser.Opt_returnContext ctx) {
         Value value = getValue(ctx.expr());
@@ -544,13 +455,9 @@ public class TigerIRListener extends TigerBaseListener {
         }
     }
 
-    @Override public void enterOpt_prefix(TigerParser.Opt_prefixContext ctx) { }
-
     @Override public void exitOpt_prefix(TigerParser.Opt_prefixContext ctx) {
         setValue(ctx, getValue(ctx.value()));
     }
-
-    @Override public void enterExprAddSub(TigerParser.ExprAddSubContext ctx) { }
 
     @Override public void exitExprAddSub(TigerParser.ExprAddSubContext ctx) {
         Value left = getValue(ctx.expr(0));
@@ -579,8 +486,6 @@ public class TigerIRListener extends TigerBaseListener {
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
 
-    @Override public void enterExprAnd(TigerParser.ExprAndContext ctx) { }
-
     @Override public void exitExprAnd(TigerParser.ExprAndContext ctx) {
         Value left = getValue(ctx.expr(0));
         Value right = getValue(ctx.expr(1));
@@ -593,8 +498,6 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit("and, " + left.getValue() + ", " + right.getValue() + ", " + temp.getName());
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
-
-    @Override public void enterExprPow(TigerParser.ExprPowContext ctx) { }
 
     @Override public void exitExprPow(TigerParser.ExprPowContext ctx) {
         Value left = getValue(ctx.expr(0));
@@ -635,8 +538,6 @@ public class TigerIRListener extends TigerBaseListener {
         setValue(ctx, new Value(tempValue.getName(), tempValue.getType()));
     }
 
-    @Override public void enterExporOr(TigerParser.ExporOrContext ctx) { }
-
     @Override public void exitExporOr(TigerParser.ExporOrContext ctx) {
         Value left = getValue(ctx.expr(0));
         Value right = getValue(ctx.expr(1));
@@ -649,8 +550,6 @@ public class TigerIRListener extends TigerBaseListener {
         IR.emit("or, " + left.getValue() + ", " + right.getValue() + ", " + temp.getName());
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
-
-    @Override public void enterExprParen(TigerParser.ExprParenContext ctx) { }
 
     @Override public void exitExprParen(TigerParser.ExprParenContext ctx) {
         if (!(ctx.expr() instanceof TigerParser.ExprCompContext)) {
@@ -676,8 +575,6 @@ public class TigerIRListener extends TigerBaseListener {
         setValue(ctx, getValue(ctx.expr()));
     }
 
-    @Override public void enterExprValue(TigerParser.ExprValueContext ctx) { }
-
     @Override public void exitExprValue(TigerParser.ExprValueContext ctx) {
         Value value = getValue(ctx.value());
         if (value.getValue().endsWith("]")) {
@@ -697,8 +594,6 @@ public class TigerIRListener extends TigerBaseListener {
             setValue(ctx, getValue(ctx.value()));
         }
     }
-
-    @Override public void enterExprComp(TigerParser.ExprCompContext ctx) { }
 
     @Override public void exitExprComp(TigerParser.ExprCompContext ctx) {
         Value left = getValue(ctx.expr(0));
@@ -763,8 +658,6 @@ public class TigerIRListener extends TigerBaseListener {
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
 
-    @Override public void enterExprMultDiv(TigerParser.ExprMultDivContext ctx) { }
-
     @Override public void exitExprMultDiv(TigerParser.ExprMultDivContext ctx) {
         Value left = getValue(ctx.expr(0));
         Value right = getValue(ctx.expr(1));
@@ -792,33 +685,17 @@ public class TigerIRListener extends TigerBaseListener {
         setValue(ctx, new Value(temp.getName(), temp.getType()));
     }
 
-    @Override public void enterExprConstant(TigerParser.ExprConstantContext ctx) { }
-
     @Override public void exitExprConstant(TigerParser.ExprConstantContext ctx) {
         setValue(ctx, getValue(ctx.constant()));
     }
-
-    @Override public void enterConstantIntLit(TigerParser.ConstantIntLitContext ctx) { }
 
     @Override public void exitConstantIntLit(TigerParser.ConstantIntLitContext ctx) {
         setValue(ctx, new Value(ctx.getText(), "int"));
     }
 
-    @Override public void enterConstantFloatLit(TigerParser.ConstantFloatLitContext ctx) { }
-
     @Override public void exitConstantFloatLit(TigerParser.ConstantFloatLitContext ctx) {
         setValue(ctx, new Value(ctx.getText(), "float"));
     }
-
-    @Override public void enterExpr_list(TigerParser.Expr_listContext ctx) { }
-
-    @Override public void exitExpr_list(TigerParser.Expr_listContext ctx) { }
-
-    @Override public void enterExpr_list_tail(TigerParser.Expr_list_tailContext ctx) { }
-
-    @Override public void exitExpr_list_tail(TigerParser.Expr_list_tailContext ctx) { }
-
-    @Override public void enterValue(TigerParser.ValueContext ctx) { }
 
     @Override public void exitValue(TigerParser.ValueContext ctx) {
         String name = ctx.ID().getText();
@@ -831,8 +708,6 @@ public class TigerIRListener extends TigerBaseListener {
         }
         setValue(ctx, new Value(mangledName, baseType));
     }
-
-    @Override public void enterValue_tail(TigerParser.Value_tailContext ctx) { }
 
     @Override public void exitValue_tail(TigerParser.Value_tailContext ctx) {
         Value value = getValue(ctx.expr());

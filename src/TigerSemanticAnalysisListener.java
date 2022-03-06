@@ -160,7 +160,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
 
     }
 
-
     @Override public void exitStatAssign(TigerParser.StatAssignContext ctx) {
         TigerParser.ValueContext value = ctx.value();
         TigerParser.ExprContext expr = ctx.expr();
@@ -452,24 +451,6 @@ public class TigerSemanticAnalysisListener extends TigerBaseListener {
         for (int i=0; i < fnArgSymbs.size(); i++) {
             SymbolPosTuple fnA = fnArgSymbs.get(i);
             SubroutineSymbol.Tuple fnP = fnParams.get(fnA.argidx);
-
-            // TODO: remove when all IR is passing
-//            try {
-//                Float.parseFloat(fnA.symbol);
-//                if (fnP.type.equals("int") && currentFunctionVoidReturn!= true) {
-//                    System.out.println("here");
-//                    errors.add(
-//                            new SemanticError(
-//                                    ctx.getStart().getLine(),
-//                                    ctx.CLOSEPAREN().getSymbol().getCharPositionInLine(),
-//                                    "Narrowing conversion on function call"
-//                            )
-//                    );
-//                    return;
-//                }
-//            }
-//            catch (Exception e){
-//            }
             
             Symbol lookUp2 = getCurrentST().lookUp(fnA.symbol);
             if (lookUp2 == null) {

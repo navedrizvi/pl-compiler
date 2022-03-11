@@ -131,24 +131,24 @@ public class Tiger {
         writeFileWithContent(outputFile, ir);
     }
 
-    private static int getIFlagIdx(String[] args) {
-        /* Returns -1 if there are more that one or none "-i" in @args, if there is just 1 "-i" in args, returns its index */
+    private static int getFlagIdx(String flag, String[] args) {
+        /* Returns -1 if there are more that one or none @flag in @args, if there is just 1 @flag in @args, returns its index */
         int n = 0;
         int i = 0;
         for (String arg: args) {
-            if (arg.equals("-i")) {
+            if (arg.equals(flag)) {
                 n+=1;
             }
         }
         for (; i < args.length; i++) {
-            if (args[i].equals("-i")) {
+            if (args[i].equals(flag)) {
                 break;
             }
         }
-        if (n == 1) { // we've verified -i exists only once
+        if (n == 1) { // we've verified flag exists only once
             return i;
         }
-        else if (n==0) { // -i is not provided
+        else if (n==0) { // flag is not provided
             return -1;
         }
         else {
@@ -156,7 +156,24 @@ public class Tiger {
         }
     }
 
-    public static void main(String[] args) {
+    private static String getFileName(String[] args, int fileNameIdx, String extension) {
+        String fileName = null;
+        // validate filename
+        if (!args[fileNameIdx].endsWith(extension)) {
+            System.out.println("Error in program arguments: file doesn't end with " + extension);
+            System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
+        }
+        else if (!srcFileExists(args[fileNameIdx])) {
+            System.out.println("Error in program arguments: source file not found");
+            System.exit(1); // Error in program arguments: source file not found
+        }
+        else {
+            fileName = args[fileNameIdx];
+        }
+        return fileName;
+    }
+
+   public static void main(String[] args) {
         // Validate args length
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
@@ -174,37 +191,36 @@ public class Tiger {
         boolean irFlagProvided = false;
 
         // assert -i and filename provided somewhere //
-        String fileName = "";
         if (!Arrays.asList(args).contains("-i")) {
             System.out.println("Error in program arguments: necessary arg -i not provided");
             System.exit(1); // Error in program arguments: necessary arg not provided.
         }
 
-        int iIdx = getIFlagIdx(args);
-        if (iIdx == -1) {
-            System.out.println("Error in program arguments: -i must be specified only once");
-            System.exit(1); // Error in program arguments: duplicate "-i"
-        }
-        else {
-            // validate filename
-            int fileNameIdx = iIdx + 1;
-            if (!args[fileNameIdx].endsWith(".tiger")) {
-                System.out.println("Error in program arguments: file doesn't end with '.tiger'");
-                System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
-            }
-            else if (!srcFileExists(args[fileNameIdx])) {
-                System.out.println("Error in program arguments: source file not found");
-                System.exit(1); // Error in program arguments: source file not found
+        // User IR if -r flag provided
+        int iIdx = getFlagIdx("-i", args);
+        int rIdx = getFlagIdx("-r", args);
+        String fileName = null;
+        boolean useIr = false;
+
+        if (rIdx == -1) {
+            // must have i
+            if (iIdx == -1) {
+                System.out.println("Error in program arguments: -i must be specified only once");
+                System.exit(1); // Error in program arguments: duplicate "-i"
             }
             else {
-                fileName = args[fileNameIdx];
+                fileName = getFileName(args, iIdx + 1, ".tiger");
             }
+        }
+        else {
+            useIr = true;
+            fileName = getFileName(args, rIdx + 1, ".ir");
         }
 
         // validate optional flags //
         for (int i=0; i < args.length; i++) {
-            if (args[i].equals(("-i"))) {
-                // assuming thing after -i is filename; validation is done above
+            if (args[i].equals("-i") || args[i].equals("-r")) {
+                // assuming thing after -i or -r is filename; validation is done above
                 i += 1;
             }
             else if (args[i].equals("-l"))
@@ -221,6 +237,9 @@ public class Tiger {
             }
         }
 
+        if (useIr) {
+            // TODO phase 3: IR to MIPS and more...
+        }
         TigerLexer lexer = getLexer(fileName);
 
         // Write tokens to file

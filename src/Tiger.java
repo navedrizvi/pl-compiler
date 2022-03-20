@@ -133,6 +133,12 @@ public class Tiger {
         writeFileWithContent(outputFile, ir);
     }
 
+    private static void writeMipsToFile(String fileName, String regAllocationStrategy, String mips) {
+        // regAllocationStrategy is one of (briggs, ib, or naive) todo make enum
+        String outputFile = fileName.replace(".tiger", "." + regAllocationStrategy + ".s");
+        writeFileWithContent(outputFile, mips);
+    }
+
     private static int getFlagIdx(String flag, String[] args) {
         /* Returns -1 if there are more that one or none @flag in @args, if there is just 1 @flag in @args, returns its index */
         int n = 0;
@@ -192,6 +198,7 @@ public class Tiger {
         boolean stFlagProvided = false;
         boolean irFlagProvided = false;
         boolean nFlagProvided = false;
+        boolean mipsFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
@@ -236,6 +243,8 @@ public class Tiger {
                 stFlagProvided = true;
             else if (args[i].equals("--ir"))
                 irFlagProvided = true;
+            else if (args[i].equals("--mips"))
+                mipsFlagProvided = true;
             else {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -326,7 +335,12 @@ public class Tiger {
                 return;
             }
             TargetCodeGenerator a = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
-            System.out.println(a.generateTargetMipsCode());
+            if (nFlagProvided) {
+                String mips = a.generateTargetMipsCodeNaiveAlloc();
+                if (mipsFlagProvided) {
+                    writeMipsToFile(fileName, "naive", mips);
+                }
+            }
         }
         else {
             System.out.println("No action required.");

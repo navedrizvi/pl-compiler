@@ -16,7 +16,6 @@ public class TargetCodeGenerator {
    List<String> staticIntList;
    List<String> staticFloatList;
 
-
    public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList) {
       // @ir is called with IR.irOutput
       this.srcIrInstrs = srcIrInstrs;
@@ -30,8 +29,7 @@ public class TargetCodeGenerator {
       for (String e: this.staticIntList) {
          for (String instr : this.srcIrInstrs) {
             if (instr.startsWith("assign, " + e)) {
-               val = instr.replace("assign, " + e + " ", "");
-               val = val.replaceAll(",*", "");
+               val = instr.replace("assign, " + e + ", ", "");
                out.add(e + " .word " + val);
             }
          }
@@ -45,19 +43,8 @@ public class TargetCodeGenerator {
             }
          }
       }
-      // for (int i=0; i<this.srcIrInstrs.size(); i++) {
-      //    if (this.srcIrInstrs.get(i).startsWith("static-int-list: ")) {
-      //       // parse out the name from this.srcIrInstrs.get(i)
-      //       // search ir for name assign
-      //       // parse out value
-      //    }
-      //    if (this.srcIrInstrs.get(i).startsWith("static-float-list:")) {
-
-      //    }
-      // }
       return out;
    }
-   
 
    private List<FunctionBlock> getTextSectionInstrs() {
       List<IRInstruction> inpIr = new ArrayList<>();
@@ -166,7 +153,7 @@ public class TargetCodeGenerator {
      }
    }
 
-   public String generateTargetMipsCode() {
+   public String generateTargetMipsCodeNaiveAlloc() {
       List<FunctionBlock> functionBlocks = getTextSectionInstrs();
       List<String> mipsDataInstrs = getDataSectionInstrs();
       List<String> mipsTextInstrs = functionBlocks.stream()

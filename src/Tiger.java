@@ -1,3 +1,5 @@
+import codegen.TargetCodeGenerator;
+
 import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +27,7 @@ public class Tiger {
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
             System.out.println("Error in creating new file"); 
-            // minor TODO what error to return here, or silently exit?
+            // minor todo what error to return here, or silently exit?
         }
     }
 
@@ -42,7 +44,7 @@ public class Tiger {
             return lexer;
         }
         catch (IOException e) {
-            // minor style TODO. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
+            // minor style todo. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
             System.out.println("Error in program arguments: source file not found");
             System.exit(1);
             return null;
@@ -189,6 +191,7 @@ public class Tiger {
         boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
         boolean stFlagProvided = false;
         boolean irFlagProvided = false;
+        boolean nFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
@@ -196,11 +199,11 @@ public class Tiger {
             System.exit(1); // Error in program arguments: necessary arg not provided.
         }
 
-        // User IR if -r flag provided
+        // User tiger if -i flag provided
+        boolean useTiger = false;
         int iIdx = getFlagIdx("-i", args);
         int rIdx = getFlagIdx("-r", args);
         String fileName = null;
-        boolean useIr = false;
 
         if (rIdx == -1) {
             // must have i
@@ -211,9 +214,9 @@ public class Tiger {
             else {
                 fileName = getFileName(args, iIdx + 1, ".tiger");
             }
+            useTiger = true;
         }
         else {
-            useIr = true;
             fileName = getFileName(args, rIdx + 1, ".ir");
         }
 
@@ -227,6 +230,8 @@ public class Tiger {
                 lFlagProvided = true;
             else if (args[i].equals("-p"))
                 pFlagProvided = true;
+            else if (args[i].equals("-n"))
+                nFlagProvided = true;
             else if (args[i].equals("--st"))
                 stFlagProvided = true;
             else if (args[i].equals("--ir"))
@@ -237,9 +242,6 @@ public class Tiger {
             }
         }
 
-        if (useIr) {
-            // TODO phase 3: IR to MIPS and more...
-        }
         TigerLexer lexer = getLexer(fileName);
 
         // Write tokens to file
@@ -282,7 +284,7 @@ public class Tiger {
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
         // and write to .ir file.
-        else if (irFlagProvided) {
+        else if (nFlagProvided || irFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
@@ -315,12 +317,16 @@ public class Tiger {
                 }
                 System.exit(4);
             }
-
             // IR generation
             TigerIRListener tigerIRListener = new TigerIRListener(stAsList);
             walker.walk(tigerIRListener, tree);
             System.out.println(IR.toFormattedString());
-            writeIRToFile(fileName, IR.toFormattedString());
+            if (irFlagProvided) {
+                writeIRToFile(fileName, IR.toFormattedString());
+                return;
+            }
+            TargetCodeGenerator a = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
+            System.out.println(a.generateTargetMipsCode());
         }
         else {
             System.out.println("No action required.");

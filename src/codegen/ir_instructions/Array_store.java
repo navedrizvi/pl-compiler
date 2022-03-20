@@ -1,0 +1,24 @@
+package codegen.ir_instructions;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class Array_store implements IRInstruction {
+    private String array_name;
+    private String idx;
+    private String load_var;
+
+    public Array_store(String[] args) {
+        this.array_name = args[0];
+        this.idx = args[1];
+        this.load_var = args[2];
+    }
+
+    public String opcode() {
+        return "array_store";
+    }
+
+    public List<String> args() {
+        return Arrays.asList(this.array_name, this.idx, this.load_var);
+    } 
+}

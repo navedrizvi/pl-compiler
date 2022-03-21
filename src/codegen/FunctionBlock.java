@@ -1,34 +1,42 @@
 package codegen;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 import codegen.ir_instructions.IRInstruction;
+import codegen.ir_instructions.Load;
+import codegen.ir_instructions.Store;
 import codegen.mips_instructions.MipsInstruction;
 
 public class FunctionBlock {
-    private String function_name;
-    private String return_type;
-    private LinkedHashMap<String, String> function_args;
-    private String[] int_list;
-    private String[] float_list;
+    private String functionName;
+    private String returnType;
+    private LinkedHashMap<String, String> functionArgs;
+    private String[] intList;
+    private String[] floatList;
     private IRInstruction[] instructions;
 
-    public FunctionBlock(String function_name, String return_type, LinkedHashMap<String, String> function_args, String[] int_list, String[] float_list, IRInstruction[] instructions) {
-        this.function_name = function_name;
-        this.return_type = return_type;
-        this.function_args = function_args;
-        this.int_list = int_list;
-        this.float_list = float_list;
+    public FunctionBlock(String functionName, String returnType, LinkedHashMap<String, String> functionArgs, String[] intList, String[] floatList, IRInstruction[] instructions) {
+        this.functionName = functionName;
+        this.returnType = returnType;
+        this.functionArgs = functionArgs;
+        this.intList = intList;
+        this.floatList = floatList;
         this.instructions = instructions;
     }
 
     public List<MipsInstruction> getNaiveMips() {
-        // TODO do naive allocation here
-        List<MipsInstruction> out = new ArrayList<>(); 
-
+        List<InstrRegallocTuple> naiveInstrs = this.doNaiveRegisterAllocation();
+        MIPSCodeGenerator naiveMips = new MIPSCodeGenerator(this.functionName, this.intList, this.floatList, this, naiveInstrs);
+        List<MipsInstruction> out = naiveMips.generateMipsInstructions();
         return out;
     }
-    
+
+    private List<InstrRegallocTuple> doNaiveRegisterAllocation() {
+        // TODO make sure these are ok to use
+    }
 }

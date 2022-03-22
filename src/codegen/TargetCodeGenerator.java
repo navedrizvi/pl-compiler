@@ -57,17 +57,16 @@ public class TargetCodeGenerator {
             // todo refactor to remove counters
             i += 1;
             String return_type = this.srcIrInstrs.get(i).split(" ")[0];
-
             String delta = this.srcIrInstrs.get(i).replace(return_type + " " + func_name, "(");
             delta = delta.replace(")", "");
-            LinkedHashMap<String, String> func_args = new LinkedHashMap<>();
+            LinkedHashMap<String, String> funcArgs = new LinkedHashMap<>();
             String[] split = delta.split(", ");
             for (String s: split) {
                String[] splt = s.split(" ");
                if (splt.length >= 2) {
-                  String arg_type = splt[0];
-                  String arg_name = splt[1];
-                  func_args.put(arg_type, arg_name);
+                  String argType = splt[0];
+                  String argName = splt[1];
+                  funcArgs.put(argType, argName);
                }
             }
             i += 1;
@@ -83,7 +82,8 @@ public class TargetCodeGenerator {
                inpIr.add(parsed);
                i += 1;
             }
-            text.add(new FunctionBlock(func_name, return_type, func_args, int_list, float_list, instructions.toArray(new IRInstruction[instructions.size()])));
+            text.add(new FunctionBlock(func_name, return_type, funcArgs, int_list, float_list,
+                                       instructions.toArray(new IRInstruction[instructions.size()])));
          }
       }
       return text;
@@ -159,7 +159,7 @@ public class TargetCodeGenerator {
       List<String> mipsTextInstrs = functionBlocks.stream()
                                        .map(FunctionBlock::getNaiveMips)
                                        .flatMap(Collection::stream)
-                                       .map(MipsInstruction::toTargetString)
+                                       .map(MipsInstruction::asString)
                                        .collect(Collectors.toList());
 
       return ".data\n" + 

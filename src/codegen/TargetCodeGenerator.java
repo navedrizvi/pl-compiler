@@ -80,6 +80,7 @@ public class TargetCodeGenerator {
             {
                parsed = this.parseSourceIR(this.srcIrInstrs.get(i));
                inpIr.add(parsed);
+               instructions.add(parsed);
                i += 1;
             }
             text.add(new FunctionBlock(func_name, return_type, funcArgs, int_list, float_list,

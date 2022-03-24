@@ -1,3 +1,5 @@
+import codegen.TargetCodeGenerator;
+
 import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +27,7 @@ public class Tiger {
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
             System.out.println("Error in creating new file"); 
-            // minor TODO what error to return here, or silently exit?
+            // minor todo what error to return here, or silently exit?
         }
     }
 
@@ -42,7 +44,7 @@ public class Tiger {
             return lexer;
         }
         catch (IOException e) {
-            // minor style TODO. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
+            // minor style todo. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
             System.out.println("Error in program arguments: source file not found");
             System.exit(1);
             return null;
@@ -131,24 +133,30 @@ public class Tiger {
         writeFileWithContent(outputFile, ir);
     }
 
-    private static int getIFlagIdx(String[] args) {
-        /* Returns -1 if there are more that one or none "-i" in @args, if there is just 1 "-i" in args, returns its index */
+    private static void writeMipsToFile(String fileName, String regAllocationStrategy, String mips) {
+        // regAllocationStrategy is one of (briggs, ib, or naive) todo make enum
+        String outputFile = fileName.replace(".tiger", "." + regAllocationStrategy + ".s");
+        writeFileWithContent(outputFile, mips);
+    }
+
+    private static int getFlagIdx(String flag, String[] args) {
+        /* Returns -1 if there are more that one or none @flag in @args, if there is just 1 @flag in @args, returns its index */
         int n = 0;
         int i = 0;
         for (String arg: args) {
-            if (arg.equals("-i")) {
+            if (arg.equals(flag)) {
                 n+=1;
             }
         }
         for (; i < args.length; i++) {
-            if (args[i].equals("-i")) {
+            if (args[i].equals(flag)) {
                 break;
             }
         }
-        if (n == 1) { // we've verified -i exists only once
+        if (n == 1) { // we've verified flag exists only once
             return i;
         }
-        else if (n==0) { // -i is not provided
+        else if (n==0) { // flag is not provided
             return -1;
         }
         else {
@@ -156,7 +164,24 @@ public class Tiger {
         }
     }
 
-    public static void main(String[] args) {
+    private static String getFileName(String[] args, int fileNameIdx, String extension) {
+        String fileName = null;
+        // validate filename
+        if (!args[fileNameIdx].endsWith(extension)) {
+            System.out.println("Error in program arguments: file doesn't end with " + extension);
+            System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
+        }
+        else if (!srcFileExists(args[fileNameIdx])) {
+            System.out.println("Error in program arguments: source file not found");
+            System.exit(1); // Error in program arguments: source file not found
+        }
+        else {
+            fileName = args[fileNameIdx];
+        }
+        return fileName;
+    }
+
+   public static void main(String[] args) {
         // Validate args length
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
@@ -172,49 +197,54 @@ public class Tiger {
         boolean pFlagProvided = false; // if provided, write a `<source_fname>.tree.gv` file with parse tree in GraphViz DOT format per Req. 6
         boolean stFlagProvided = false;
         boolean irFlagProvided = false;
+        boolean nFlagProvided = false;
+        boolean mipsFlagProvided = false;
 
         // assert -i and filename provided somewhere //
-        String fileName = "";
         if (!Arrays.asList(args).contains("-i")) {
             System.out.println("Error in program arguments: necessary arg -i not provided");
             System.exit(1); // Error in program arguments: necessary arg not provided.
         }
 
-        int iIdx = getIFlagIdx(args);
-        if (iIdx == -1) {
-            System.out.println("Error in program arguments: -i must be specified only once");
-            System.exit(1); // Error in program arguments: duplicate "-i"
-        }
-        else {
-            // validate filename
-            int fileNameIdx = iIdx + 1;
-            if (!args[fileNameIdx].endsWith(".tiger")) {
-                System.out.println("Error in program arguments: file doesn't end with '.tiger'");
-                System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
-            }
-            else if (!srcFileExists(args[fileNameIdx])) {
-                System.out.println("Error in program arguments: source file not found");
-                System.exit(1); // Error in program arguments: source file not found
+        // User tiger if -i flag provided
+        boolean useTiger = false;
+        int iIdx = getFlagIdx("-i", args);
+        int rIdx = getFlagIdx("-r", args);
+        String fileName = null;
+
+        if (rIdx == -1) {
+            // must have i
+            if (iIdx == -1) {
+                System.out.println("Error in program arguments: -i must be specified only once");
+                System.exit(1); // Error in program arguments: duplicate "-i"
             }
             else {
-                fileName = args[fileNameIdx];
+                fileName = getFileName(args, iIdx + 1, ".tiger");
             }
+            useTiger = true;
+        }
+        else {
+            fileName = getFileName(args, rIdx + 1, ".ir");
         }
 
         // validate optional flags //
         for (int i=0; i < args.length; i++) {
-            if (args[i].equals(("-i"))) {
-                // assuming thing after -i is filename; validation is done above
+            if (args[i].equals("-i") || args[i].equals("-r")) {
+                // assuming thing after -i or -r is filename; validation is done above
                 i += 1;
             }
             else if (args[i].equals("-l"))
                 lFlagProvided = true;
             else if (args[i].equals("-p"))
                 pFlagProvided = true;
+            else if (args[i].equals("-n"))
+                nFlagProvided = true;
             else if (args[i].equals("--st"))
                 stFlagProvided = true;
             else if (args[i].equals("--ir"))
                 irFlagProvided = true;
+            else if (args[i].equals("--mips"))
+                mipsFlagProvided = true;
             else {
                 System.out.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -263,7 +293,7 @@ public class Tiger {
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
         // and write to .ir file.
-        else if (irFlagProvided) {
+        else if (nFlagProvided || irFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
@@ -296,12 +326,21 @@ public class Tiger {
                 }
                 System.exit(4);
             }
-
             // IR generation
             TigerIRListener tigerIRListener = new TigerIRListener(stAsList);
             walker.walk(tigerIRListener, tree);
             System.out.println(IR.toFormattedString());
-            writeIRToFile(fileName, IR.toFormattedString());
+            if (irFlagProvided) {
+                writeIRToFile(fileName, IR.toFormattedString());
+                return;
+            }
+            TargetCodeGenerator a = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
+            if (nFlagProvided) {
+                String mips = a.generateTargetMipsCodeNaiveAlloc();
+                if (mipsFlagProvided) {
+                    writeMipsToFile(fileName, "naive", mips);
+                }
+            }
         }
         else {
             System.out.println("No action required.");

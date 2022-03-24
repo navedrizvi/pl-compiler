@@ -1,23 +1,36 @@
 package codegen;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 
+import codegen.ir_instructions.*;
 import codegen.mips_instructions.MipsInstruction;
 
-public class MIPSCodeGenerator {
+public class MipsCodeGenerator {
+    public List<MipsInstruction> mipsOutput = new ArrayList<>();
+
+    String functionName;
     private int stackPointer = 0;
-    private int framePointer = 0;
     private int stackSize = 0;
     String[] intList;
     String[] floatList;
-    List<String> mipsOutput = new ArrayList<>();
 
-    public MIPSCodeGenerator(String functionName, String[] intList, String[] floatList, FunctionBlock functionBlock, List<InstrRegallocTuple> instructions) {
+    public static List<String> saveRegisters = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "s7");
+    public static List<String> tempRegisters = Arrays.asList("$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9");
+    List<InstrRegallocTuple> instructions;
+    HashSet<String> intSet;
+    HashSet<String> floatSet;
+    HashMap<String, String> arraySet;
+    HashMap<String, Integer> _variableLocations;
+
+    public MipsCodeGenerator(FunctionBlock functionBlock, String functionName, String[] intList, String[] floatList, List<InstrRegallocTuple> instructions) {
+        this.instructions = instructions;
         this.intList = intList;
         this.floatList = floatList;
         this.stackPointer = 0;
-        this.framePointer = 0;
         this.stackSize = 0;
         this.functionName = functionName;
         this.intSet = new HashSet<String>();
@@ -25,18 +38,34 @@ public class MIPSCodeGenerator {
         this.arraySet = new HashMap<String, String>();
     }
 
+    private static boolean isRegister(String var) {
+        return var.charAt(0) == '$';
+    }
 
     public void emit(MipsInstruction instr) {
         this.mipsOutput.add(instr);
-        // TODO update sp and fp
+        // Todo update sp
     }
 
     public List<MipsInstruction> generateMipsInstructions() {
         List<MipsInstruction> out = new ArrayList<>();
 
         for (InstrRegallocTuple instruction: this.instructions) {
+            List<String> args = instruction.irInstruction.args();
             if (instruction.irInstruction instanceof Add) {
-
+                String arg1 = args.get(0);
+                String arg2 = args.get(1);
+                if(!isRegister(arg2)) {
+                    // TODO use temporaries carefully to meet limit requirement
+                    arg2 = "$t1";
+                    this.emit(new li(arg1, arg2));
+                }
+                if(!isRegister(arg1)) {
+                    arg1 = "$t2";
+                    this.emit(new li(arg1, arg2));
+                }
+                MipsInstruction instr = new and(args.get(2), args.get(0), args.get(1));
+                this.emit(instr);
             }
             else if (instruction.irInstruction instanceof And) {
 
@@ -77,6 +106,9 @@ public class MIPSCodeGenerator {
             else if (instruction.irInstruction instanceof Goto) {
 
             }
+            else if (instruction.irInstruction instanceof Label) {
+                this.emit(new label(args.get(0)));
+            }
             else if (instruction.irInstruction instanceof Mult) {
 
             }
@@ -107,7 +139,8 @@ public class MIPSCodeGenerator {
     }
 
 
-    //
+
+    //** */ Static classes
     static class sw implements MipsInstruction {
         String register;
         String location;
@@ -166,6 +199,17 @@ public class MIPSCodeGenerator {
         @Override
         public List<String> args() {
             return Arrays.asList(this.label);
+        }
+    }
+
+    static class label implements MipsInstruction {
+        private String name;
+        public label(String name) {
+            this.name = name;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList(this.name);
         }
     }
 
@@ -291,6 +335,4 @@ public class MIPSCodeGenerator {
             super(left, right, temp);
         }
     }
-
-
 }

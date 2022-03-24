@@ -57,14 +57,14 @@ public class MipsCodeGenerator {
                 String arg2 = args.get(1);
                 if(!isRegister(arg2)) {
                     // TODO use temporaries carefully to meet limit requirement
-                    arg2 = "$t1";
+                    arg2 = tempRegisters.get(0);
                     this.emit(new li(arg1, arg2));
                 }
                 if(!isRegister(arg1)) {
-                    arg1 = "$t2";
+                    arg1 = tempRegisters.get(2);
                     this.emit(new li(arg1, arg2));
                 }
-                MipsInstruction instr = new and(args.get(2), args.get(0), args.get(1));
+                MipsInstruction instr = new and(args.get(2), arg1, arg2);
                 this.emit(instr);
             }
             else if (instruction.irInstruction instanceof And) {

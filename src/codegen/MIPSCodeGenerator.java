@@ -18,6 +18,7 @@ public class MipsCodeGenerator {
     String[] intList;
     String[] floatList;
 
+    // TODO use registers carefully to meet limit requirement
     public static List<String> saveRegisters = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "s7");
     public static List<String> tempRegisters = Arrays.asList("$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9");
     List<InstrRegallocTuple> instructions;
@@ -44,7 +45,7 @@ public class MipsCodeGenerator {
 
     public void emit(MipsInstruction instr) {
         this.mipsOutput.add(instr);
-        // Todo update sp
+        stackPointer += 1;
     }
 
     public List<MipsInstruction> generateMipsInstructions() {
@@ -56,7 +57,6 @@ public class MipsCodeGenerator {
                 String arg1 = args.get(0);
                 String arg2 = args.get(1);
                 if(!isRegister(arg2)) {
-                    // TODO use temporaries carefully to meet limit requirement
                     arg2 = tempRegisters.get(0);
                     this.emit(new li(arg1, arg2));
                 }

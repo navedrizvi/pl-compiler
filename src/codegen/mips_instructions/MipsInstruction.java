@@ -8,6 +8,9 @@ public interface MipsInstruction {
         return this.getClass().getSimpleName();
     }
     default String asString() {
+        if (this.opcode().equals("label")) {
+            return this.args().get(0) + ":";
+        }
         return this.opcode() + " " + String.join(", ", this.args());
     } 
 }

@@ -25,7 +25,7 @@ public class Assign implements IRInstruction {
     @Override
     public Set<String> useSet() {
         // TODO0 fill useSet
-        return null;
+        return new HashSet<>();
     }
 
     @Override

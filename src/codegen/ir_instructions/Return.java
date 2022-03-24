@@ -22,7 +22,7 @@ public class Return implements IRInstruction {
     @Override
     public Set<String> useSet() {
         // TODO
-        return null;
+        return new HashSet<>();
     }
 
     @Override

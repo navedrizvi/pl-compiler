@@ -1,6 +1,7 @@
 package codegen.ir_instructions;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,14 +26,13 @@ public class Array_store implements IRInstruction {
 
     @Override
     public Set<String> useSet() {
-        // TODO Auto-generated method stub
         // TODO fill
-        return null;
+        return new HashSet<>();
     }
 
     @Override
     public Set<String> defSet() {
         // TODO Auto-generated method stub
-        return null;
+        return new HashSet<>();
     } 
 }

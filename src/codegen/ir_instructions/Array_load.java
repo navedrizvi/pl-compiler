@@ -27,8 +27,8 @@ public class Array_load implements IRInstruction {
 
     @Override
     public Set<String> useSet() {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO fill
+        return new HashSet<>();
     }
 
     @Override

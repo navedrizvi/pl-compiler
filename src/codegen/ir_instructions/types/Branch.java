@@ -1,7 +1,9 @@
 package codegen.ir_instructions.types;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 abstract public class Branch {
     protected String left;
@@ -16,5 +18,15 @@ abstract public class Branch {
 
     public List<String> args() {
         return Arrays.asList(this.left, this.right, this.label);
-    } 
+    }
+
+    public Set<String> useSet() {
+        HashSet<String> uses = new HashSet<>();
+        // TODO fill uses
+        return uses;
+    }
+
+    public Set<String> defSet() {
+        return new HashSet<String>();
+    }
 }

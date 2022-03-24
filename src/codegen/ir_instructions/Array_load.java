@@ -1,7 +1,9 @@
 package codegen.ir_instructions;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Array_load implements IRInstruction {
     private String store_var;
@@ -18,7 +20,19 @@ public class Array_load implements IRInstruction {
         return Arrays.asList(this.store_var, this.array_name, this.idx);
     }
 
+
     public String opcode() {
         return "array_load";
+    }
+
+    @Override
+    public Set<String> useSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Set<String> defSet() {
+        return new HashSet<>(Arrays.asList(this.store_var));
     } 
 }

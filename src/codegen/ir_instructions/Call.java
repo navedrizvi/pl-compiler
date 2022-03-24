@@ -2,7 +2,9 @@ package codegen.ir_instructions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Call implements IRInstruction {
     private String function_name;
@@ -25,5 +27,17 @@ public class Call implements IRInstruction {
             params.add(arg);
         }
         return params;
+    }
+
+    @Override
+    public Set<String> useSet() {
+        HashSet<String> uses = new HashSet<>();
+        // TODO fill
+        return uses;
+    }
+
+    @Override
+    public Set<String> defSet() {
+        return new HashSet<String>();
     } 
 }

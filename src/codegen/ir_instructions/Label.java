@@ -1,20 +1,26 @@
 package codegen.ir_instructions;
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ReturnVoid implements IRInstruction {
-    public ReturnVoid() {
+public class Label implements IRInstruction {
+    private String name;
+    public Label(String[] args) {
+        this.name = args[0];
     }
 
     public String opcode() {
-        return "return";
+        return "label";
+    } 
+
+    public List<String> params() {
+        return Arrays.asList(this.name);
     }
 
+    @Override
     public List<String> args() {
-        return new ArrayList<>();
+        return Arrays.asList(this.name);
     }
 
     @Override
@@ -25,5 +31,6 @@ public class ReturnVoid implements IRInstruction {
     @Override
     public Set<String> defSet() {
         return new HashSet<String>();
-    }    
+    }
+
 }

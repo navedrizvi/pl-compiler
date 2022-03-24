@@ -1,7 +1,9 @@
 package codegen.ir_instructions;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Assign implements IRInstruction {
     private String left;
@@ -18,5 +20,16 @@ public class Assign implements IRInstruction {
 
     public List<String> args() {
         return Arrays.asList(this.left, this.right);
+    }
+
+    @Override
+    public Set<String> useSet() {
+        // TODO0 fill useSet
+        return null;
+    }
+
+    @Override
+    public Set<String> defSet() {
+        return new HashSet<>(Arrays.asList(this.left));
     }    
 }

@@ -2,7 +2,9 @@ package codegen.ir_instructions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Callr implements IRInstruction {
     private String store_var;
@@ -28,5 +30,17 @@ public class Callr implements IRInstruction {
             params.add(arg);
         }
         return params;
+    }
+
+    @Override
+    public Set<String> useSet() {
+        HashSet<String> uses = new HashSet<>();
+        // TODO fill uses
+        return uses;
+    }
+
+    @Override
+    public Set<String> defSet() {
+        return new HashSet<String>(Arrays.asList(this.store_var));
     } 
 }

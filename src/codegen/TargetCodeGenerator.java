@@ -26,6 +26,7 @@ public class TargetCodeGenerator {
    private List<String> getDataSectionInstrs() {
       List<String> out = new ArrayList<>();
       String val = "";
+      out.add("newline: .asciiz \"\\n\"");
       for (String e: this.staticIntList) {
          for (String instr : this.srcIrInstrs) {
             if (instr.startsWith("assign, " + e)) {

@@ -26,7 +26,7 @@ public class Tiger {
         try {
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
-            System.out.println("Error in creating new file"); 
+            System.out.println("Error in creating new file");
             // minor todo what error to return here, or silently exit?
         }
     }
@@ -181,7 +181,7 @@ public class Tiger {
         return fileName;
     }
 
-   public static void main(String[] args) {
+    public static void main(String[] args) {
         // Validate args length
         if (!(args.length >= 2)) {
             System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
@@ -257,7 +257,7 @@ public class Tiger {
         if (lFlagProvided)
             writeTokenFile(lexer, fileName); // also checks for scanner errors
 
-        // Run parser and write parse tree as graph in DOT format
+            // Run parser and write parse tree as graph in DOT format
         else if (pFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -329,15 +329,16 @@ public class Tiger {
             // IR generation
             TigerIRListener tigerIRListener = new TigerIRListener(stAsList);
             walker.walk(tigerIRListener, tree);
-            System.out.println(IR.toFormattedString());
+//            System.out.println(IR.toFormattedString());
             if (irFlagProvided) {
                 writeIRToFile(fileName, IR.toFormattedString());
                 return;
             }
-            TargetCodeGenerator a = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
+            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
             if (nFlagProvided) {
-                String mips = a.generateTargetMipsCodeNaiveAlloc();
+                String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {
+                    System.out.println(mips);
                     writeMipsToFile(fileName, "naive", mips);
                 }
             }

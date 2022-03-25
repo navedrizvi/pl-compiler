@@ -11,6 +11,11 @@ public interface MipsInstruction {
         if (this.opcode().equals("label")) {
             return this.args().get(0) + ":";
         }
-        return this.opcode() + " " + String.join(", ", this.args());
-    } 
+
+        if (this.args() != null) {
+            return this.opcode() + " " + String.join(", ", this.args());
+        }
+
+        return this.opcode();
+    }
 }

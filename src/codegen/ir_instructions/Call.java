@@ -10,6 +10,14 @@ public class Call implements IRInstruction {
     private String function_name;
     private String[] function_args;
 
+    public String getFunction_name() {
+        return function_name;
+    }
+
+    public String[] getFunction_args() {
+        return function_args;
+    }
+
     public Call(String[] args) {
         this.function_name = args[0];
         this.function_args = Arrays.copyOfRange(args, 1, args.length);
@@ -39,5 +47,5 @@ public class Call implements IRInstruction {
     @Override
     public Set<String> defSet() {
         return new HashSet<String>();
-    } 
+    }
 }

@@ -21,13 +21,19 @@ public class MipsCodeGenerator {
     // TODO use registers carefully to meet limit requirement
     public static List<String> saveRegisters = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "s7");
     public static List<String> tempRegisters = Arrays.asList("$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9");
-    List<InstrRegallocTuple> instructions;
+    final String STACK_POINTER = "$sp";
+    final String RETURN_ADDRESS = "$ra";
+    final String FUNCTION_RETURN_VALUE_0 = "$v0";
+    final String FUNCTION_RETURN_VALUE_1 = "$v1";
+    IRInstruction[] instructions;
     HashSet<String> intSet;
     HashSet<String> floatSet;
     HashMap<String, String> arraySet;
     HashMap<String, Integer> _variableLocations;
+    HashMap<String, RegAllocTuple> registerAllocation;
 
-    public MipsCodeGenerator(FunctionBlock functionBlock, String functionName, String[] intList, String[] floatList, List<InstrRegallocTuple> instructions) {
+    public MipsCodeGenerator(IRInstruction[] instructions, String functionName, String[] intList, String[] floatList, HashMap<String, RegAllocTuple> registerAllocation) {
+//    public MipsCodeGenerator(FunctionBlock functionBlock, String functionName, String[] intList, String[] floatList, List<InstrRegallocTuple> instructions) {
         this.instructions = instructions;
         this.intList = intList;
         this.floatList = floatList;
@@ -37,6 +43,7 @@ public class MipsCodeGenerator {
         this.intSet = new HashSet<String>();
         this.floatSet = new HashSet<String>();
         this.arraySet = new HashMap<String, String>();
+        this.registerAllocation = registerAllocation;
     }
 
     private static boolean isRegister(String var) {
@@ -48,12 +55,29 @@ public class MipsCodeGenerator {
         stackPointer += 1;
     }
 
-    public List<MipsInstruction> generateMipsInstructions() {
-        List<MipsInstruction> out = new ArrayList<>();
+    private int getSpaceForLocalVariablesFromRegAlloc(HashMap<String, RegAllocTuple> registerAllocation) {
+        int stackSpace = 0;
+        for (String var: registerAllocation.keySet()) {
+            Integer memoryOffSet = registerAllocation.get(var).getMemoryOffset();
+            if (memoryOffSet != null) {
+                stackSpace += memoryOffSet;
+            }
+        }
+        return stackSpace;
+    }
 
-        for (InstrRegallocTuple instruction: this.instructions) {
-            List<String> args = instruction.irInstruction.args();
-            if (instruction.irInstruction instanceof Add) {
+    public List<MipsInstruction> generateMipsInstructions() {
+        //List<MipsInstruction> out = new ArrayList<>();
+        // For now assuming only main function. I think we should follow call convention for all functions
+        this.emit(new functionName(functionName));
+        int spaceForLocalVariables = getSpaceForLocalVariablesFromRegAlloc(registerAllocation);
+        this.emit(new comment("# start of prologue"));
+        this.emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * spaceForLocalVariables)));
+        this.emit(new comment("# end of prologue"));
+
+        for (IRInstruction instruction: this.instructions) {
+            List<String> args = instruction.args();
+            if (instruction instanceof Add) {
                 String arg1 = args.get(0);
                 String arg2 = args.get(1);
                 if(!isRegister(arg2)) {
@@ -67,80 +91,134 @@ public class MipsCodeGenerator {
                 MipsInstruction instr = new and(args.get(2), arg1, arg2);
                 this.emit(instr);
             }
-            else if (instruction.irInstruction instanceof And) {
+            else if (instruction instanceof And) {
 
             }
-            else if (instruction.irInstruction instanceof Array_load) {
+            else if (instruction instanceof Array_load) {
 
             }
-            else if (instruction.irInstruction instanceof Array_store) {
+            else if (instruction instanceof Array_store) {
 
             }
-            else if (instruction.irInstruction instanceof Breq) {
+            else if (instruction instanceof Breq) {
 
             }
-            else if (instruction.irInstruction instanceof Brgeq) {
+            else if (instruction instanceof Brgeq) {
 
             }
-            else if (instruction.irInstruction instanceof Brgt) {
+            else if (instruction instanceof Brgt) {
 
             }
-            else if (instruction.irInstruction instanceof Brleq) {
+            else if (instruction instanceof Brleq) {
 
             }
-            else if (instruction.irInstruction instanceof Brlt) {
+            else if (instruction instanceof Brlt) {
 
             }
-            else if (instruction.irInstruction instanceof Brneq) {
+            else if (instruction instanceof Brneq) {
 
             }
-            else if (instruction.irInstruction instanceof Call) {
+            else if (instruction instanceof Call) {
+                Call ir = (Call) instruction;
+                if (ir.getFunction_name().equals("printi")) {
+                    emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
+                    emit(new lw("$t1", registerAllocation.get(ir.args().get(1)).getMemoryOffset().toString() + "($sp)"));
+                    emit(new move("$a0", "$t1"));
+                    emit(new syscall());
+
+//                    li $v0, 4       # you can call it your way as well with addi
+//                    la $a0, newline       # load address of the string
+//                            syscall
+                    emit(new li(FUNCTION_RETURN_VALUE_0, "4"));
+                    emit(new la("$a0", "newline"));
+                    emit(new syscall());
+                }
 
             }
-            else if (instruction.irInstruction instanceof Callr) {
+            else if (instruction instanceof Callr) {
 
             }
-            else if (instruction.irInstruction instanceof Div) {
+            else if (instruction instanceof Div) {
 
             }
-            else if (instruction.irInstruction instanceof Goto) {
+            else if (instruction instanceof Goto) {
 
             }
-            else if (instruction.irInstruction instanceof Label) {
+            else if (instruction instanceof Label) {
                 this.emit(new label(args.get(0)));
             }
-            else if (instruction.irInstruction instanceof Mult) {
+            else if (instruction instanceof Mult) {
 
             }
-            else if (instruction.irInstruction instanceof Or) {
+            else if (instruction instanceof Or) {
 
             }
-            else if (instruction.irInstruction instanceof Sub) {
+            else if (instruction instanceof Sub) {
 
             }
-            else if (instruction.irInstruction instanceof ReturnVoid) {
+            else if (instruction instanceof ReturnVoid) {
 
             }
-            else if (instruction.irInstruction instanceof Return) {
+            else if (instruction instanceof Return) {
 
             }
-            else if (instruction.irInstruction instanceof AssignArray) {
+            else if (instruction instanceof AssignArray) {
 
             }
-            else if (instruction.irInstruction instanceof Assign) {
-
+            // assign, a, b
+            else if (instruction instanceof Assign) {
+                this.emit(new li("$t0", instruction.args().get(1)));
+                this.emit(new sw("$t0", registerAllocation.get(instruction.args().get(0)).getMemoryOffset().toString() + "($sp)"));
             }
             else {
-                throw new UnsupportedOperationException("IR to mips not supported: " + instruction.irInstruction.opcode());
+                throw new UnsupportedOperationException("IR to mips not supported: " + instruction.opcode());
             }
-
         }
-        return out;
+        this.emit(new comment("# start of epilogue"));
+        this.emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(spaceForLocalVariables)));
+        this.emit(new comment("# end of epilogue"));
+
+        // Return 0
+        this.emit(new li(FUNCTION_RETURN_VALUE_0, "0"));
+        this.emit(new jr(RETURN_ADDRESS));
+
+        return this.mipsOutput;
     }
 
 
 
     //** */ Static classes
+    static class functionName implements MipsInstruction {
+        private String name;
+        public functionName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public List<String> args() {
+            return null;
+        }
+
+        public String asString() {
+            return name + ":";
+        }
+    }
+    static class comment implements  MipsInstruction {
+        String comment;
+        public comment(String comment) {
+            this.comment = comment;
+        }
+
+        @Override
+        public List<String> args() {
+            return null;
+        }
+
+        public String asString() {
+            return comment;
+        }
+
+    }
     static class sw implements MipsInstruction {
         String register;
         String location;
@@ -167,16 +245,44 @@ public class MipsCodeGenerator {
             return Arrays.asList(this.register, this.location);
         }
     }
-    
+
     static class li implements MipsInstruction {
         String register;
         String immediate;
         public li(String register, String immediate) {
+            this.register = register;
             this.immediate = immediate;
         }
         @Override
         public List<String> args() {
-            return Arrays.asList(this.immediate);
+            return Arrays.asList( this.register,this.immediate);
+        }
+    }
+
+    static class la implements MipsInstruction {
+        String register;
+        String label;
+        public la(String register, String label) {
+            this.register = register;
+            this.label = label;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList( this.register,this.label);
+        }
+    }
+
+    static class move implements MipsInstruction {
+        String destination;
+        String source;
+        public move(String destination, String source) {
+            this.destination = destination;
+            this.source = source;
+        }
+
+        @Override
+        public List<String> args() {
+            return Arrays.asList(destination, source);
         }
     }
 
@@ -202,6 +308,17 @@ public class MipsCodeGenerator {
         }
     }
 
+    static class jr implements MipsInstruction {
+        String register;
+        public jr(String register) {
+            this.register = register;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList(this.register);
+        }
+    }
+
     static class label implements MipsInstruction {
         private String name;
         public label(String name) {
@@ -222,7 +339,7 @@ public class MipsCodeGenerator {
         }
     }
 
-    ///// 
+    /////
     static abstract class MipsBinOp implements MipsInstruction {
         // TODO fix names
         protected String target;
@@ -266,6 +383,18 @@ public class MipsCodeGenerator {
 
     static class addi extends MipsBinOp {
         public addi(String left, String right, String temp) {
+            super(left, right, temp);
+        }
+    }
+
+    static class addiu extends MipsBinOp {
+        public addiu(String left, String right, String temp) {
+            super(left, right, temp);
+        }
+    }
+
+    static class subiu extends MipsBinOp {
+        public subiu(String left, String right, String temp) {
             super(left, right, temp);
         }
     }

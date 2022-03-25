@@ -1,0 +1,20 @@
+start_program float_init
+    static-int-list:
+    static-float-list:
+
+start_function main
+    int main()
+    int-list:
+    float-list: _2_a, _2_b, _2_c
+    main:
+    assign, _2_a, 4.0,
+    assign, _2_b, 6.0,
+    assign, _2_c, 6.0,
+    assign, _2_b, 5.0,
+    call, printf, _2_a
+    call, printf, _2_b
+    call, printf, _2_c
+    return, 0, ,
+end_function main
+
+end_program float_init

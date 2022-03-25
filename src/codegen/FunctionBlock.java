@@ -45,7 +45,7 @@ public class FunctionBlock {
         // Handling ints first
         int index = 0;
         for (String intVar: intList) {
-            varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, index * 4));
+            varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(index * 4)));
             index++;
         }
         return varToMemoryOffSet;

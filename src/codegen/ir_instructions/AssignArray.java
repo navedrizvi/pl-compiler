@@ -24,14 +24,4 @@ public class AssignArray implements IRInstruction {
     public List<String> args() {
         return Arrays.asList(this.arr_name, Integer.toString(this.arr_size), this.arr_var);
     }
-
-    @Override
-    public Set<String> useSet() {
-        return new HashSet<String>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    } 
 }

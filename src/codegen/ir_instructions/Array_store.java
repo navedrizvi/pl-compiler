@@ -23,16 +23,4 @@ public class Array_store implements IRInstruction {
     public List<String> args() {
         return Arrays.asList(this.array_name, this.idx, this.load_var);
     }
-
-    @Override
-    public Set<String> useSet() {
-        // TODO fill
-        return new HashSet<>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        // TODO Auto-generated method stub
-        return new HashSet<>();
-    } 
 }

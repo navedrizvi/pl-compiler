@@ -31,16 +31,4 @@ public class Callr implements IRInstruction {
         }
         return params;
     }
-
-    @Override
-    public Set<String> useSet() {
-        HashSet<String> uses = new HashSet<>();
-        // TODO fill uses
-        return uses;
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>(Arrays.asList(this.store_var));
-    } 
 }

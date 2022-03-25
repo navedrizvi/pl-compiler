@@ -16,14 +16,4 @@ public class ReturnVoid implements IRInstruction {
     public List<String> args() {
         return new ArrayList<>();
     }
-
-    @Override
-    public Set<String> useSet() {
-        return new HashSet<String>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    }    
 }

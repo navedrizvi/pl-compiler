@@ -36,16 +36,4 @@ public class Call implements IRInstruction {
         }
         return params;
     }
-
-    @Override
-    public Set<String> useSet() {
-        HashSet<String> uses = new HashSet<>();
-        // TODO fill
-        return uses;
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    }
 }

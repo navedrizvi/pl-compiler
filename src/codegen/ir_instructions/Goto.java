@@ -18,14 +18,4 @@ public class Goto implements IRInstruction {
     public List<String> args() {
         return Arrays.asList(this.label);
     }
-
-    @Override
-    public Set<String> useSet() {
-        return new HashSet<String>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    } 
 }

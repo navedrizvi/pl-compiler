@@ -22,14 +22,5 @@ public class Assign implements IRInstruction {
         return Arrays.asList(this.left, this.right);
     }
 
-    @Override
-    public Set<String> useSet() {
-        // TODO0 fill useSet
-        return new HashSet<>();
-    }
 
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<>(Arrays.asList(this.left));
-    }    
 }

@@ -18,15 +18,4 @@ public class Return implements IRInstruction {
     public List<String> args() {
         return Arrays.asList(this.return_var);
     }
-
-    @Override
-    public Set<String> useSet() {
-        // TODO
-        return new HashSet<>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    }    
 }

@@ -23,14 +23,4 @@ public class Label implements IRInstruction {
         return Arrays.asList(this.name);
     }
 
-    @Override
-    public Set<String> useSet() {
-        return new HashSet<String>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    }
-
 }

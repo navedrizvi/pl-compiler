@@ -24,15 +24,4 @@ public class Array_load implements IRInstruction {
     public String opcode() {
         return "array_load";
     }
-
-    @Override
-    public Set<String> useSet() {
-        // TODO fill
-        return new HashSet<>();
-    }
-
-    @Override
-    public Set<String> defSet() {
-        return new HashSet<>(Arrays.asList(this.store_var));
-    } 
 }

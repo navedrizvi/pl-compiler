@@ -15,14 +15,14 @@ public class RegAllocTuple {
         return register;
     }
 
-    public Integer getMemoryOffset() {
+    public String getMemoryOffset() {
         return memoryOffset;
     }
 
     public String register;
-    public Integer memoryOffset;
+    public String memoryOffset;
 
-    public RegAllocTuple(String variable, String register, Integer memoryOffset) {
+    public RegAllocTuple(String variable, String register, String memoryOffset) {
         this.variable = variable;
         this.register = register;
         this.memoryOffset = memoryOffset;

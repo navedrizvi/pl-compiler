@@ -10,8 +10,8 @@ public interface IRInstruction {
     public List<String> args();
 
     // TODO1 fill use and def sets
-    public Set<String> useSet();
-    public Set<String> defSet();
+//    public Set<String> useSet();
+//    public Set<String> defSet();
 
     default String asString() {
         return this.opcode() + ": " + String.join(", ", this.args());

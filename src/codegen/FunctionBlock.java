@@ -17,25 +17,29 @@ public class FunctionBlock {
     private String returnType;
     // todo can use tuple instead
     public LinkedHashMap<String, String> functionArgs;
+    private List<String> staticIntList;
+    private List<String> staticFloatList;
     private String[] intList;
     private String[] floatList;
     private IRInstruction[] instructions;
 
     private static final int WORD_SIZE = 4;
 
-    public FunctionBlock(String functionName, String returnType, LinkedHashMap<String, String> functionArgs, String[] intList, String[] floatList, IRInstruction[] instructions) {
+    public FunctionBlock(String functionName, String returnType, LinkedHashMap<String, String> functionArgs, List<String> staticIntList, List<String> staticFloatList, String[] intList, String[] floatList, IRInstruction[] instructions) {
         this.functionName = functionName;
         this.returnType = returnType;
         this.functionArgs = functionArgs;
         this.intList = intList;
         this.floatList = floatList;
         this.instructions = instructions;
+        this.staticIntList = staticIntList;
+        this.staticFloatList = staticFloatList;
     }
 
     public List<MipsInstruction> getNaiveMips() {
 //        List<InstrRegallocTuple> naiveInstrs = this.doNaiveRegisterAllocation();
         HashMap<String, RegAllocTuple> naiveRegisterAllocation = this.doNaiveRegisterAllocation();
-        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this.functionName, this.intList, this.floatList, naiveRegisterAllocation);
+        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this.functionName, staticIntList, staticFloatList,this.intList, this.floatList, naiveRegisterAllocation);
         List<MipsInstruction> out = naiveMips.generateMipsInstructions();
         return out;
     }

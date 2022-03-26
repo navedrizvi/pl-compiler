@@ -11,8 +11,10 @@ public class MipsCodeGenerator {
     String functionName;
     private int stackPointer = 0;
     private int stackSize = 0;
-    String[] intList;
-    String[] floatList;
+    List<String> intList;
+    List<String> floatList;
+    List<String> staticIntList;
+    List<String> staticFloatList;
 
     // TODO use registers carefully to meet limit requirement
 //    ArrayList<String> temp = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "s7");
@@ -38,11 +40,11 @@ public class MipsCodeGenerator {
     Set<String> usedTempRegisters;
     Set<String> usedReserveRegisters;
 
-    public MipsCodeGenerator(IRInstruction[] instructions, String functionName, String[] intList, String[] floatList, HashMap<String, RegAllocTuple> registerAllocation) {
+    public MipsCodeGenerator(IRInstruction[] instructions, String functionName, List<String> staticIntList, List<String> staticFloatList, String[] intList, String[] floatList, HashMap<String, RegAllocTuple> registerAllocation) {
 //    public MipsCodeGenerator(FunctionBlock functionBlock, String functionName, String[] intList, String[] floatList, List<InstrRegallocTuple> instructions) {
         this.instructions = instructions;
-        this.intList = intList;
-        this.floatList = floatList;
+        this.intList = Arrays.asList(intList);
+        this.floatList = Arrays.asList(floatList);
         this.stackPointer = 0;
         this.stackSize = 0;
         this.functionName = functionName;
@@ -59,6 +61,8 @@ public class MipsCodeGenerator {
         this.usedSaveRegisters = new HashSet<>();
         this.usedTempRegisters = new HashSet<>();
         this.usedReserveRegisters = new HashSet<>();
+        this.staticIntList = staticIntList;
+        this.staticFloatList = staticFloatList;
     }
 
     private static boolean isRegister(String var) {
@@ -179,10 +183,63 @@ public class MipsCodeGenerator {
     // "b" can be int or float
     // "a" will be a variable and can be int/float
     private void handleAssign(Assign instruction) {
-        String register = getRegister(false);
-        this.emit(new li(register, instruction.args().get(1)));
-        this.emit(new sw(register, registerAllocation.get(instruction.args().get(0)).getMemoryOffset() + "(" + STACK_POINTER +")"));
-        addBackRegister(register);
+        String left = instruction.args().get(0);
+        // left variable is static int
+        if (staticIntList.contains(left)) {
+            String register = getRegister(false);
+            this.emit(new li(register, instruction.args().get(1)));
+            this.emit(new sw(register, left));
+            addBackRegister(register);
+        }
+        // left variable is local variable/function argument
+        else {
+            String register = getRegister(false);
+            this.emit(new li(register, instruction.args().get(1)));
+            this.emit(new sw(register, registerAllocation.get(instruction.args().get(0)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+            addBackRegister(register);
+        }
+    }
+
+    private void handleCall(Call instruction) {
+//        System.out.println(instruction.asString());
+//        System.out.println(instruction.args());
+        if (instruction.getFunction_name().equals("printi")) {
+            emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
+            String arg = instruction.args().get(1);
+            // printing a integer local variable
+            if (intList.contains(arg)) {
+                String register = getRegister(false);
+                emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                emit(new move(PRINT_INTEGER_ARG, register));
+                addBackRegister(register);
+            }
+            else if (staticIntList.contains(arg)) {
+                emit(new lw(PRINT_INTEGER_ARG, arg));
+            }
+            // printing an integer value
+            else {
+                emit(new li(PRINT_INTEGER_ARG, arg));
+            }
+            emit(new syscall());
+
+            addNewLine();
+            return;
+        }
+
+        if (instruction.getFunction_name().equals("exit")) {
+            emit(new li(FUNCTION_RETURN_VALUE_0, "17"));
+            emit(new li(PRINT_INTEGER_ARG, instruction.args().get(1)));
+            emit(new syscall());
+
+            addNewLine();
+            return;
+        }
+    }
+
+    private void addNewLine() {
+        emit(new li(FUNCTION_RETURN_VALUE_0, "4"));
+        emit(new la(PRINT_STRING_ARG, "newline"));
+        emit(new syscall());
     }
 
     private String getRegister(boolean requireSave) {
@@ -224,45 +281,6 @@ public class MipsCodeGenerator {
             }
         }
 
-    }
-
-    private void handleCall(Call instruction) {
-//        System.out.println(instruction.asString());
-//        System.out.println(instruction.args());
-        if (instruction.getFunction_name().equals("printi")) {
-            emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
-            String arg = instruction.args().get(1);
-            // printing an integer value
-            if (!Arrays.asList(intList).contains(arg)) {
-                emit(new li(PRINT_INTEGER_ARG, arg));
-            }
-            // printing an integer variable
-            else {
-                String register = getRegister(false);
-                emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
-                emit(new move(PRINT_INTEGER_ARG, register));
-                addBackRegister(register);
-            }
-            emit(new syscall());
-
-            addNewLine();
-            return;
-        }
-
-        if (instruction.getFunction_name().equals("exit")) {
-            emit(new li(FUNCTION_RETURN_VALUE_0, "17"));
-            emit(new li(PRINT_INTEGER_ARG, instruction.args().get(1)));
-            emit(new syscall());
-
-            addNewLine();
-            return;
-        }
-    }
-
-    private void addNewLine() {
-        emit(new li(FUNCTION_RETURN_VALUE_0, "4"));
-        emit(new la(PRINT_STRING_ARG, "newline"));
-        emit(new syscall());
     }
 
     //** */ Static classes

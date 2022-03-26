@@ -39,7 +39,15 @@ SOURCES := \
 	src/SubroutineSymbol.java \
 	src/DefinedTypeArraySymbol.java \
 	src/DefinedTypeSymbol.java \
-	src/VariableSymbol.java
+	src/VariableSymbol.java \
+	src/codegen/FunctionBlock.java \
+	src/codegen/MipsCodeGenerator.java \
+	src/codegen/RegAllocTuple.java \
+	src/codegen/InstrRegallocTuple.java \
+	src/codegen/TargetCodeGenerator.java \
+	src/codegen/mips_instructions/*.java \
+	src/codegen/ir_instructions/*.java \
+	src/codegen/ir_instructions/types/*.java
 
 .PHONY:
 all: $(COMPILER_JAR)

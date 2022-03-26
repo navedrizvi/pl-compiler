@@ -28,26 +28,28 @@ public class TargetCodeGenerator {
       String val = "";
       out.add("newline: .asciiz \"\\n\"");
       for (String e: this.staticIntList) {
-         for (String instr : this.srcIrInstrs) {
-            if (instr.startsWith("assign, " + e)) {
-               val = instr.replace("assign, " + e + ", ", "");
-               out.add(e + " .word " + val);
-            }
-         }
+         out.add(e + ": .word 0");
+//         for (String instr : this.srcIrInstrs) {
+//            if (instr.startsWith("assign, " + e)) {
+//               val = instr.replace("assign, " + e + ", ", "");
+//               out.add(e + " .word " + val);
+//            }
+//         }
       }
       for (String e: this.staticFloatList) {
-         for (String instr : this.staticFloatList) {
-            if (instr.startsWith("assign, " + e)) {
-               val = instr.replace("assign, " + e + " ", "");
-               val = val.replaceAll(",*", "");
-               out.add("_" + e + " .float " + val);
-            }
-         }
+         out.add("_" + e + ": .float 0.0");
+//         for (String instr : this.staticFloatList) {
+//            if (instr.startsWith("assign, " + e)) {
+//               val = instr.replace("assign, " + e + " ", "");
+//               val = val.replaceAll(",*", "");
+//               out.add("_" + e + " .float " + val);
+//            }
+//         }
       }
       return out;
    }
 
-   private List<FunctionBlock> getTextSectionInstrs() {
+   private List<FunctionBlock> getTextSectionInstrs(List<String> staticIntList, List<String> staticFloatList) {
       List<IRInstruction> inpIr = new ArrayList<>();
       IRInstruction parsed;
       ArrayList<FunctionBlock> text = new ArrayList<>();
@@ -84,7 +86,7 @@ public class TargetCodeGenerator {
                instructions.add(parsed);
                i += 1;
             }
-            text.add(new FunctionBlock(func_name, return_type, funcArgs, int_list, float_list,
+            text.add(new FunctionBlock(func_name, return_type, funcArgs, staticIntList, staticFloatList, int_list, float_list,
                                        instructions.toArray(new IRInstruction[instructions.size()])));
          }
       }
@@ -156,7 +158,7 @@ public class TargetCodeGenerator {
    }
 
    public String generateTargetMipsCodeNaiveAlloc() {
-      List<FunctionBlock> functionBlocks = getTextSectionInstrs();
+      List<FunctionBlock> functionBlocks = getTextSectionInstrs(staticIntList, staticFloatList);
       List<String> mipsDataInstrs = getDataSectionInstrs();
       List<String> mipsTextInstrs = functionBlocks.stream()
                                        .map(FunctionBlock::getNaiveMips)

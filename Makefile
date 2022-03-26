@@ -25,7 +25,6 @@ ANTLR_LIBS := \
 	$(BUILD_DIR)/org
 
 SOURCES := \
-	src/Tiger.java \
 	src/TigerGraphListener.java \
 	src/TigerSTListener.java \
 	src/TigerSemanticAnalysisListener.java \
@@ -47,7 +46,8 @@ SOURCES := \
 	src/codegen/TargetCodeGenerator.java \
 	src/codegen/mips_instructions/*.java \
 	src/codegen/ir_instructions/*.java \
-	src/codegen/ir_instructions/types/*.java
+	src/codegen/ir_instructions/types/*.java \
+	src/Tiger.java
 
 .PHONY:
 all: $(COMPILER_JAR)
@@ -57,7 +57,8 @@ $(COMPILER_JAR): $(SOURCES) $(ANTLR_JAVA_FILES) $(ANTLR_LIBS)
 	@javac -d $(BUILD_DIR) -cp "src:$(ANTLR)" $(SOURCES) \
 	$(ANTLR_JAVA_FILES)
 	@cd $(BUILD_DIR) && jar cfe ../$(JAR_DIR)/$(COMPILER_JAR) \
-	$(MAIN_CLASS_NAME) *.class org javax && cd ..
+	$(MAIN_CLASS_NAME) *.class codegen/*.class codegen/ir_instructions/*.class codegen/ir_instructions/types/*.class codegen/mips_instructions/*.class \ 
+	org javax && cd ..
 	@chmod a+rx $(JAR_DIR)/$(COMPILER_JAR)
 
 $(ANTLR_JAVA_FILES): $(GRAMMAR)

@@ -70,6 +70,7 @@ public class MipsCodeGenerator {
     }
 
     public void emit(MipsInstruction instr) {
+        System.out.println(instr.asString());
         this.mipsOutput.add(instr);
         stackPointer += 1;
     }
@@ -97,7 +98,7 @@ public class MipsCodeGenerator {
         for (IRInstruction instruction: this.instructions) {
             List<String> args = instruction.args();
             if (instruction instanceof Add) {
-
+                handleAdd((Add) instruction);
             }
             else if (instruction instanceof And) {
 
@@ -178,26 +179,69 @@ public class MipsCodeGenerator {
         return this.mipsOutput;
     }
 
+    // c = a + b
+    // a, b can be values
+    // a, b can be int or float
+    // c is a variable; can be int or float
+    private void handleAdd(Add instruction) {
+        System.out.println(instruction.asString());
+        System.out.println(instruction.args());
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a + b
+        emit(new add(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
     // assign a, b
     // "b" can be literal value or variable
     // "b" can be int or float
     // "a" will be a variable and can be int/float
     private void handleAssign(Assign instruction) {
-        String left = instruction.args().get(0);
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        // b
+        String register = getRegister(false);
+        emit(getLoadCommand(register, b));
+
+        // a
+        String register_a = getRegister(false);
+        emit(getStoreCommand(register, a));
+
+        addBackRegister(register);
+
         // left variable is static int
-        if (staticIntList.contains(left)) {
-            String register = getRegister(false);
-            this.emit(new li(register, instruction.args().get(1)));
-            this.emit(new sw(register, left));
-            addBackRegister(register);
-        }
-        // left variable is local variable/function argument
-        else {
-            String register = getRegister(false);
-            this.emit(new li(register, instruction.args().get(1)));
-            this.emit(new sw(register, registerAllocation.get(instruction.args().get(0)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
-            addBackRegister(register);
-        }
+//        if (staticIntList.contains(a)) {
+//            String register = getRegister(false);
+//            emit(new li(register, instruction.args().get(1)));
+//            emit(new sw(register, a));
+//            addBackRegister(register);
+//        }
+//        // left variable is local variable/function argument
+//        else {
+//            String register = getRegister(false);
+//            emit(new li(register, instruction.args().get(1)));
+//            emit(new sw(register, registerAllocation.get(instruction.args().get(0)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+//            addBackRegister(register);
+//        }
     }
 
     private void handleCall(Call instruction) {
@@ -242,6 +286,34 @@ public class MipsCodeGenerator {
         emit(new syscall());
     }
 
+    // Helper function that will return right load command to emit
+    // Currently implementing for ints. Can extend to floats or handle floats in a separate function.
+    private MipsInstruction getLoadCommand(String register, String operand) {
+        MipsInstruction cmd = null;
+        // int static variable
+        if (staticIntList.contains(operand)) {
+            cmd = new lw(register, operand);
+        }
+        // int local variable
+        else if (intList.contains(operand)) {
+            cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
+        }
+        // int value
+        else {
+            cmd = new li(register, operand);
+        }
+        System.out.println("getLoadCommand: " + register + " " + " " + operand + " " + cmd);
+        return cmd;
+    }
+
+    private MipsInstruction getStoreCommand(String register, String operand) {
+        if (staticIntList.contains(operand)) {
+            return new sw(register, operand);
+        }
+
+        return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
+    }
+
     private String getRegister(boolean requireSave) {
         String temp;
         if (requireSave) {
@@ -280,7 +352,6 @@ public class MipsCodeGenerator {
                 freeSaveRegisters.push(register);
             }
         }
-
     }
 
     //** */ Static classes

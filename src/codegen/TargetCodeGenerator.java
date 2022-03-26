@@ -104,6 +104,7 @@ public class TargetCodeGenerator {
       }
       String[] args = new String[args_ls.size()];
       args = args_ls.toArray(args);
+      System.out.println(ir_instr.toString());
       switch (type) {
          case "add":
              return (IRInstruction) new Add(args);
@@ -153,7 +154,8 @@ public class TargetCodeGenerator {
                   return (IRInstruction) new Assign(args);
                }
          default:
-             throw new UnsupportedOperationException("IR instruction type not supported: " + ir_instr);
+            // label
+            return (IRInstruction) new Label(split_instr[0].split(":"));
      }
    }
 

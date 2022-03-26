@@ -27,6 +27,7 @@ public class MipsCodeGenerator {
     final String PRINT_INTEGER_ARG = "$a0";
     final String PRINT_FLOAT_ARG = "$f12";
     final String PRINT_STRING_ARG = "$a0";
+    final String ZERO = "$zero";
     IRInstruction[] instructions;
     HashSet<String> intSet;
     HashSet<String> floatSet;
@@ -101,7 +102,7 @@ public class MipsCodeGenerator {
                 handleAdd((Add) instruction);
             }
             else if (instruction instanceof And) {
-
+                handleAnd((And) instruction);
             }
             else if (instruction instanceof Array_load) {
 
@@ -110,43 +111,146 @@ public class MipsCodeGenerator {
 
             }
             else if (instruction instanceof Breq) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a == b
+                emit(new beq(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Brgeq) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a >= b
+                emit(new bge(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Brgt) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a > b
+                emit(new bgt(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Brleq) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a <= b
+                emit(new ble(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Brlt) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a < b
+                emit(new blt(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Brneq) {
+                String a = instruction.args().get(0);
+                String b = instruction.args().get(1);
+                String label = instruction.args().get(2);
 
+                // a
+                String register_a = getRegister(false);
+                emit(getLoadCommand(register_a, a));
+
+                // b
+                String register_b = getRegister(false);
+                emit(getLoadCommand(register_b, b));
+
+
+                // c = a != b
+                emit(new bne(register_a, register_b, label));
+
+                addBackRegister(register_b);
+                addBackRegister(register_a);
             }
             else if (instruction instanceof Call) {
                 handleCall((Call) instruction);
             }
             else if (instruction instanceof Callr) {
+                handleCallr((Callr) instruction);
 
             }
             else if (instruction instanceof Div) {
                 handleDiv((Div) instruction);
             }
             else if (instruction instanceof Goto) {
-
+                emit(new j(((Goto) instruction).getLabel()));
             }
             else if (instruction instanceof Label) {
-
+                emit(new label(((Label) instruction).getName()));
             }
             else if (instruction instanceof Mult) {
                 handleMult((Mult) instruction);
             }
             else if (instruction instanceof Or) {
-
+                handleOr((Or) instruction);
             }
             else if (instruction instanceof Sub) {
                 handleSub((Sub) instruction);
@@ -301,6 +405,66 @@ public class MipsCodeGenerator {
         addBackRegister(register_a);
     }
 
+    // c = a & b
+    // a, b can be values
+    // a, b can be only be int
+    // c is a variable; can be only int
+    private void handleAnd(And instruction) {
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a & b
+        emit(new and(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
+    // c = a | b
+    // a, b can be values
+    // a, b can be only be int
+    // c is a variable; can be only int
+    private void handleOr(Or instruction) {
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a | b
+        emit(new or(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
     // assign a, b
     // "b" can be literal value or variable
     // "b" can be int or float
@@ -313,30 +477,12 @@ public class MipsCodeGenerator {
         emit(getLoadCommand(register, b));
 
         // a
-//        String register_a = getRegister(false);
         emit(getStoreCommand(register, a));
 
         addBackRegister(register);
-
-        // left variable is static int
-//        if (staticIntList.contains(a)) {
-//            String register = getRegister(false);
-//            emit(new li(register, instruction.args().get(1)));
-//            emit(new sw(register, a));
-//            addBackRegister(register);
-//        }
-//        // left variable is local variable/function argument
-//        else {
-//            String register = getRegister(false);
-//            emit(new li(register, instruction.args().get(1)));
-//            emit(new sw(register, registerAllocation.get(instruction.args().get(0)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
-//            addBackRegister(register);
-//        }
     }
 
     private void handleCall(Call instruction) {
-//        System.out.println(instruction.asString());
-//        System.out.println(instruction.args());
         if (instruction.getFunction_name().equals("printi")) {
             emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
             String arg = instruction.args().get(1);
@@ -356,17 +502,32 @@ public class MipsCodeGenerator {
             }
             emit(new syscall());
 
-            addNewLine();
-            return;
+            addNewLine();;
         }
-
-        if (instruction.getFunction_name().equals("exit")) {
+        else if (instruction.getFunction_name().equals("exit")) {
             emit(new li(FUNCTION_RETURN_VALUE_0, "17"));
             emit(new li(PRINT_INTEGER_ARG, instruction.args().get(1)));
             emit(new syscall());
 
             addNewLine();
-            return;
+        }
+    }
+
+    private void handleCallr(Callr instruction) {
+        // a = not(b)
+        if (instruction.getFunction_name().equals("not")) {
+            String a = instruction.args().get(0);
+            String b = instruction.args().get(2);
+            String register_a = getRegister(false);
+            String register_b;
+            register_b = getRegister(false);
+            emit(getLoadCommand(register_b, b));
+            //emit(getLoadCommand(register_a, a));
+            emit(new nor(register_a, register_b, ZERO));
+            emit(getStoreCommand(register_a, a));
+
+            addBackRegister(register_b);
+            addBackRegister(register_a);
         }
     }
 
@@ -674,6 +835,26 @@ public class MipsCodeGenerator {
         }
     }
 
+    static class nor extends MipsBinOp {
+        public nor(String left, String right, String temp) {
+            super(left, right, temp);
+        }
+    }
+
+    static class not implements MipsInstruction {
+        private String left;
+        private String right;
+        public not(String left, String right) {
+            this.left =left;
+            this.right = right;
+        }
+
+        @Override
+        public List<String> args() {
+            return Arrays.asList(left, right);
+        }
+    }
+
     static class mul extends MipsBinOp {
         public mul(String left, String right, String temp) {
             super(left, right, temp);
@@ -698,26 +879,32 @@ public class MipsCodeGenerator {
         }
     }
 
-    static class blez extends MipsBranch {
-        public blez(String left, String right, String temp) {
+    static class bne extends MipsBranch {
+        public bne(String left, String right, String temp) {
             super(left, right, temp);
         }
     }
 
-    static class bgez extends MipsBranch {
-        public bgez(String left, String right, String temp) {
+    static class blt extends MipsBranch {
+        public blt(String left, String right, String temp) {
             super(left, right, temp);
         }
     }
 
-    static class bgltz extends MipsBranch {
-        public bgltz(String left, String right, String temp) {
+    static class ble extends MipsBranch {
+        public ble(String left, String right, String temp) {
             super(left, right, temp);
         }
     }
 
-    static class bgtz extends MipsBranch {
-        public bgtz(String left, String right, String temp) {
+    static class bgt extends MipsBranch {
+        public bgt(String left, String right, String temp) {
+            super(left, right, temp);
+        }
+    }
+
+    static class bge extends MipsBranch {
+        public bge(String left, String right, String temp) {
             super(left, right, temp);
         }
     }

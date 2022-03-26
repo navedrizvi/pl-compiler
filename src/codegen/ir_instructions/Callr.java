@@ -11,6 +11,18 @@ public class Callr implements IRInstruction {
     private String function_name;
     private String[] function_args;
 
+    public String getStore_var() {
+        return store_var;
+    }
+
+    public String getFunction_name() {
+        return function_name;
+    }
+
+    public String[] getFunction_args() {
+        return function_args;
+    }
+
     public Callr(String[] args) {
         this.store_var = args[0];
         this.function_name = args[1];

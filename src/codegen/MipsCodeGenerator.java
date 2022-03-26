@@ -134,7 +134,7 @@ public class MipsCodeGenerator {
 
             }
             else if (instruction instanceof Div) {
-
+                handleDiv((Div) instruction);
             }
             else if (instruction instanceof Goto) {
 
@@ -143,13 +143,13 @@ public class MipsCodeGenerator {
 
             }
             else if (instruction instanceof Mult) {
-
+                handleMult((Mult) instruction);
             }
             else if (instruction instanceof Or) {
 
             }
             else if (instruction instanceof Sub) {
-
+                handleSub((Sub) instruction);
             }
             else if (instruction instanceof ReturnVoid) {
 
@@ -184,8 +184,8 @@ public class MipsCodeGenerator {
     // a, b can be int or float
     // c is a variable; can be int or float
     private void handleAdd(Add instruction) {
-        System.out.println(instruction.asString());
-        System.out.println(instruction.args());
+//        System.out.println(instruction.asString());
+//        System.out.println(instruction.args());
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
@@ -211,6 +211,96 @@ public class MipsCodeGenerator {
         addBackRegister(register_a);
     }
 
+    // c = a - b
+    // a, b can be values
+    // a, b can be int or float
+    // c is a variable; can be int or float
+    private void handleSub(Sub instruction) {
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a - b
+        emit(new sub(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
+    // c = a * b
+    // a, b can be values
+    // a, b can be int or float
+    // c is a variable; can be int or float
+    private void handleMult(Mult instruction) {
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a * b
+        emit(new mul(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
+    // c = a / b
+    // a, b can be values
+    // a, b can be int or float
+    // c is a variable; can be int or float
+    private void handleDiv(Div instruction) {
+        String a = instruction.args().get(0);
+        String b = instruction.args().get(1);
+        String c = instruction.args().get(2);
+
+        // a
+        String register_a = getRegister(false);
+        emit(getLoadCommand(register_a, a));
+
+        // b
+        String register_b = getRegister(false);
+        emit(getLoadCommand(register_b, b));
+
+        // c
+        String register_c = getRegister(false);
+        emit(getLoadCommand(register_c, c));
+
+        // c = a / b
+        emit(new div(register_c, register_a, register_b));
+        emit(getStoreCommand(register_c, c));
+
+        addBackRegister(register_c);
+        addBackRegister(register_b);
+        addBackRegister(register_a);
+    }
+
     // assign a, b
     // "b" can be literal value or variable
     // "b" can be int or float
@@ -223,7 +313,7 @@ public class MipsCodeGenerator {
         emit(getLoadCommand(register, b));
 
         // a
-        String register_a = getRegister(false);
+//        String register_a = getRegister(false);
         emit(getStoreCommand(register, a));
 
         addBackRegister(register);
@@ -302,7 +392,7 @@ public class MipsCodeGenerator {
         else {
             cmd = new li(register, operand);
         }
-        System.out.println("getLoadCommand: " + register + " " + " " + operand + " " + cmd);
+        System.out.println("getLoadCommand: " + register + " " + " " + operand + " " + cmd.args());
         return cmd;
     }
 
@@ -584,8 +674,8 @@ public class MipsCodeGenerator {
         }
     }
 
-    static class mult extends MipsBinOp {
-        public mult(String left, String right, String temp) {
+    static class mul extends MipsBinOp {
+        public mul(String left, String right, String temp) {
             super(left, right, temp);
         }
     }

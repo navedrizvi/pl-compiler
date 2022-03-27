@@ -5,7 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 public class Label implements IRInstruction {
+
     private String name;
+    public String getName() {
+        return name;
+    }
     public Label(String[] args) {
         this.name = args[0];
     }

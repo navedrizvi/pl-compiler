@@ -96,14 +96,15 @@ public class TargetCodeGenerator {
    private IRInstruction parseSourceIR(String ir_instr) {
       // grab opcodes and pattern match (only need startswith for now) (assumes all IR instructions don't cross 1 line)
       String type;
-      String[] split_instr = ir_instr.split(", ");
+      String[] split_instr = ir_instr.split(",");
       List<String> args_ls = new ArrayList<String>();
       type = split_instr[0];
       for (int i=1; i<split_instr.length; i++) {
-         args_ls.add(split_instr[i]);
+         args_ls.add(split_instr[i].trim());
       }
       String[] args = new String[args_ls.size()];
       args = args_ls.toArray(args);
+      System.out.println(ir_instr.toString());
       switch (type) {
          case "add":
              return (IRInstruction) new Add(args);
@@ -146,14 +147,16 @@ public class TargetCodeGenerator {
                   return (IRInstruction) new Return(args);
                }
          case "assign":
-               if (args.length == 3) {
-                  return (IRInstruction) new AssignArray(args);
-               }
-               if (args.length == 2) {
-                  return (IRInstruction) new Assign(args);
-               }
+            if (args.length == 3) {
+               return (IRInstruction) new AssignArray(args);
+            }
+            if (args.length == 2) {
+               return (IRInstruction) new Assign(args);
+            }
          default:
-             throw new UnsupportedOperationException("IR instruction type not supported: " + ir_instr);
+            // label
+//            System.out.println("label: " + split_instr[0].toString());
+            return (IRInstruction) new Label(split_instr[0].split(":"));
      }
    }
 

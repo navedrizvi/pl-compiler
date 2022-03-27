@@ -71,7 +71,7 @@ public class MipsCodeGenerator {
     }
 
     public void emit(MipsInstruction instr) {
-        System.out.println(instr.asString());
+//        System.out.println(instr.asString());
         this.mipsOutput.add(instr);
         stackPointer += 1;
     }
@@ -553,7 +553,7 @@ public class MipsCodeGenerator {
         else {
             cmd = new li(register, operand);
         }
-        System.out.println("getLoadCommand: " + register + " " + " " + operand + " " + cmd.args());
+//        System.out.println("getLoadCommand: " + register + " " + " " + operand + " " + cmd.args());
         return cmd;
     }
 

@@ -243,8 +243,6 @@ public class Tiger {
             }
         }
 
-        System.out.println("HOHO");
-        System.out.println(fileName);
         TigerLexer lexer = getLexer(fileName);
 
         // Write tokens to file

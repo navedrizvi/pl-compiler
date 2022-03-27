@@ -26,7 +26,7 @@ public class Tiger {
         try {
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
-            System.out.println("Error in creating new file");
+            System.err.println("Error in creating new file");
             // minor todo what error to return here, or silently exit?
         }
     }
@@ -45,7 +45,7 @@ public class Tiger {
         }
         catch (IOException e) {
             // minor style todo. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
-            System.out.println("Error in program arguments: source file not found");
+            System.err.println("Error in program arguments: source file not found");
             System.exit(1);
             return null;
         }
@@ -168,11 +168,11 @@ public class Tiger {
         String fileName = null;
         // validate filename
         if (!args[fileNameIdx].endsWith(extension)) {
-            System.out.println("Error in program arguments: file doesn't end with " + extension);
+            System.err.println("Error in program arguments: file doesn't end with " + extension);
             System.exit(1); // Error in program arguments: file doesn't end with '.tiger'
         }
         else if (!srcFileExists(args[fileNameIdx])) {
-            System.out.println("Error in program arguments: source file not found");
+            System.err.println("Error in program arguments: source file not found");
             System.exit(1); // Error in program arguments: source file not found
         }
         else {
@@ -184,11 +184,11 @@ public class Tiger {
     public static void main(String[] args) {
         // Validate args length
         if (!(args.length >= 2)) {
-            System.out.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
+            System.err.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
         else if (args.length > 4) {
-            System.out.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/source>' are supported)");
+            System.err.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/tiger-source>', '-r <path/to/ir-source>' are supported)");
             System.exit(1); // Error in program arguments
         }
 
@@ -202,7 +202,7 @@ public class Tiger {
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
-            System.out.println("Error in program arguments: necessary arg -i not provided");
+            System.err.println("Error in program arguments: necessary arg -i not provided");
             System.exit(1); // Error in program arguments: necessary arg not provided.
         }
 
@@ -215,7 +215,7 @@ public class Tiger {
         if (rIdx == -1) {
             // must have i
             if (iIdx == -1) {
-                System.out.println("Error in program arguments: -i must be specified only once");
+                System.err.println("Error in program arguments: -i must be specified only once");
                 System.exit(1); // Error in program arguments: duplicate "-i"
             }
             else {
@@ -246,7 +246,7 @@ public class Tiger {
             else if (args[i].equals("--mips"))
                 mipsFlagProvided = true;
             else {
-                System.out.println("Error in program arguments: unknown argument " + args[i]);
+                System.err.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
             }
         }

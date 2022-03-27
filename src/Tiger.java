@@ -187,7 +187,7 @@ public class Tiger {
             System.err.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
-        else if (args.length > 4) {
+        else if (args.length > 6) {
             System.err.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/tiger-source>', '-r <path/to/ir-source>' are supported)");
             System.exit(1); // Error in program arguments
         }
@@ -207,24 +207,16 @@ public class Tiger {
         }
 
         // User tiger if -i flag provided
-        boolean useTiger = false;
         int iIdx = getFlagIdx("-i", args);
+        // We don't support IR only
         int rIdx = getFlagIdx("-r", args);
         String fileName = null;
-
-        if (rIdx == -1) {
-            // must have i
-            if (iIdx == -1) {
-                System.err.println("Error in program arguments: -i must be specified only once");
-                System.exit(1); // Error in program arguments: duplicate "-i"
-            }
-            else {
-                fileName = getFileName(args, iIdx + 1, ".tiger");
-            }
-            useTiger = true;
+        if (iIdx == -1) {
+            System.err.println("Error in program arguments: -i must be specified only once");
+            System.exit(1); // Error in program arguments: duplicate "-i"
         }
         else {
-            fileName = getFileName(args, rIdx + 1, ".ir");
+            fileName = getFileName(args, iIdx + 1, ".tiger");
         }
 
         // validate optional flags //
@@ -251,6 +243,8 @@ public class Tiger {
             }
         }
 
+        System.out.println("HOHO");
+        System.out.println(fileName);
         TigerLexer lexer = getLexer(fileName);
 
         // Write tokens to file

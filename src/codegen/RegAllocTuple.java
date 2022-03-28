@@ -5,7 +5,7 @@ import java.util.HashMap;
 import codegen.ir_instructions.IRInstruction;
 
 public class RegAllocTuple {
-    public String variable;
+    private String variable;
 
     public String getVariable() {
         return variable;
@@ -19,12 +19,18 @@ public class RegAllocTuple {
         return memoryOffset;
     }
 
-    public String register;
-    public String memoryOffset;
+    public Integer getArraySize() {
+        return arraySize;
+    }
 
-    public RegAllocTuple(String variable, String register, String memoryOffset) {
+    private String register;
+    private String memoryOffset;
+    private Integer arraySize;
+
+    public RegAllocTuple(String variable, String register, String memoryOffset, Integer arraySize) {
         this.variable = variable;
         this.register = register;
         this.memoryOffset = memoryOffset;
+        this.arraySize = arraySize;
     }
 }

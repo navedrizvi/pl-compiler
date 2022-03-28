@@ -37,7 +37,6 @@ public class FunctionBlock {
     }
 
     public List<MipsInstruction> getNaiveMips() {
-//        List<InstrRegallocTuple> naiveInstrs = this.doNaiveRegisterAllocation();
         HashMap<String, RegAllocTuple> naiveRegisterAllocation = this.doNaiveRegisterAllocation();
         MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this.functionName, staticIntList, staticFloatList,this.intList, this.floatList, naiveRegisterAllocation);
         List<MipsInstruction> out = naiveMips.generateMipsInstructions();
@@ -48,36 +47,24 @@ public class FunctionBlock {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
         // Handling ints first
         int index = 0;
+        int offset = 0;
         for (String intVar: intList) {
-            varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(index * 4)));
+            // int array
+            if (intVar.endsWith("]")) {
+                int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
+                String var = intVar.substring(0, intVar.indexOf("["));
+                System.out.println(var + "(array): " + offset);
+                varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
+                offset += size * 4;
+            }
+            else {
+                System.out.println(intVar + ": " + offset);
+                varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
+                offset += 4;
+            }
             index++;
+
         }
         return varToMemoryOffSet;
     }
-
-//    private List<InstrRegallocTuple> doNaiveRegisterAllocation() {
-//        ArrayList<InstrRegallocTuple> instrs = new ArrayList<>();
-//        for (IRInstruction instr : this.instructions) {
-//            ArrayList<IRInstruction> storeInstrs = new ArrayList<>();
-//            HashMap<String, String> usedRegisters = new HashMap<>();
-//            int regIdx = 0;
-//            for (String e : instr.useSet()) {
-//                String[] loadArgs = new String[]{MipsCodeGenerator.saveRegisters.get(regIdx), e};
-//                instrs.add(new InstrRegallocTuple(new Load(loadArgs), null));
-//                usedRegisters.put(e, MipsCodeGenerator.saveRegisters.get(regIdx));
-//                regIdx++;
-//            }
-//            for (String e : instr.defSet()) {
-//                String[] storeArgs = new String[]{e, MipsCodeGenerator.saveRegisters.get(regIdx)};
-//                storeInstrs.add(new Store(storeArgs));
-//                usedRegisters.put(e, MipsCodeGenerator.saveRegisters.get(regIdx));
-//                regIdx++;
-//            }
-//            instrs.add(new InstrRegallocTuple(instr.allocateRegisters(usedRegisters), usedRegisters));
-//            for (IRInstruction storeInstr : storeInstrs) {
-//                instrs.add(new InstrRegallocTuple(storeInstr, null));
-//            }
-//        }
-//        return instrs;
-//    }
 }

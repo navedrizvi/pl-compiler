@@ -7,7 +7,7 @@ _0_b: .word 0
 .globl main
 main:
 # start of prologue
-addiu $sp, $sp, 0
+addiu $sp, $sp, -4
 # end of prologue
 li $t0, 10
 sw $t0, _0_a
@@ -34,7 +34,7 @@ li $v0, 4
 la $a0, newline
 syscall
 # start of epilogue
-addiu $sp, $sp, 0
+addiu $sp, $sp, 4
 # end of epilogue
 li $v0, 0
 jr $ra

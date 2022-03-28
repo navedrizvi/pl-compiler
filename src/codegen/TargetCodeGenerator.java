@@ -28,23 +28,22 @@ public class TargetCodeGenerator {
       String val = "";
       out.add("newline: .asciiz \"\\n\"");
       for (String e: this.staticIntList) {
-         out.add(e + ": .word 0");
-//         for (String instr : this.srcIrInstrs) {
-//            if (instr.startsWith("assign, " + e)) {
-//               val = instr.replace("assign, " + e + ", ", "");
-//               out.add(e + " .word " + val);
-//            }
-//         }
+         // int array
+         if (e.endsWith("]")) {
+            int size = Integer.parseInt(e.substring(e.indexOf("[") + 1, e.indexOf("]")));
+            String var = e.substring(0, e.indexOf("["));
+            ArrayList<String> temp = new ArrayList<>();
+            for (int i = 0; i < size; i++)
+               temp.add("0");
+
+            out.add(var + ": .word " + String.join(", ", temp));
+         }
+         else {
+            out.add(e + ": .word 0");
+         }
       }
       for (String e: this.staticFloatList) {
          out.add("_" + e + ": .float 0.0");
-//         for (String instr : this.staticFloatList) {
-//            if (instr.startsWith("assign, " + e)) {
-//               val = instr.replace("assign, " + e + " ", "");
-//               val = val.replaceAll(",*", "");
-//               out.add("_" + e + " .float " + val);
-//            }
-//         }
       }
       return out;
    }
@@ -97,14 +96,13 @@ public class TargetCodeGenerator {
       // grab opcodes and pattern match (only need startswith for now) (assumes all IR instructions don't cross 1 line)
       String type;
       String[] split_instr = ir_instr.split(",");
-      List<String> args_ls = new ArrayList<String>();
+      List<String> args_ls = new ArrayList<>();
       type = split_instr[0];
       for (int i=1; i<split_instr.length; i++) {
          args_ls.add(split_instr[i].trim());
       }
       String[] args = new String[args_ls.size()];
       args = args_ls.toArray(args);
-      System.out.println(ir_instr.toString());
       switch (type) {
          case "add":
              return (IRInstruction) new Add(args);

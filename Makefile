@@ -76,4 +76,4 @@ clean:
 package:
 	find ./ -name "*.class" -delete
 	rm phase3.zip && echo "deleted old zip, generating new" || echo "generating new zip"
-	zip -r phase3.zip  Makefile Tiger.g4 src/
+	zip -r phase3.zip phase3_design.pdf phase3_analysis.pdf Makefile Tiger.g4 src/

@@ -9,12 +9,14 @@ public class MipsCodeGenerator {
     public List<MipsInstruction> mipsOutput = new ArrayList<>();
 
     String functionName;
-    private int stackPointer = 0;
-    private int stackSize = 0;
     List<String> intList;
     List<String> floatList;
     List<String> staticIntList;
     List<String> staticFloatList;
+    int maxArgs;
+    // keeping track of offsets of various groups in the stack frame
+    Map<String, Integer> stackFrame = new HashMap<>();
+    List<String> functionArgs;
 
     final String STACK_POINTER = "$sp";
     final String RETURN_ADDRESS = "$ra";
@@ -24,10 +26,8 @@ public class MipsCodeGenerator {
     final String PRINT_FLOAT_ARG = "$f12";
     final String PRINT_STRING_ARG = "$a0";
     final String ZERO = "$zero";
+    final String[] argRegisters = {"$a0", "$a1", "$a2", "$a3"};
     IRInstruction[] instructions;
-    HashSet<String> intSet;
-    HashSet<String> floatSet;
-    HashMap<String, String> arraySet;
     HashMap<String, RegAllocTuple> registerAllocation;
     Stack<String> freeSaveRegisters;
     Stack<String> freeTempRegisters;
@@ -35,20 +35,18 @@ public class MipsCodeGenerator {
     Set<String> usedSaveRegisters;
     Set<String> usedTempRegisters;
     Set<String> usedReserveRegisters;
+    String returnValueIndex = null;
+    int stackFrameSize = 0;
+    private Map<String, List<String>> globalFunctionToArgs;
 
-    public MipsCodeGenerator(IRInstruction[] instructions, String functionName, List<String> staticIntList, List<String> staticFloatList, String[] intList, String[] floatList, HashMap<String, RegAllocTuple> registerAllocation) {
+    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, HashMap<String, RegAllocTuple> registerAllocation) {
         this.instructions = instructions;
-        this.intList = Arrays.asList(intList);
-        this.floatList = Arrays.asList(floatList);
-        this.stackPointer = 0;
-        this.stackSize = 0;
-        this.functionName = functionName;
-        this.intSet = new HashSet<>();
-        this.floatSet = new HashSet<>();
-        this.arraySet = new HashMap<>();
+        this.intList = Arrays.asList(functionBlock.getIntList());
+        this.floatList = Arrays.asList(functionBlock.getIntList());
+        this.functionName = functionBlock.getFunctionName();
         this.registerAllocation = registerAllocation;
         this.freeSaveRegisters = new Stack<>();
-        this.freeSaveRegisters.addAll(Arrays.asList("$s7", "$s6", "$s5", "$s4", "$s3", "$s2", "$s1", "s0"));
+        this.freeSaveRegisters.addAll(Arrays.asList("$s7", "$s6", "$s5", "$s4", "$s3", "$s2", "$s1", "$s0"));
         this.freeTempRegisters = new Stack<>();
         this.freeTempRegisters.addAll(Arrays.asList("$t7", "$t6", "$t5", "$t4", "$t3", "$t2", "$t1", "$t0"));
         this.freeReserveRegisters = new Stack<>();
@@ -56,38 +54,68 @@ public class MipsCodeGenerator {
         this.usedSaveRegisters = new HashSet<>();
         this.usedTempRegisters = new HashSet<>();
         this.usedReserveRegisters = new HashSet<>();
-        this.staticIntList = staticIntList;
-        this.staticFloatList = staticFloatList;
-    }
-
-    private static boolean isRegister(String var) {
-        return var.charAt(0) == '$';
+        this.staticIntList = functionBlock.getStaticIntList();
+        this.staticFloatList = functionBlock.getStaticFloatList();
+        this.maxArgs = Math.max(functionBlock.getMaxArgs(), 4);
+        this.functionArgs = functionBlock.getFunctionArgs();
+        this.globalFunctionToArgs = functionBlock.getGlobalFunctionToArgs();
     }
 
     public void emit(MipsInstruction instr) {
         this.mipsOutput.add(instr);
     }
 
-    private int getSpaceForLocalVariablesFromRegAlloc(HashMap<String, RegAllocTuple> registerAllocation) {
+    private int getSpaceForStackFrame(HashMap<String, RegAllocTuple> registerAllocation) {
+        int stackSize = 0;
         int max = 0;
+
+        // function call with max number of arguments
+        stackFrame.put("funcArgs", 0);
+        stackSize += maxArgs * 4;
+
+        // save registers - for now lets allocate for all save registers
+        stackFrame.put("saveRegisters", stackSize);
+        stackSize += freeSaveRegisters.size() * 4;
+
+        // $ra - return address
+        stackFrame.put("returnAddress", stackSize);
+        stackSize += 4;
+
+        // space for local variables
+        stackFrame.put("localStorage", stackSize);
         for (String var: registerAllocation.keySet()) {
             Integer memoryOffSet = Integer.parseInt(registerAllocation.get(var).getMemoryOffset());
             if (memoryOffSet != null && memoryOffSet > max) {
                 max = memoryOffSet;
             }
         }
+
+        // adjust offsets for register allocation
+        for (String variable: registerAllocation.keySet()) {
+            RegAllocTuple regAlloc = registerAllocation.get(variable);
+            int currentOffset = Integer.parseInt(regAlloc.getMemoryOffset());
+            regAlloc.setMemoryOffset(Integer.toString((currentOffset + stackSize)));
+            registerAllocation.put(variable, regAlloc);
+        }
+
         // we know that arrays will never come at the end of list of variables so we need to only add 4 to accommodate
         // stack allocation space for the last variable.
-        return max + 4;
+        stackSize += max + 4;
+
+        return stackSize;
     }
 
     public List<MipsInstruction> generateMipsInstructions() {
         // For now assuming only main function. I think we should follow call convention for all functions
-        this.emit(new functionName(functionName));
-        int spaceForLocalVariables = getSpaceForLocalVariablesFromRegAlloc(registerAllocation);
-        this.emit(new comment("# start of prologue"));
-        this.emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * spaceForLocalVariables)));
-        this.emit(new comment("# end of prologue"));
+        emit(new functionName(functionName));
+        emit(new comment("# start of prologue"));
+        // space for stack frame
+        stackFrameSize = getSpaceForStackFrame(registerAllocation);
+        emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * stackFrameSize)));
+        storeCallerFunctionArgs();
+        storeSaveRegisters();
+        emit(new sw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
+        emit(new comment("# end of prologue"));
 
         for (IRInstruction instruction: this.instructions) {
             if (instruction instanceof Add) {
@@ -127,7 +155,6 @@ public class MipsCodeGenerator {
             }
             else if (instruction instanceof Callr) {
                 handleCallr((Callr) instruction);
-
             }
             else if (instruction instanceof Div) {
                 handleDiv((Div) instruction);
@@ -148,10 +175,48 @@ public class MipsCodeGenerator {
                 handleSub((Sub) instruction);
             }
             else if (instruction instanceof ReturnVoid) {
+                // TODO: might need to do opposite of storeCallerFunctionArgs
+                emit(new comment("# start of epilogue"));
+                // restore save registers
+                loadSaveRegisters();
+                // restore return address
+                emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
+                emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(stackFrameSize)));
+                emit(new comment("# end of epilogue"));
 
+
+                emit(new jr(RETURN_ADDRESS));
             }
             else if (instruction instanceof Return) {
+                String returnValue = ((Return) instruction).getReturn_var();
+                // return value is a variable, else return value is a var
+                if (registerAllocation.get(returnValue) != null) {
+                    returnValueIndex = registerAllocation.get(returnValue).getMemoryOffset();
+                }
+                // return value is a value
 
+                if (functionName.equals("main")) {
+                    // main - return 0
+                    emit(new li(FUNCTION_RETURN_VALUE_0, "0"));
+                }
+                // function with non-void return value
+                else if (returnValueIndex != null) {
+                    emit(new lw(FUNCTION_RETURN_VALUE_0, returnValueIndex + "(" + STACK_POINTER + ")"));
+                }
+                else {
+                    emit(new li(FUNCTION_RETURN_VALUE_0, returnValue));
+                }
+
+                // TODO: might need to do opposite of storeCallerFunctionArgs
+                emit(new comment("# start of epilogue"));
+                // restore save registers
+                loadSaveRegisters();
+                // restore return address
+                emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
+                emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(stackFrameSize)));
+                emit(new comment("# end of epilogue"));
+
+                emit(new jr(RETURN_ADDRESS));
             }
             // assign, arr, size, default_value
             else if (instruction instanceof AssignArray) {
@@ -165,15 +230,32 @@ public class MipsCodeGenerator {
                 throw new UnsupportedOperationException("IR to mips not supported: " + instruction.opcode());
             }
         }
-        this.emit(new comment("# start of epilogue"));
-        this.emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(spaceForLocalVariables)));
-        this.emit(new comment("# end of epilogue"));
-
-        // Return 0
-        this.emit(new li(FUNCTION_RETURN_VALUE_0, "0"));
-        this.emit(new jr(RETURN_ADDRESS));
 
         return this.mipsOutput;
+    }
+
+    private void storeSaveRegisters() {
+        int saveRegisterOffset = stackFrame.get("saveRegisters");
+        int i = saveRegisterOffset;
+        List<String> temp = new ArrayList<>(freeSaveRegisters);
+        Collections.reverse(temp);
+        // $s0 to $s7
+        for (String register: temp) {
+            emit(new sw(register, i + "(" + STACK_POINTER + ")"));
+            i += 4;
+        }
+    }
+
+    private void loadSaveRegisters() {
+        int saveRegisterOffset = stackFrame.get("saveRegisters");
+        int i = saveRegisterOffset;
+        List<String> temp = new ArrayList<>(freeSaveRegisters);
+        Collections.reverse(temp);
+        // $s0 to $s7
+        for (String register: temp) {
+            emit(new lw(register, i + "(" + STACK_POINTER + ")"));
+            i+= 4;
+        }
     }
 
     private void handleBrneq(Brneq instruction) {
@@ -763,26 +845,56 @@ public class MipsCodeGenerator {
         }
         // static int array assignment
         else if (staticArraySize(a) != -1) {
-            int size = staticArraySize(a);
-            String registerA = getRegister(false);
-            String registerB = getRegister(false);
-            emit (new la(registerA, a));
-            emit (new la(registerB, b));
-            int indexOffset = 4;
-            String register = getRegister(false);
-            emit(new lw(register, "(" + registerB + ")"));
-            emit(new sw(register,  "(" + registerA + ")"));
-            for(int i = 1; i < size; i++) {
-                // addi $t0, $t0, $t1
-                emit(new addi(registerB, registerB, Integer.toString(indexOffset)));
-                emit(new addi(registerA, registerA, Integer.toString(indexOffset)));
+            // RHS array is a static array
+            if (registerAllocation.get(b) == null) {
+                int size = staticArraySize(a);
+                String registerA = getRegister(false);
+                String registerB = getRegister(false);
+                emit(new la(registerA, a));
+                emit(new la(registerB, b));
+                int indexOffset = 4;
+                String register = getRegister(false);
                 emit(new lw(register, "(" + registerB + ")"));
-                emit(new sw(register,  "(" + registerA + ")"));
+                emit(new sw(register, "(" + registerA + ")"));
+                for (int i = 1; i < size; i++) {
+                    // addi $t0, $t0, $t1
+                    emit(new addi(registerB, registerB, Integer.toString(indexOffset)));
+                    emit(new addi(registerA, registerA, Integer.toString(indexOffset)));
+                    emit(new lw(register, "(" + registerB + ")"));
+                    emit(new sw(register, "(" + registerA + ")"));
 
+                }
+                addBackRegister(register);
+                addBackRegister(registerB);
+                addBackRegister(registerA);
             }
-            addBackRegister(register);
-            addBackRegister(registerB);
-            addBackRegister(registerA);
+            // RHS is a local array
+            else {
+                // a - static
+                int size = staticArraySize(a);
+                String registerA = getRegister(false);
+                emit(new la(registerA, a));
+
+                // b - local
+                String registerB = getRegister(false);
+
+                int indexOffsetA = 4;
+                int indexOffsetB = Integer.parseInt(registerAllocation.get(b).getMemoryOffset());
+
+                // first index
+                emit(new lw(registerB, indexOffsetB + "(" + STACK_POINTER + ")"));
+                emit(new sw(registerB, "(" + registerA + ")"));
+
+                for (int i = 1; i < size; i++) {
+                    indexOffsetB = Integer.parseInt(registerAllocation.get(b).getMemoryOffset()) + i * 4;
+                    emit(new lw(registerB, indexOffsetB + "(" + STACK_POINTER + ")"));
+                    emit(new addi(registerA, registerA, Integer.toString(indexOffsetA)));
+                    emit(new sw(registerB, "(" + registerA + ")"));
+                }
+
+                addBackRegister(registerB);
+                addBackRegister(registerA);
+            }
         }
         else {
             // b
@@ -798,7 +910,6 @@ public class MipsCodeGenerator {
 
     private int staticArraySize(String a) {
         for (String intVar : staticIntList) {
-            System.out.println("staticArraySize: " + intVar);
             int isArray = intVar.indexOf("[");
             if (isArray == -1)
                 continue;
@@ -812,50 +923,102 @@ public class MipsCodeGenerator {
 
     private void handleCall(Call instruction) {
         if (instruction.getFunction_name().equals("printi")) {
-            emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
-            String arg = instruction.args().get(1);
-            // printing a integer local variable
-            if (intList.contains(arg)) {
-                String register = getRegister(false);
-                emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
-                emit(new move(PRINT_INTEGER_ARG, register));
-                addBackRegister(register);
-            }
-            else if (staticIntList.contains(arg)) {
-                emit(new lw(PRINT_INTEGER_ARG, arg));
-            }
-            // printing an integer value
-            else {
-                emit(new li(PRINT_INTEGER_ARG, arg));
-            }
-            emit(new syscall());
-
-            addNewLine();;
+            handlePrinti(instruction);
         }
         else if (instruction.getFunction_name().equals("exit")) {
-            emit(new li(FUNCTION_RETURN_VALUE_0, "17"));
-            emit(new li(PRINT_INTEGER_ARG, instruction.args().get(1)));
-            emit(new syscall());
-
-            addNewLine();
+            handleExit(instruction);
+        }
+        else {
+            loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
+            emit(new jal(instruction.getFunction_name()));
         }
     }
 
+    private void handlePrinti(Call instruction) {
+        emit(new li(FUNCTION_RETURN_VALUE_0, "1"));
+        String arg = instruction.args().get(1);
+        // printing a integer local variable
+        if (intList.contains(arg)) {
+            String register = getRegister(false);
+            emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+            emit(new move(PRINT_INTEGER_ARG, register));
+            addBackRegister(register);
+        }
+        else if (staticIntList.contains(arg)) {
+            emit(new lw(PRINT_INTEGER_ARG, arg));
+        }
+        // printing an integer value
+        else {
+            emit(new li(PRINT_INTEGER_ARG, arg));
+        }
+        emit(new syscall());
+
+        addNewLine();
+    }
+
+    private void handleExit(Call instruction) {
+        emit(new li(FUNCTION_RETURN_VALUE_0, "17"));
+        emit(new li(PRINT_INTEGER_ARG, instruction.args().get(1)));
+        emit(new syscall());
+
+        addNewLine();
+    }
+
+    // a = func(...)
     private void handleCallr(Callr instruction) {
         // a = not(b)
         if (instruction.getFunction_name().equals("not")) {
+            // TODO: add inline logic for not function
+        }
+        else {
+            loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
+            emit(new jal(instruction.getFunction_name()));
             String a = instruction.args().get(0);
-            String b = instruction.args().get(2);
-            String register_a = getRegister(false);
-            String register_b;
-            register_b = getRegister(false);
-            emit(getLoadCommand(register_b, b));
-            //emit(getLoadCommand(register_a, a));
-            emit(new nor(register_a, register_b, ZERO));
-            emit(getStoreCommand(register_a, a));
+            emit(getStoreCommand(FUNCTION_RETURN_VALUE_0, a));
+        }
+    }
 
-            addBackRegister(register_b);
-            addBackRegister(register_a);
+    private void storeCallerFunctionArgs() {
+        if (functionArgs.isEmpty())
+            return;
+
+        int numOfArgs = functionArgs.size();
+        for (int i = 0; i < numOfArgs; i++) {
+            if (i < 4) {
+                emit(new sw(argRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+            }
+            else {
+                String register = getRegister(false);
+                int temp = stackFrameSize + i * 4;
+                emit(new lw(register, temp + "(" + STACK_POINTER + ")"));
+                emit(new sw(register, registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                addBackRegister(register);
+            }
+        }
+    }
+
+    // TODO: implement as part of epilogue as opposite to storeCallerFunctionArgs
+    private void loadCallerFunctionArgs() {
+
+    }
+
+    private void loadCalleeFunctionArgs(String calleeFunction, String[] args) {
+        List<String> calleeFunctionArgs = globalFunctionToArgs.get(calleeFunction);
+        if (calleeFunctionArgs.isEmpty())
+            return;
+        int numOfArgs = calleeFunctionArgs.size();
+        int argsOffset = stackFrame.get("funcArgs");
+        for (int i = 0; i < numOfArgs; i++) {
+            if (i < 4) {
+                emit(getLoadCommand(argRegisters[i], args[i]));
+            }
+            else {
+                String register = getRegister(false);
+                emit(getLoadCommand(register, args[i]));
+                int offset = argsOffset + i * 4;
+                emit(new sw(register, offset + "(" + STACK_POINTER + ")"));
+                addBackRegister(register);
+            }
         }
     }
 
@@ -1144,12 +1307,6 @@ public class MipsCodeGenerator {
         }
     }
 
-    static class subiu extends MipsBinOp {
-        public subiu(String left, String right, String temp) {
-            super(left, right, temp);
-        }
-    }
-
     static class and extends MipsBinOp {
         public and(String left, String right, String temp) {
             super(left, right, temp);
@@ -1168,40 +1325,8 @@ public class MipsCodeGenerator {
         }
     }
 
-    static class nor extends MipsBinOp {
-        public nor(String left, String right, String temp) {
-            super(left, right, temp);
-        }
-    }
-
-    static class not implements MipsInstruction {
-        private String left;
-        private String right;
-        public not(String left, String right) {
-            this.left =left;
-            this.right = right;
-        }
-
-        @Override
-        public List<String> args() {
-            return Arrays.asList(left, right);
-        }
-    }
-
     static class mul extends MipsBinOp {
         public mul(String left, String right, String temp) {
-            super(left, right, temp);
-        }
-    }
-
-    static class muli extends MipsBinOp {
-        public muli(String left, String right, String temp) {
-            super(left, right, temp);
-        }
-    }
-
-    static class mflo extends MipsBinOp {
-        public mflo(String left, String right, String temp) {
             super(left, right, temp);
         }
     }

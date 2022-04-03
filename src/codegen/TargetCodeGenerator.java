@@ -1,10 +1,7 @@
 // TODO add pkg to makefile
 package codegen;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import codegen.ir_instructions.*;
@@ -15,6 +12,7 @@ public class TargetCodeGenerator {
    List<String> srcIrInstrs;
    List<String> staticIntList;
    List<String> staticFloatList;
+   Map<String, List<String>> functionToArgs = new HashMap<>();
 
    public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList) {
       // @ir is called with IR.irOutput
@@ -52,6 +50,7 @@ public class TargetCodeGenerator {
       List<IRInstruction> inpIr = new ArrayList<>();
       IRInstruction parsed;
       ArrayList<FunctionBlock> text = new ArrayList<>();
+      int maxArgs = 0;
       for (int i=0; i<this.srcIrInstrs.size(); i++) {
          String instr = this.srcIrInstrs.get(i);
          if (instr.startsWith("start_function")) {
@@ -59,16 +58,14 @@ public class TargetCodeGenerator {
             // todo refactor to remove counters
             i += 1;
             String return_type = this.srcIrInstrs.get(i).split(" ")[0];
-            String delta = this.srcIrInstrs.get(i).replace(return_type + " " + func_name, "(");
+            String delta = this.srcIrInstrs.get(i).replace(return_type + " " + func_name + "(", "");
             delta = delta.replace(")", "");
-            LinkedHashMap<String, String> funcArgs = new LinkedHashMap<>();
-            String[] split = delta.split(", ");
-            for (String s: split) {
-               String[] splt = s.split(" ");
-               if (splt.length >= 2) {
-                  String argType = splt[0];
-                  String argName = splt[1];
-                  funcArgs.put(argType, argName);
+            List<String> funcArgs = new ArrayList<>();
+            String[] split = delta.split(",");
+            if (!delta.isEmpty()) {
+               for (String s : split) {
+                  String[] splt = s.trim().split(" ");
+                  funcArgs.add(splt[1]);
                }
             }
             i += 1;
@@ -81,15 +78,29 @@ public class TargetCodeGenerator {
             while (!this.srcIrInstrs.get(i).startsWith("end_function"))
             {
                parsed = this.parseSourceIR(this.srcIrInstrs.get(i));
+               int numOfArgs = getNumOfArgs(parsed);
+               if (numOfArgs > maxArgs)
+                  maxArgs = numOfArgs;
                inpIr.add(parsed);
                instructions.add(parsed);
                i += 1;
             }
             text.add(new FunctionBlock(func_name, return_type, funcArgs, staticIntList, staticFloatList, int_list, float_list,
-                                       instructions.toArray(new IRInstruction[instructions.size()])));
+                                       instructions.toArray(new IRInstruction[instructions.size()]), maxArgs));
+            functionToArgs.put(func_name, funcArgs);
          }
       }
       return text;
+   }
+
+   private int getNumOfArgs(IRInstruction ir) {
+      if (ir instanceof Call) {
+         return ((Call) ir).getFunction_args().length;
+      }
+      if (ir instanceof Callr) {
+         return ((Callr) ir).getFunction_args().length;
+      }
+      return 0;
    }
 
    private IRInstruction parseSourceIR(String ir_instr) {
@@ -153,13 +164,15 @@ public class TargetCodeGenerator {
             }
          default:
             // label
-//            System.out.println("label: " + split_instr[0].toString());
             return (IRInstruction) new Label(split_instr[0].split(":"));
      }
    }
 
    public String generateTargetMipsCodeNaiveAlloc() {
       List<FunctionBlock> functionBlocks = getTextSectionInstrs(staticIntList, staticFloatList);
+      for(FunctionBlock block: functionBlocks) {
+         block.setGlobalFunctionToArgs(functionToArgs);
+      }
       List<String> mipsDataInstrs = getDataSectionInstrs();
       List<String> mipsTextInstrs = functionBlocks.stream()
                                        .map(FunctionBlock::getNaiveMips)

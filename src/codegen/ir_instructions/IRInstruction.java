@@ -5,13 +5,9 @@ import java.util.Set;
 
 public interface IRInstruction {
     // todo use reflection to get classname as opcode, less bloat
-    public String opcode();
+    String opcode();
 
-    public List<String> args();
-
-    // TODO1 fill use and def sets
-//    public Set<String> useSet();
-//    public Set<String> defSet();
+    List<String> args();
 
     default String asString() {
         return this.opcode() + ": " + String.join(", ", this.args());

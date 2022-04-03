@@ -18,4 +18,8 @@ public class Return implements IRInstruction {
     public List<String> args() {
         return Arrays.asList(this.return_var);
     }
+
+    public String getReturn_var() {
+        return return_var;
+    }
 }

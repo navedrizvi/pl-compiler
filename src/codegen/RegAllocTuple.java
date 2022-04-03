@@ -19,6 +19,10 @@ public class RegAllocTuple {
         return memoryOffset;
     }
 
+    public void setMemoryOffset(String memoryOffset) {
+        this.memoryOffset = memoryOffset;
+    }
+
     public Integer getArraySize() {
         return arraySize;
     }

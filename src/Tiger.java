@@ -1,4 +1,6 @@
 import codegen.TargetCodeGenerator;
+import common.Symbol;
+import common.SymbolTable;
 
 import java.util.Arrays;
 import java.io.File;

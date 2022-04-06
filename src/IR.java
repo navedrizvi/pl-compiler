@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import common.Symbol;
+
 public class IR {
 
     static int tempVarCount = 0;

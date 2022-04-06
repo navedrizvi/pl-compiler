@@ -1,3 +1,4 @@
+package common;
 public abstract class Symbol {
 
     /* Symbols to include:

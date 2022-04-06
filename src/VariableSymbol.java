@@ -1,3 +1,5 @@
+import common.Symbol;
+
 public class VariableSymbol extends Symbol {
     public enum StorageClass {
         VAR,

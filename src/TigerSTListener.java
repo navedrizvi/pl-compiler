@@ -1,6 +1,9 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import common.Symbol;
+import common.SymbolTable;
+
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 import java.util.ArrayList;

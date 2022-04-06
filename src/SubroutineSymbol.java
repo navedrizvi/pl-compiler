@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import common.Symbol;
+
 public class SubroutineSymbol extends Symbol {
 
     public static class Tuple { 

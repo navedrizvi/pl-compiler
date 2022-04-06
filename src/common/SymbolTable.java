@@ -1,5 +1,8 @@
+package common;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import common.Symbol.Scope;
 
 public class SymbolTable {
 

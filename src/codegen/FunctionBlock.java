@@ -6,6 +6,7 @@ import codegen.ir_instructions.IRInstruction;
 import codegen.ir_instructions.Load;
 import codegen.ir_instructions.Store;
 import codegen.mips_instructions.MipsInstruction;
+import common.SymbolTable;
 
 public class FunctionBlock {
     private String functionName;
@@ -18,13 +19,15 @@ public class FunctionBlock {
     private String[] floatList;
     private IRInstruction[] instructions;
     private int maxArgs;
+    private List<String> varIntFloatList;
+    private SymbolTable symbolTable;
 
     private Map<String, List<String>> globalFunctionToArgs;
 
     public FunctionBlock(
             String functionName, String returnType, List<String> functionArgs, List<String> staticIntList,
             List<String> staticFloatList, String[] intList, String[] floatList, IRInstruction[] instructions,
-            int maxArgs
+            int maxArgs, List<String> varIntFloatList, SymbolTable symbolTable
     ) {
         this.functionName = functionName;
         this.returnType = returnType;
@@ -35,6 +38,8 @@ public class FunctionBlock {
         this.staticIntList = staticIntList;
         this.staticFloatList = staticFloatList;
         this.maxArgs = maxArgs;
+        this.symbolTable = symbolTable;
+        this.varIntFloatList = varIntFloatList;
     }
 
     public void setGlobalFunctionToArgs(Map<String, List<String>> functionToArgs) {
@@ -75,7 +80,7 @@ public class FunctionBlock {
 
     public List<MipsInstruction> getNaiveMips() {
         HashMap<String, RegAllocTuple> naiveRegisterAllocation = this.doNaiveRegisterAllocation();
-        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, naiveRegisterAllocation);
+        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, naiveRegisterAllocation, symbolTable);
         List<MipsInstruction> out = naiveMips.generateMipsInstructions();
         return out;
     }

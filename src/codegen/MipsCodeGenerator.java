@@ -4,6 +4,8 @@ import java.util.*;
 
 import codegen.ir_instructions.*;
 import codegen.mips_instructions.MipsInstruction;
+import common.Symbol;
+import common.SymbolTable;
 
 public class MipsCodeGenerator {
     public List<MipsInstruction> mipsOutput = new ArrayList<>();
@@ -39,7 +41,27 @@ public class MipsCodeGenerator {
     int stackFrameSize = 0;
     private Map<String, List<String>> globalFunctionToArgs;
 
-    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, HashMap<String, RegAllocTuple> registerAllocation) {
+    /*
+    Floating-point Registers
+    $f0 - $f3 Function return values
+    $f4 - $f11, $f16 - $f19 Temporary registers
+    $f12 - $f15 Arguments to functions
+    $f20 - $f31 Saved registers
+    */
+
+    final String FUNCTION_FLOAT_RETURN_VALUE_0 = "$f0";
+    final String FUNCTION_FLOAT_RETURN_VALUE_1 = "$f1";
+    final String FUNCTION_FLOAT_RETURN_VALUE_2 = "$f2";
+    final String FUNCTION_FLOAT_RETURN_VALUE_3 = "$f3";
+    Stack<String> freeTempFloatRegisters;
+    Stack<String> freeSaveFloatRegisters;
+    Stack<String> freeFnArgsFloatRegisters;
+    Set<String> usedSaveFloatRegisters;
+    Set<String> usedTempFloatRegisters;
+    Set<String> usedFnArgsFloatRegisters;
+    SymbolTable symbolTable;
+
+    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, HashMap<String, RegAllocTuple> registerAllocation, SymbolTable symbolTable) {
         this.instructions = instructions;
         this.intList = Arrays.asList(functionBlock.getIntList());
         this.floatList = Arrays.asList(functionBlock.getIntList());
@@ -59,6 +81,18 @@ public class MipsCodeGenerator {
         this.maxArgs = Math.max(functionBlock.getMaxArgs(), 4);
         this.functionArgs = functionBlock.getFunctionArgs();
         this.globalFunctionToArgs = functionBlock.getGlobalFunctionToArgs();
+
+        this.freeSaveFloatRegisters = new Stack<>();
+        this.freeSaveFloatRegisters.addAll(Arrays.asList("$f31", "$f30", "$f29", "$f28", "$f27", "$f26", "$f25", "$f24", "$f23", "$f22", "$f21", "$f20"));
+        this.freeTempFloatRegisters = new Stack<>();
+        this.freeTempFloatRegisters.addAll(Arrays.asList("$f19", "$f18", "$f17", "$f16", "$f11", "$f10", "$f9", "$f8", "$f7", "$f6", "$f5", "$f4"));
+        this.freeFnArgsFloatRegisters = new Stack<>();
+        this.freeFnArgsFloatRegisters.addAll(Arrays.asList("$f15", "$f14", "$f13"));
+        this.usedSaveFloatRegisters = new HashSet<>();
+        this.usedTempFloatRegisters = new HashSet<>();
+        this.usedFnArgsFloatRegisters = new HashSet<>();
+
+        this.symbolTable = symbolTable;
     }
 
     public void emit(MipsInstruction instr) {

@@ -189,8 +189,8 @@ public class Tiger {
             System.err.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
-        else if (args.length > 6) {
-            System.err.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/tiger-source>', '-r <path/to/ir-source>' are supported)");
+        else if (args.length > 7) {
+            System.err.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/tiger-source>', '-r <path/to/ir-source>', '--ir' are supported)");
             System.exit(1); // Error in program arguments
         }
 
@@ -328,7 +328,7 @@ public class Tiger {
                 writeIRToFile(fileName, IR.toFormattedString());
             }
 
-            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList);
+            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, IR.varIntFloatList, stAsList.get(stAsList.size()-1));
             if (nFlagProvided) {
                 String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {

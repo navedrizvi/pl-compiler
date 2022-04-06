@@ -15,6 +15,8 @@ public class IR {
     static List<String> varIntList = new ArrayList<>();
     static List<String> varFloatList = new ArrayList<>();
     static Stack<Integer> forLoopIndex = new Stack<>();
+    // Used in naive regalloc. to refer to ordering
+    static List<String> varIntFloatList = new ArrayList<>();
     static int intListIdx = 0;
     static int floatListIdx = 0;
     static int index = 0;
@@ -57,6 +59,7 @@ public class IR {
 
     public static void addVarInt(String var) {
         varIntList.add(var);
+        varIntFloatList.add(var);
     }
 
     public static void emitForVarFloatList(List<String> varFloatList) {
@@ -71,6 +74,7 @@ public class IR {
 
     public static void addVarFloat(String var) {
         varFloatList.add(var);
+        varIntFloatList.add(var);
     }
 
     public static void populateVarLists() {

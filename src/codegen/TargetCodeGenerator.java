@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import codegen.ir_instructions.*;
 import codegen.mips_instructions.MipsInstruction;
+import common.SymbolTable;
 
 // TargetCodeGenerator :: [ir] -> [mips]
 public class TargetCodeGenerator {
@@ -13,12 +14,16 @@ public class TargetCodeGenerator {
    List<String> staticIntList;
    List<String> staticFloatList;
    Map<String, List<String>> functionToArgs = new HashMap<>();
+   List<String> intFloatList;
+   SymbolTable symbolTable;
 
-   public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList) {
+   public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList, List<String> intFloatList, SymbolTable symbolTable) {
       // @ir is called with IR.irOutput
       this.srcIrInstrs = srcIrInstrs;
       this.staticIntList = staticIntList;
       this.staticFloatList = staticFloatList;
+      this.symbolTable = symbolTable;
+      this.intFloatList = intFloatList;
    }
 
    private List<String> getDataSectionInstrs() {
@@ -86,7 +91,7 @@ public class TargetCodeGenerator {
                i += 1;
             }
             text.add(new FunctionBlock(func_name, return_type, funcArgs, staticIntList, staticFloatList, int_list, float_list,
-                                       instructions.toArray(new IRInstruction[instructions.size()]), maxArgs));
+                                       instructions.toArray(new IRInstruction[instructions.size()]), maxArgs, this.intFloatList, this.symbolTable));
             functionToArgs.put(func_name, funcArgs);
          }
       }

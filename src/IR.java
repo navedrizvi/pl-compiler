@@ -17,10 +17,6 @@ public class IR {
     static int floatListIdx = 0;
     static int index = 0;
 
-//    public static String generate() {
-//        return null;
-//    }
-
     public static void addStaticInt(String var) {
         staticIntList.add(var);
     }
@@ -30,7 +26,6 @@ public class IR {
     }
 
     public static String toFormattedString() {
-        //return irOutput.toString();
         StringBuilder buf = new StringBuilder();
         for (String line : irOutput) {
             buf.append(line + "\n");

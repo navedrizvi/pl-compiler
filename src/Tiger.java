@@ -21,13 +21,11 @@ public class Tiger {
     }
 
     private static void writeFileWithContent(String fpath, String content) {
-        // File destination = new File(fpath);
         Path targetPath = Paths.get(fpath);
         try {
             Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
         } catch (IOException e) {
             System.err.println("Error in creating new file");
-            // minor todo what error to return here, or silently exit?
         }
     }
 
@@ -44,7 +42,6 @@ public class Tiger {
             return lexer;
         }
         catch (IOException e) {
-            // minor style todo. this is duplicate logic of srcFileExists. try doing this one time in a refactor for neatness
             System.err.println("Error in program arguments: source file not found");
             System.exit(1);
             return null;
@@ -100,9 +97,7 @@ public class Tiger {
     private static String getSTAsFormattedString(List<SymbolTable> stAsList) {
         StringBuilder buf = new StringBuilder();
         int scope = 1;
-//        buf.append("Scope " + scope + ":\n");
         for (SymbolTable st: stAsList) {
-            //System.out.println(st.getLevel() + " " + st.getST());
             String tabs = "";
             String scopeTabs = "";
             for (int i = 0; i < st.getLevel() + 1; i++) {
@@ -137,6 +132,12 @@ public class Tiger {
         // regAllocationStrategy is one of (briggs, ib, or naive) todo make enum
         String outputFile = fileName.replace(".tiger", "." + regAllocationStrategy + ".s");
         writeFileWithContent(outputFile, mips);
+    }
+
+    private static void writeCFGToFile(String fileName, String graph) {
+        // regAllocationStrategy is one of (briggs, ib, or naive) todo make enum
+        String outputFile = fileName.replace(".tiger", ".cfg.gv");
+        writeFileWithContent(outputFile, graph);
     }
 
     private static int getFlagIdx(String flag, String[] args) {
@@ -198,7 +199,9 @@ public class Tiger {
         boolean stFlagProvided = false;
         boolean irFlagProvided = false;
         boolean nFlagProvided = false;
+        boolean bFlagProvided = false;
         boolean mipsFlagProvided = false;
+        boolean cfgFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
@@ -231,12 +234,16 @@ public class Tiger {
                 pFlagProvided = true;
             else if (args[i].equals("-n"))
                 nFlagProvided = true;
+            else if (args[i].equals("-b"))
+                bFlagProvided = true;
             else if (args[i].equals("--st"))
                 stFlagProvided = true;
             else if (args[i].equals("--ir"))
                 irFlagProvided = true;
             else if (args[i].equals("--mips"))
                 mipsFlagProvided = true;
+            else if (args[i].equals("--cfg"))
+                cfgFlagProvided = true;
             else {
                 System.err.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -285,7 +292,7 @@ public class Tiger {
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
         // and write to .ir file.
-        else if (nFlagProvided || irFlagProvided) {
+        else if (nFlagProvided || irFlagProvided || bFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
@@ -304,8 +311,6 @@ public class Tiger {
                 System.exit(4);
             }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
-            // Remove when done
-            //System.out.println(getSTAsFormattedString(stAsList));
 
             // Semantic analysis
             TigerSemanticAnalysisListener tigerSemanticAnalysisListener = new TigerSemanticAnalysisListener(stAsList);
@@ -332,6 +337,15 @@ public class Tiger {
                 if (mipsFlagProvided) {
                     System.out.println(mips);
                     writeMipsToFile(fileName, "naive", mips);
+                }
+            }
+            else if (bFlagProvided) {
+                if (cfgFlagProvided) {
+                    CFGBuilder cfgBuilder = new CFGBuilder(IR.irOutput);
+                    cfgBuilder.build();
+                    String graph = cfgBuilder.getGraph().toDOT();
+//                    System.out.println(graph);
+                    writeCFGToFile(fileName, graph);
                 }
             }
         }

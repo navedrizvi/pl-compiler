@@ -85,11 +85,60 @@ public class FunctionBlock {
         return out;
     }
 
+    // private static boolean elemInArray(String elem, String[] array) {
+    //     return Arrays.stream(array).anyMatch(elem::equals);
+    // }
+
+    // private HashMap<String, RegAllocTuple> doNaiveRegisterAllocation2() {
+    //     HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
+    //     // Handling ints first
+    //     int offset = 0;
+    //     // TODO 2 needed for proper float regalloc? 
+    //     for (String var: varIntFloatList) {
+    //         System.out.println("abye");
+    //         System.out.println(var);
+    //         // int array
+    //         if (var.endsWith("]")) {
+    //             int size = Integer.parseInt(var.substring(var.indexOf("[") + 1, var.indexOf("]")));
+    //             String var2 = var.substring(0, var.indexOf("["));
+    //             varToMemoryOffSet.put(var2, new RegAllocTuple(var2, null, Integer.toString(offset), size));
+    //             offset += size * 4;
+    //         }
+    //         else {
+    //             var = var.replace(",", "");
+    //             var = var.trim();
+    //             varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), null));
+    //             offset += 4;
+    //         }
+    //     }
+    //     return varToMemoryOffSet;
+    // }
+    // TODO10 keep looking at the hashmaps
     private HashMap<String, RegAllocTuple> doNaiveRegisterAllocation() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
         // Handling ints first
         int offset = 0;
         for (String intVar: intList) {
+            System.out.println("abye");
+            System.out.println(intVar);
+            // int array
+            if (intVar.endsWith("]")) {
+                int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
+                String var = intVar.substring(0, intVar.indexOf("["));
+                varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
+                offset += size * 4;
+            }
+            else {
+                intVar = intVar.replace(",", "");
+                intVar = intVar.trim();
+                varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
+                offset += 4;
+            }
+        }
+        // TODO1 remove temp
+        for (String intVar: floatList) {
+            System.out.println("abye");
+            System.out.println(intVar);
             // int array
             if (intVar.endsWith("]")) {
                 int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));

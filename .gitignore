@@ -46,3 +46,6 @@ build/
 # Ignore files generated during testing
 *.st
 *.gv
+
+TigerVisitor.java
+TigerBaseVisitor.java

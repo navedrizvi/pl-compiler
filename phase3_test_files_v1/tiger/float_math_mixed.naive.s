@@ -156,12 +156,3 @@ lw $ra, 48($sp)
 addiu $sp, $sp, 116
 # end of epilogue
 jr $ra
-
-ue
-jr $ra
-e
-jr $ra
-$sp)
-addiu $sp, $sp, 116
-# end of epilogue
-jr $ra

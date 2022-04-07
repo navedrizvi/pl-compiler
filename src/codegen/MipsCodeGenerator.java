@@ -1007,6 +1007,9 @@ public class MipsCodeGenerator {
                     addBackRegister(temp);
                     addBackRegister(floatTemp);
                 }
+                else {
+                    emit(getLoadCommand(register, b));
+                }
             }
             else {
                 emit(getLoadCommand(register, b));
@@ -1044,6 +1047,7 @@ public class MipsCodeGenerator {
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
+            emit(new jal(instruction.getFunction_name()));
         }
     }
 

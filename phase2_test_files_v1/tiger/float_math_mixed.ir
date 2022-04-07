@@ -11,8 +11,14 @@ assign, _2_b, 2.4
 call, printf, 5
 assign, _2_d, 1
 call, printf, _2_d
+
+
 assign, _2_d, _2_a
 call, printf, _2_d
+
+
+
+
 add, 3, _2_b, _t0
 assign, _2_d, _t0
 call, printf, _2_d

@@ -983,10 +983,34 @@ public class MipsCodeGenerator {
             }
         }
         else {
+
+
+            // TODO need to cast here.
             boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
             // b
             String register = getRegister(false, aOrBIsFloat);
-            emit(getLoadCommand(register, b));
+            if(register.equals("$f7")) {
+                System.out.println("HIIIII" + registerAllocation.get(a).getMemoryOffset());
+                System.out.println(registerAllocation.get(b).getMemoryOffset());
+            }
+            if (aOrBIsFloat) {
+                if (!checkIsFloat(b)) {
+                    // Cast arg to float
+                    String temp = getRegister(false);
+                    String floatTemp = getRegister(false, true);
+                    // System.out.println(arg + " WHAT");
+                    emit(new li(temp, b));
+                    emit(new mtc1(temp, floatTemp));
+                    emit(new cvt_s_w(floatTemp, floatTemp));
+                    // emit(new move(PRINT_FLOAT_ARG, floatTemp));
+                    emit(getLoadCommand(register, floatTemp));
+                    addBackRegister(temp);
+                    addBackRegister(floatTemp);
+                }
+            }
+            else {
+                emit(getLoadCommand(register, b));
+            }
 
             // a
             emit(getStoreCommand(register, a));

@@ -119,6 +119,9 @@ public class FunctionBlock {
         // Handling ints first
         int offset = 0;
         for (String intVar: intList) {
+            System.out.println("!!!!!!!!!!!!!!!!!--");
+            System.out.println(intVar);
+            System.out.println("!!!!!!!!!!!!!!!!!--");
             // int array
             if (intVar.endsWith("]")) {
                 int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
@@ -129,15 +132,16 @@ public class FunctionBlock {
             else {
                 intVar = intVar.replace(",", "");
                 intVar = intVar.trim();
+                System.out.println("int===!!!!!!!!!!!!!!!!!--");
+                System.out.println(intVar);
+                System.out.println(offset);
+                System.out.println("===!!!!!!!!!!!!!!!!!--");
                 varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
                 offset += 4;
             }
         }
         // TODO1 remove temp
         for (String intVar: floatList) {
-            System.out.println("abye");
-            System.out.println(intVar);
-            // int array
             if (intVar.endsWith("]")) {
                 int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
                 String var = intVar.substring(0, intVar.indexOf("["));
@@ -147,10 +151,10 @@ public class FunctionBlock {
             else {
                 intVar = intVar.replace(",", "");
                 intVar = intVar.trim();
-                System.out.println("!!!!!!!!!!!!!!!!!1");
+                System.out.println("float!!!!!!!!!!!!!!!!!--");
                 System.out.println(intVar);
                 System.out.println(offset);
-                System.out.println("!!!!!!!!!!!!!!!!!1");
+                System.out.println("!!!!!!!!!!!!!!!!!--");
                 varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
                 offset += 4;
             }

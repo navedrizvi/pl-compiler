@@ -30,7 +30,7 @@ replay_pid*
 src/tiger-compiler.iml
 
 # antlr JAR
-antlr-4*
+# antlr-4*
 
 # VSCode
 .antlr

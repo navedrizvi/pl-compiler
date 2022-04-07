@@ -989,10 +989,6 @@ public class MipsCodeGenerator {
             boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
             // b
             String register = getRegister(false, aOrBIsFloat);
-            if(register.equals("$f7")) {
-                System.out.println("HIIIII" + registerAllocation.get(a).getMemoryOffset());
-                System.out.println(registerAllocation.get(b).getMemoryOffset());
-            }
             if (aOrBIsFloat) {
                 if (!checkIsFloat(b)) {
                     // Cast arg to float

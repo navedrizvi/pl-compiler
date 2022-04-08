@@ -1004,13 +1004,18 @@ public class MipsCodeGenerator {
 
     /* Returns name of float register */ 
     private String emitFloatCastInstrs(String operand) {
-        // Cast arg to float
-        String temp = getRegister(false);
         String floatTemp = getRegister(false, true);
-        emit(getLoadCommand(temp, operand));
-        emit(new mtc1(temp, floatTemp));
-        emit(new cvt_s_w(floatTemp, floatTemp));
-        addBackRegister(temp);
+        if (!isFloat(operand)) {
+            // Cast arg to float
+            String temp = getRegister(false);
+            emit(getLoadCommand(temp, operand));
+            emit(new mtc1(temp, floatTemp));
+            emit(new cvt_s_w(floatTemp, floatTemp));
+            addBackRegister(temp);
+        }
+        else {
+            emit(getLoadCommand(floatTemp, operand));
+        }
         return floatTemp;
     }
 
@@ -1199,9 +1204,6 @@ public class MipsCodeGenerator {
             cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
         }
         else {
-            // TODO1 remove
-            // TODO111 fix this??
-
             cmd = new li(register, operand);
         }
         return cmd;

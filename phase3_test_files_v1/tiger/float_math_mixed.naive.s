@@ -218,11 +218,3 @@ lw $ra, 48($sp)
 addiu $sp, $sp, 116
 # end of epilogue
 jr $ra
-
-lw $ra, 48($sp)
-addiu $sp, $sp, 116
-# end of epilogue
-jr $ra
-6
-# end of epilogue
-jr $ra

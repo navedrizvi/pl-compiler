@@ -995,7 +995,7 @@ public class MipsCodeGenerator {
                     String temp = getRegister(false);
                     String floatTemp = getRegister(false, true);
                     // System.out.println(arg + " WHAT");
-                    emit(new li(temp, b));
+                    emit(new lw(temp, b));
                     emit(new mtc1(temp, floatTemp));
                     emit(new cvt_s_w(floatTemp, floatTemp));
                     // emit(new move(PRINT_FLOAT_ARG, floatTemp));

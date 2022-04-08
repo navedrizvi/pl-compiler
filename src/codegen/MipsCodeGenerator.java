@@ -109,13 +109,6 @@ public class MipsCodeGenerator {
         try {
             Float.parseFloat(s);
             return !isInt(s);
-            // try {
-            //     Integer.parseInt(s);
-            // }
-            // catch (NumberFormatException e) {
-            //     return true;
-            // }
-            // return false;
         } catch (NumberFormatException e){
             return false;
         }
@@ -729,18 +722,23 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
 
-        // a
-        String register_a = getRegister(false, aOrBIsFloat);
+        String register_a;
+        String register_b;
+        String register_c;
+        boolean aBOrCIsFloat = checkIsFloat(a) || checkIsFloat(b) || checkIsFloat(c);
+        if (aBOrCIsFloat) {
+            register_a = emitFloatCastInstrs(a);
+            register_b = emitFloatCastInstrs(b); 
+            register_c = emitFloatCastInstrs(c); 
+        }
+        else {
+            register_a = getRegister(false);
+            register_b = getRegister(false);
+            register_c = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
-
-        // b
-        String register_b = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_b, b));
-
-        // c
-        String register_c = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_c, c));
 
         // c = a + b
@@ -983,39 +981,37 @@ public class MipsCodeGenerator {
             }
         }
         else {
-
-
-            // TODO need to cast here.
             boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
-            // b
             String register = getRegister(false, aOrBIsFloat);
             if (aOrBIsFloat) {
                 if (!checkIsFloat(b)) {
-                    // Cast arg to float
-                    String temp = getRegister(false);
-                    String floatTemp = getRegister(false, true);
-                    // System.out.println(arg + " WHAT");
-                    emit(new lw(temp, b));
-                    emit(new mtc1(temp, floatTemp));
-                    emit(new cvt_s_w(floatTemp, floatTemp));
-                    // emit(new move(PRINT_FLOAT_ARG, floatTemp));
-                    emit(getLoadCommand(register, floatTemp));
-                    addBackRegister(temp);
+                    String floatTemp = emitFloatCastInstrs(b);
+                    emit(getStoreCommand(floatTemp, a));
                     addBackRegister(floatTemp);
                 }
                 else {
                     emit(getLoadCommand(register, b));
+                    emit(getStoreCommand(register, a));
                 }
             }
             else {
                 emit(getLoadCommand(register, b));
+                emit(getStoreCommand(register, a));
             }
-
-            // a
-            emit(getStoreCommand(register, a));
-
             addBackRegister(register);
         }
+    }
+
+    /* Returns name of float register */ 
+    private String emitFloatCastInstrs(String operand) {
+        // Cast arg to float
+        String temp = getRegister(false);
+        String floatTemp = getRegister(false, true);
+        emit(getLoadCommand(temp, operand));
+        emit(new mtc1(temp, floatTemp));
+        emit(new cvt_s_w(floatTemp, floatTemp));
+        addBackRegister(temp);
+        return floatTemp;
     }
 
     private int staticArraySize(String a) {
@@ -1071,15 +1067,8 @@ public class MipsCodeGenerator {
         }
         else {
             if (!checkIsFloat(arg)) {
-                // Cast arg to float
-                String temp = getRegister(false);
-                String floatTemp = getRegister(false, true);
-                // System.out.println(arg + " WHAT");
-                emit(new li(temp, arg));
-                emit(new mtc1(temp, floatTemp));
-                emit(new cvt_s_w(floatTemp, floatTemp));
+                String floatTemp = emitFloatCastInstrs(arg);
                 emit(new move(PRINT_FLOAT_ARG, floatTemp));
-                addBackRegister(temp);
                 addBackRegister(floatTemp);
             }
             else {
@@ -1130,7 +1119,7 @@ public class MipsCodeGenerator {
     private void handleCallr(Callr instruction) {
         // a = not(b)
         if (instruction.getFunction_name().equals("not")) {
-            // TODO: add inline logic for not function
+            // TODO1: add inline logic for not function
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
@@ -1211,6 +1200,8 @@ public class MipsCodeGenerator {
         }
         else {
             // TODO1 remove
+            // TODO111 fix this??
+
             cmd = new li(register, operand);
         }
         return cmd;
@@ -1220,18 +1211,6 @@ public class MipsCodeGenerator {
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
-        // TODO1 get fails
-        System.out.println("OYOYOYOY");
-        System.out.println(operand);
-        System.out.println(register);
-        System.out.println("OYOYOYOY");
-
-        for (String name: registerAllocation.keySet()) {
-            String key = name.toString();
-            String value = registerAllocation.get(name).toString();
-            System.out.println(key + " " + value);
-        }
-        System.out.println("OYOYOYOY");
         return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
     }
 

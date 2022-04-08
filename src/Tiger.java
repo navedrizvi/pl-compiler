@@ -333,7 +333,7 @@ public class Tiger {
                 writeIRToFile(fileName, IR.toFormattedString());
             }
 
-            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, IR.varIntFloatList, stAsList.get(stAsList.size()-1));
+            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, stAsList.get(stAsList.size()-1));
             if (nFlagProvided) {
                 String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {

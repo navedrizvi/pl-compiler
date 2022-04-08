@@ -19,7 +19,6 @@ public class FunctionBlock {
     private String[] floatList;
     private IRInstruction[] instructions;
     private int maxArgs;
-    private List<String> varIntFloatList;
     private SymbolTable symbolTable;
 
     private Map<String, List<String>> globalFunctionToArgs;
@@ -27,7 +26,7 @@ public class FunctionBlock {
     public FunctionBlock(
             String functionName, String returnType, List<String> functionArgs, List<String> staticIntList,
             List<String> staticFloatList, String[] intList, String[] floatList, IRInstruction[] instructions,
-            int maxArgs, List<String> varIntFloatList, SymbolTable symbolTable
+            int maxArgs, SymbolTable symbolTable
     ) {
         this.functionName = functionName;
         this.returnType = returnType;
@@ -39,7 +38,6 @@ public class FunctionBlock {
         this.staticFloatList = staticFloatList;
         this.maxArgs = maxArgs;
         this.symbolTable = symbolTable;
-        this.varIntFloatList = varIntFloatList;
     }
 
     public void setGlobalFunctionToArgs(Map<String, List<String>> functionToArgs) {
@@ -89,30 +87,6 @@ public class FunctionBlock {
     //     return Arrays.stream(array).anyMatch(elem::equals);
     // }
 
-    // private HashMap<String, RegAllocTuple> doNaiveRegisterAllocation2() {
-    //     HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
-    //     // Handling ints first
-    //     int offset = 0;
-    //     // TODO 2 needed for proper float regalloc? 
-    //     for (String var: varIntFloatList) {
-    //         System.out.println("abye");
-    //         System.out.println(var);
-    //         // int array
-    //         if (var.endsWith("]")) {
-    //             int size = Integer.parseInt(var.substring(var.indexOf("[") + 1, var.indexOf("]")));
-    //             String var2 = var.substring(0, var.indexOf("["));
-    //             varToMemoryOffSet.put(var2, new RegAllocTuple(var2, null, Integer.toString(offset), size));
-    //             offset += size * 4;
-    //         }
-    //         else {
-    //             var = var.replace(",", "");
-    //             var = var.trim();
-    //             varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), null));
-    //             offset += 4;
-    //         }
-    //     }
-    //     return varToMemoryOffSet;
-    // }
     // TODO10 keep looking at the hashmaps
     private HashMap<String, RegAllocTuple> doNaiveRegisterAllocation() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();

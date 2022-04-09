@@ -722,20 +722,72 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-
-        String register_a;
-        String register_b;
-        String register_c;
-        boolean aBOrCIsFloat = checkIsFloat(a) || checkIsFloat(b) || checkIsFloat(c);
-        if (aBOrCIsFloat) {
-            register_a = emitFloatCastInstrs(a);
-            register_b = emitFloatCastInstrs(b); 
-            register_c = emitFloatCastInstrs(c); 
-        }
-        else {
+        String register_a="";
+        String register_b="";
+        String register_c="";
+        if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
             register_a = getRegister(false);
             register_b = getRegister(false);
             register_c = getRegister(false);
+        }
+        else {
+            if (checkIsFloat(c)) {
+                register_c = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a))
+                        emit(getStoreCommand(register_a, a));
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b))
+                        emit(getStoreCommand(register_b, b));
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(a)) {
+                register_a = getRegister(false, true);
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b))
+                        emit(getStoreCommand(register_b, b));
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(b)) {
+                register_b = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a))
+                        emit(getStoreCommand(register_a, a));
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
         }
         emit(getLoadCommand(register_a, a));
         emit(getLoadCommand(register_b, b));
@@ -1213,6 +1265,9 @@ public class MipsCodeGenerator {
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
+        System.out.println("HHHHH");
+        System.out.println(register);
+        System.out.println(operand);
         return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
     }
 

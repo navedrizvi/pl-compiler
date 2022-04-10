@@ -96,18 +96,18 @@ public class BasicBlockBuilder {
     }
 
     private boolean isBranchOrReturn(String instruction) {
-        Set<String> ops = Set.of( "return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
-        String op = instruction.split(",")[0].trim();
-        if (ops.contains(op))
+        // Set<String> ops = Set.of( "return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
+        // String op = instruction.split(",")[0].trim();
+        // if (ops.contains(op))
             return true;
-        return false;
+        // return false;
     }
 
     private boolean isBranch(String instruction) {
-        Set<String> ops = Set.of("goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
-        String op = instruction.split(",")[0].trim();
-        if (ops.contains(op))
+        // Set<String> ops = Set.of("goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
+        // String op = instruction.split(",")[0].trim();
+        // if (ops.contains(op))
             return true;
-        return false;
+        // return false;
     }
 }

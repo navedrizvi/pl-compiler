@@ -1,4 +1,5 @@
 package common;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -52,7 +53,6 @@ public class SymbolTable {
         return ST.get(name);
     }
 
-    // TODO1 make this handle mangled name (scope match)
     public Symbol lookUp(String name) {
         Symbol symbol = ST.get(name);
         if (symbol != null)
@@ -67,6 +67,36 @@ public class SymbolTable {
             parent = parent.getParent();
         }
         return null;
+    }
+
+    /* assumes lookup is from last st in the linked list */
+    public Symbol lookUpMangledName(String mangledName) {
+        if (mangledName.startsWith("_t")) {
+            return this.lookUp(mangledName);
+        }
+        else if (mangledName.startsWith("_")) {
+            String[] nameSplit = mangledName.split("_");
+            System.out.println(nameSplit);
+            int scope = Integer.parseInt(nameSplit[1]);
+            String name = nameSplit[2];
+        
+            Symbol symbol = ST.get(name);
+            if (symbol != null)
+                return symbol;
+    
+            SymbolTable parent = getParent();
+            while (parent != null && parent.getScopeNumber() != scope) {
+                Map<String, Symbol> map = parent.getST();
+                symbol = map.get(name);
+                if (symbol != null)
+                    return symbol;
+                parent = parent.getParent();
+            }
+            return null;
+        }
+        else {
+            return null;
+        }
     }
 
     public int getScopeNumber(String name) {

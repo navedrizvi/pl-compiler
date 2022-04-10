@@ -114,18 +114,15 @@ public class MipsCodeGenerator {
         }
     }
 
-    // TODO1 fix - safe?
-    private static String getUnmangledName(String st) {
-        return st.replaceAll("_[0-9]+_", "");
-    }
-
     boolean checkIsFloat(String a) {
-        String name = getUnmangledName(a);
-        Symbol b = this.symbolTable.lookUp(name);
+        if (isFloat(a)) {
+            return true;
+        }
+        Symbol b = this.symbolTable.lookUpMangledName(a);
 
         boolean isf;
         if (b==null) {
-            isf = isFloat(a);
+            isf = false;
         }
         else {
             isf = b.getType().equals("float");
@@ -1412,8 +1409,7 @@ public class MipsCodeGenerator {
                 addBackRegister(floatTemp);
             }
             else {
-                //TODO1 - unsafe
-                if (symbolTable.lookUp(getUnmangledName(arg)) == null) {
+                if (symbolTable.lookUpMangledName(arg) == null) {
                     emit(new li(PRINT_FLOAT_ARG, arg));
                 }
                 else {
@@ -1459,7 +1455,15 @@ public class MipsCodeGenerator {
     private void handleCallr(Callr instruction) {
         // a = not(b)
         if (instruction.getFunction_name().equals("not")) {
-            // TODO1: add inline logic for not function
+            String b = instruction.getFunction_args()[0];
+            String temp0 = getRegister(false);
+            String temp1 = getRegister(false);
+            emit(getLoadCommand(temp0, b));
+            emit(new sltu(temp1, "$zero", temp0));
+            emit(new xori(temp1, temp1, "1"));
+            emit(getStoreCommand(temp1, b));
+            addBackRegister(temp0);
+            addBackRegister(temp1);
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
@@ -1529,7 +1533,7 @@ public class MipsCodeGenerator {
         else if (intList.contains(operand) || floatList.contains(operand)) {
             cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
         }
-        else if (symbolTable.lookUp(getUnmangledName(operand))!=null) {
+        else if (symbolTable.lookUpMangledName(operand)!=null) {
             cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
         }
         else {
@@ -1870,6 +1874,36 @@ public class MipsCodeGenerator {
         @Override
         public List<String> args() {
             return null;
+        }
+    }
+
+    static class sltu implements MipsInstruction {
+        String one;
+        String two;
+        String three;
+        public sltu(String one, String two, String three) {
+            this.one = one;
+            this.two = two;
+            this.three = three;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList(this.one, this.two, this.three);
+        }
+    }
+
+    static class xori implements MipsInstruction {
+        String one;
+        String two;
+        String three;
+        public xori(String one, String two, String three) {
+            this.one = one;
+            this.two = two;
+            this.three = three;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList(this.one, this.two, this.three);
         }
     }
 

@@ -1,4 +1,4 @@
-/* Test: not library call */
+* Test: not library call */
 
 program lib_call_not
 let
@@ -13,8 +13,8 @@ begin
             a := not(a);
             printi(a);
 
-            a := not(a);
-            printi(a);
+            /* a := not(a);
+            printi(a); */
         end
         return 0;
     end

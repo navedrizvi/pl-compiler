@@ -11,7 +11,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -30,7 +29,8 @@ replay_pid*
 src/tiger-compiler.iml
 
 # antlr JAR
-antlr-4*
+# antlr-4*
+tigerc.jar
 
 # VSCode
 .antlr
@@ -46,3 +46,6 @@ build/
 # Ignore files generated during testing
 *.st
 *.gv
+
+TigerVisitor.java
+TigerBaseVisitor.java

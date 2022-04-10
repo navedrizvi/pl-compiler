@@ -1,3 +1,5 @@
+import common.Symbol;
+
 public class DefinedTypeSymbol extends Symbol {
 
     private String baseType;

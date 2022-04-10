@@ -1,3 +1,5 @@
+import common.Symbol;
+
 public class DefinedTypeArraySymbol extends DefinedTypeSymbol {
 
     private int dimension;

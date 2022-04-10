@@ -1,6 +1,9 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
+import common.Symbol;
+import common.SymbolTable;
+
 import java.util.*;
 
 public class TigerIRListener extends TigerBaseListener {

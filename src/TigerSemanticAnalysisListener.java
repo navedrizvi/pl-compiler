@@ -3,6 +3,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import common.Symbol;
+import common.SymbolTable;
+
 import java.util.*;
 
 public class TigerSemanticAnalysisListener extends TigerBaseListener {

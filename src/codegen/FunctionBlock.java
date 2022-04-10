@@ -6,6 +6,7 @@ import codegen.ir_instructions.IRInstruction;
 import codegen.ir_instructions.Load;
 import codegen.ir_instructions.Store;
 import codegen.mips_instructions.MipsInstruction;
+import common.SymbolTable;
 
 public class FunctionBlock {
     private String functionName;
@@ -18,13 +19,14 @@ public class FunctionBlock {
     private String[] floatList;
     private IRInstruction[] instructions;
     private int maxArgs;
+    private SymbolTable symbolTable;
 
     private Map<String, List<String>> globalFunctionToArgs;
 
     public FunctionBlock(
             String functionName, String returnType, List<String> functionArgs, List<String> staticIntList,
             List<String> staticFloatList, String[] intList, String[] floatList, IRInstruction[] instructions,
-            int maxArgs
+            int maxArgs, SymbolTable symbolTable
     ) {
         this.functionName = functionName;
         this.returnType = returnType;
@@ -35,6 +37,7 @@ public class FunctionBlock {
         this.staticIntList = staticIntList;
         this.staticFloatList = staticFloatList;
         this.maxArgs = maxArgs;
+        this.symbolTable = symbolTable;
     }
 
     public void setGlobalFunctionToArgs(Map<String, List<String>> functionToArgs) {
@@ -75,7 +78,7 @@ public class FunctionBlock {
 
     public List<MipsInstruction> getNaiveMips() {
         HashMap<String, RegAllocTuple> naiveRegisterAllocation = this.doNaiveRegisterAllocation();
-        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, naiveRegisterAllocation);
+        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, naiveRegisterAllocation, symbolTable);
         List<MipsInstruction> out = naiveMips.generateMipsInstructions();
         return out;
     }
@@ -96,6 +99,20 @@ public class FunctionBlock {
                 intVar = intVar.replace(",", "");
                 intVar = intVar.trim();
                 varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
+                offset += 4;
+            }
+        }
+        for (String floatVar: floatList) {
+            if (floatVar.endsWith("]")) {
+                int size = Integer.parseInt(floatVar.substring(floatVar.indexOf("[") + 1, floatVar.indexOf("]")));
+                String var = floatVar.substring(0, floatVar.indexOf("["));
+                varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
+                offset += size * 4;
+            }
+            else {
+                floatVar = floatVar.replace(",", "");
+                floatVar = floatVar.trim();
+                varToMemoryOffSet.put(floatVar, new RegAllocTuple(floatVar, null, Integer.toString(offset), null));
                 offset += 4;
             }
         }

@@ -33,8 +33,6 @@ SOURCES := \
 	src/LexicalErrorListener.java \
 	src/ParserErrorListener.java \
 	src/SemanticError.java \
-	src/SymbolTable.java \
-	src/Symbol.java \
 	src/SubroutineSymbol.java \
 	src/DefinedTypeArraySymbol.java \
 	src/DefinedTypeSymbol.java \
@@ -57,7 +55,7 @@ $(COMPILER_JAR): $(SOURCES) $(ANTLR_JAVA_FILES) $(ANTLR_LIBS)
 	@javac -d $(BUILD_DIR) -cp "src:$(ANTLR)" $(SOURCES) \
 	$(ANTLR_JAVA_FILES)
 	@cd $(BUILD_DIR) && jar cfe ../$(JAR_DIR)/$(COMPILER_JAR) \
-	$(MAIN_CLASS_NAME) *.class codegen/*.class codegen/ir_instructions/*.class codegen/ir_instructions/types/*.class codegen/mips_instructions/*.class org javax && cd ..
+	$(MAIN_CLASS_NAME) *.class common/*.class codegen/*.class codegen/ir_instructions/*.class codegen/ir_instructions/types/*.class codegen/mips_instructions/*.class org javax && cd ..
 	@chmod a+rx $(JAR_DIR)/$(COMPILER_JAR)
 
 $(ANTLR_JAVA_FILES): $(GRAMMAR)

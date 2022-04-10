@@ -1,5 +1,8 @@
+package common;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import common.Symbol.Scope;
 
 public class SymbolTable {
 
@@ -49,6 +52,7 @@ public class SymbolTable {
         return ST.get(name);
     }
 
+    // TODO1 make this handle mangled name (scope match)
     public Symbol lookUp(String name) {
         Symbol symbol = ST.get(name);
         if (symbol != null)

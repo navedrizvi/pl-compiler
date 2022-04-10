@@ -96,7 +96,7 @@ public class BasicBlockBuilder {
     }
 
     private boolean isBranchOrReturn(String instruction) {
-        Set<String> ops = Set.addAll( "return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
+        Set<String> ops = Set.of( "return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
         String op = instruction.split(",")[0].trim();
         if (ops.contains(op))
             return true;

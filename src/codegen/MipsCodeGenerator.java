@@ -725,6 +725,8 @@ public class MipsCodeGenerator {
         String register_a="";
         String register_b="";
         String register_c="";
+        boolean aWasCasted = false;
+        boolean bWasCasted = false;
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
             register_a = getRegister(false);
             register_b = getRegister(false);
@@ -735,16 +737,20 @@ public class MipsCodeGenerator {
                 register_c = getRegister(false, true);
                 if (!checkIsFloat(a)) {
                     register_a = emitFloatCastInstrs(a);
-                    if (!isInt(a))
+                    if (!isInt(a)) {
                         emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
                 }
                 else {
                     register_a = getRegister(false, true);
                 }
                 if (!checkIsFloat(b)) {
                     register_b = emitFloatCastInstrs(b);
-                    if (!isInt(b))
+                    if (!isInt(b)) {
                         emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
                 }
                 else {
                     register_b = getRegister(false, true);
@@ -754,8 +760,10 @@ public class MipsCodeGenerator {
                 register_a = getRegister(false, true);
                 if (!checkIsFloat(b)) {
                     register_b = emitFloatCastInstrs(b);
-                    if (!isInt(b))
+                    if (!isInt(b)) {
                         emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
                 }
                 else {
                     register_b = getRegister(false, true);
@@ -773,8 +781,10 @@ public class MipsCodeGenerator {
                 register_b = getRegister(false, true);
                 if (!checkIsFloat(a)) {
                     register_a = emitFloatCastInstrs(a);
-                    if (!isInt(a))
+                    if (!isInt(a)) {
                         emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
                 }
                 else {
                     register_a = getRegister(false, true);
@@ -800,6 +810,24 @@ public class MipsCodeGenerator {
         addBackRegister(register_c);
         addBackRegister(register_b);
         addBackRegister(register_a);
+
+        // Un-cast
+        if (aWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_a, a));
+            emit(new cvt_w_s(register_a, register_a));
+            emit(new mtc1(temp, register_a));
+            emit(getStoreCommand(temp, a));
+            addBackRegister(temp);
+        }
+        if (bWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_b, b));
+            emit(new cvt_w_s(register_b, register_b));
+            emit(new mtc1(temp, register_b));
+            emit(getStoreCommand(temp, b));
+            addBackRegister(temp);
+        }
     }
 
     // c = a - b
@@ -811,18 +839,85 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
-        // a
-
-        String register_a = getRegister(false, aOrBIsFloat);
+        String register_a="";
+        String register_b="";
+        String register_c="";
+        boolean aWasCasted = false;
+        boolean bWasCasted = false;
+        if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
+            register_a = getRegister(false);
+            register_b = getRegister(false);
+            register_c = getRegister(false);
+        }
+        else {
+            if (checkIsFloat(c)) {
+                register_c = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(a)) {
+                register_a = getRegister(false, true);
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(b)) {
+                register_b = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+        }
         emit(getLoadCommand(register_a, a));
-
-        // b
-        String register_b = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_b, b));
-
-        // c
-        String register_c = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_c, c));
 
         // c = a - b
@@ -832,6 +927,24 @@ public class MipsCodeGenerator {
         addBackRegister(register_c);
         addBackRegister(register_b);
         addBackRegister(register_a);
+
+        // Un-cast
+        if (aWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_a, a));
+            emit(new cvt_w_s(register_a, register_a));
+            emit(new mtc1(temp, register_a));
+            emit(getStoreCommand(temp, a));
+            addBackRegister(temp);
+        }
+        if (bWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_b, b));
+            emit(new cvt_w_s(register_b, register_b));
+            emit(new mtc1(temp, register_b));
+            emit(getStoreCommand(temp, b));
+            addBackRegister(temp);
+        }
     }
 
     // c = a * b
@@ -843,18 +956,85 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        // a
-        boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
-
-        String register_a = getRegister(false, aOrBIsFloat);
+        String register_a="";
+        String register_b="";
+        String register_c="";
+        boolean aWasCasted = false;
+        boolean bWasCasted = false;
+        if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
+            register_a = getRegister(false);
+            register_b = getRegister(false);
+            register_c = getRegister(false);
+        }
+        else {
+            if (checkIsFloat(c)) {
+                register_c = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(a)) {
+                register_a = getRegister(false, true);
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(b)) {
+                register_b = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+        }
         emit(getLoadCommand(register_a, a));
-
-        // b
-        String register_b = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_b, b));
-
-        // c
-        String register_c = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_c, c));
 
         // c = a * b
@@ -864,6 +1044,24 @@ public class MipsCodeGenerator {
         addBackRegister(register_c);
         addBackRegister(register_b);
         addBackRegister(register_a);
+
+        // Un-cast
+        if (aWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_a, a));
+            emit(new cvt_w_s(register_a, register_a));
+            emit(new mtc1(temp, register_a));
+            emit(getStoreCommand(temp, a));
+            addBackRegister(temp);
+        }
+        if (bWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_b, b));
+            emit(new cvt_w_s(register_b, register_b));
+            emit(new mtc1(temp, register_b));
+            emit(getStoreCommand(temp, b));
+            addBackRegister(temp);
+        }
     }
 
     // c = a / b
@@ -875,17 +1073,85 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
-
-        String register_a = getRegister(false, aOrBIsFloat);
+        String register_a="";
+        String register_b="";
+        String register_c="";
+        boolean aWasCasted = false;
+        boolean bWasCasted = false;
+        if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
+            register_a = getRegister(false);
+            register_b = getRegister(false);
+            register_c = getRegister(false);
+        }
+        else {
+            if (checkIsFloat(c)) {
+                register_c = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(a)) {
+                register_a = getRegister(false, true);
+                if (!checkIsFloat(b)) {
+                    register_b = emitFloatCastInstrs(b);
+                    if (!isInt(b)) {
+                        emit(getStoreCommand(register_b, b));
+                        bWasCasted = true;
+                    }
+                }
+                else {
+                    register_b = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+            else if (checkIsFloat(b)) {
+                register_b = getRegister(false, true);
+                if (!checkIsFloat(a)) {
+                    register_a = emitFloatCastInstrs(a);
+                    if (!isInt(a)) {
+                        emit(getStoreCommand(register_a, a));
+                        aWasCasted = true;
+                    }
+                }
+                else {
+                    register_a = getRegister(false, true);
+                }
+                if (!checkIsFloat(c)) {
+                    register_c = emitFloatCastInstrs(c);
+                    if (!isInt(c))
+                        emit(getStoreCommand(register_c, c));
+                }
+                else {
+                    register_c = getRegister(false, true);
+                }
+            }
+        }
         emit(getLoadCommand(register_a, a));
-
-        // b
-        String register_b = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_b, b));
-
-        // c
-        String register_c = getRegister(false, aOrBIsFloat);
         emit(getLoadCommand(register_c, c));
 
         // c = a / b
@@ -895,6 +1161,24 @@ public class MipsCodeGenerator {
         addBackRegister(register_c);
         addBackRegister(register_b);
         addBackRegister(register_a);
+
+        // Un-cast
+        if (aWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_a, a));
+            emit(new cvt_w_s(register_a, register_a));
+            emit(new mtc1(temp, register_a));
+            emit(getStoreCommand(temp, a));
+            addBackRegister(temp);
+        }
+        if (bWasCasted) {
+            String temp = getRegister(false);
+            emit(getLoadCommand(register_b, b));
+            emit(new cvt_w_s(register_b, register_b));
+            emit(new mtc1(temp, register_b));
+            emit(getStoreCommand(temp, b));
+            addBackRegister(temp);
+        }
     }
 
     // c = a & b
@@ -998,7 +1282,6 @@ public class MipsCodeGenerator {
                     emit(new addi(registerA, registerA, Integer.toString(indexOffset)));
                     emit(new lw(register, "(" + registerB + ")"));
                     emit(new sw(register, "(" + registerA + ")"));
-
                 }
                 addBackRegister(register);
                 addBackRegister(registerB);
@@ -1265,9 +1548,6 @@ public class MipsCodeGenerator {
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
-        System.out.println("HHHHH");
-        System.out.println(register);
-        System.out.println(operand);
         return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
     }
 
@@ -1469,6 +1749,19 @@ public class MipsCodeGenerator {
         }
     }
 
+    static class mfc1 implements MipsInstruction {
+        String register;
+        String immediate;
+        public mfc1(String register, String immediate) {
+            this.register = register;
+            this.immediate = immediate;
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList( this.register,this.immediate);
+        }
+    }
+
     static class cvt_s_w implements MipsInstruction {
         String register;
         String immediate;
@@ -1478,6 +1771,22 @@ public class MipsCodeGenerator {
         }
         public String asString() {
             return "cvt.s.w" + " " + String.join(", ", this.args());
+        }
+        @Override
+        public List<String> args() {
+            return Arrays.asList( this.register,this.immediate);
+        }
+    }
+
+    static class cvt_w_s implements MipsInstruction {
+        String register;
+        String immediate;
+        public cvt_w_s(String register, String immediate) {
+            this.register = register;
+            this.immediate = immediate;
+        }
+        public String asString() {
+            return "cvt.w.s" + " " + String.join(", ", this.args());
         }
         @Override
         public List<String> args() {

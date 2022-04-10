@@ -1476,12 +1476,6 @@ public class MipsCodeGenerator {
         int numOfArgs = functionArgs.size();
         for (int i = 0; i < numOfArgs; i++) {
             if (i < 4) {
-                System.out.println(functionArgs.get(i));
-                for (String name: registerAllocation.keySet()) {
-                    String key = name.toString();
-                    String value = registerAllocation.get(name).toString();
-                    System.out.println(key + " " + value);
-                }
                 emit(new sw(argRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
             }
             else {

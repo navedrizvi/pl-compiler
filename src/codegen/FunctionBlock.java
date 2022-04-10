@@ -83,19 +83,11 @@ public class FunctionBlock {
         return out;
     }
 
-    // private static boolean elemInArray(String elem, String[] array) {
-    //     return Arrays.stream(array).anyMatch(elem::equals);
-    // }
-
-    // TODO10 keep looking at the hashmaps
     private HashMap<String, RegAllocTuple> doNaiveRegisterAllocation() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
         // Handling ints first
         int offset = 0;
         for (String intVar: intList) {
-            System.out.println("!!!!!!!!!!!!!!!!!--");
-            System.out.println(intVar);
-            System.out.println("!!!!!!!!!!!!!!!!!--");
             // int array
             if (intVar.endsWith("]")) {
                 int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
@@ -106,30 +98,21 @@ public class FunctionBlock {
             else {
                 intVar = intVar.replace(",", "");
                 intVar = intVar.trim();
-                System.out.println("int===!!!!!!!!!!!!!!!!!--");
-                System.out.println(intVar);
-                System.out.println(offset);
-                System.out.println("===!!!!!!!!!!!!!!!!!--");
                 varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
                 offset += 4;
             }
         }
-        // TODO1 remove temp
-        for (String intVar: floatList) {
-            if (intVar.endsWith("]")) {
-                int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
-                String var = intVar.substring(0, intVar.indexOf("["));
+        for (String floatVar: floatList) {
+            if (floatVar.endsWith("]")) {
+                int size = Integer.parseInt(floatVar.substring(floatVar.indexOf("[") + 1, floatVar.indexOf("]")));
+                String var = floatVar.substring(0, floatVar.indexOf("["));
                 varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
                 offset += size * 4;
             }
             else {
-                intVar = intVar.replace(",", "");
-                intVar = intVar.trim();
-                System.out.println("float!!!!!!!!!!!!!!!!!--");
-                System.out.println(intVar);
-                System.out.println(offset);
-                System.out.println("!!!!!!!!!!!!!!!!!--");
-                varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
+                floatVar = floatVar.replace(",", "");
+                floatVar = floatVar.trim();
+                varToMemoryOffSet.put(floatVar, new RegAllocTuple(floatVar, null, Integer.toString(offset), null));
                 offset += 4;
             }
         }

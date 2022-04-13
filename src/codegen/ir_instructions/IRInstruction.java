@@ -9,18 +9,10 @@ public interface IRInstruction {
 
     List<String> args();
 
+    String getInstruction();
+
     default String asString() {
         return this.opcode() + ": " + String.join(", ", this.args());
     }
 
-    default IRInstruction allocateRegisters(HashMap<String, String> varToRegister) {
-        for (int i = 0; i < this.args().size(); i++) {
-            String param = this.args().get(i);
-            if (varToRegister.containsKey(param)) {
-                this.args().set(i, varToRegister.get(param));
-            }
-        }
-        String[] args = this.args().toArray(new String[this.args().size()]);
-        return new Array_load(args);
-    }
 }

@@ -8,10 +8,16 @@ import java.util.Set;
 public class Assign implements IRInstruction {
     private String left;
     private String right;
+    private String instruction;
 
-    public Assign(String[] args) {
+    public String getInstruction() {
+        return instruction;
+    }
+
+    public Assign(String instruction, String[] args) {
         this.left = args[0];
         this.right = args[1];
+        this.instruction = instruction;
     }
 
     public String opcode() {

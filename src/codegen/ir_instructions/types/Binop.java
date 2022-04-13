@@ -19,14 +19,4 @@ public abstract class Binop {
     public List<String> args() {
         return Arrays.asList(this.left, this.right, this.temp);
     }
-
-    public Set<String> useSet() {
-        HashSet<String> uses = new HashSet<>();
-        // TODO fill
-        return uses;
-    }
-
-    public Set<String> defSet() {
-        return new HashSet<>(Arrays.asList(this.temp));
-    }
 }

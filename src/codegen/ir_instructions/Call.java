@@ -9,6 +9,11 @@ import java.util.Set;
 public class Call implements IRInstruction {
     private String function_name;
     private String[] function_args;
+    private String instruction;
+
+    public String getInstruction() {
+        return instruction;
+    }
 
     public String getFunction_name() {
         return function_name;
@@ -18,9 +23,10 @@ public class Call implements IRInstruction {
         return function_args;
     }
 
-    public Call(String[] args) {
+    public Call(String instruction, String[] args) {
         this.function_name = args[0];
         this.function_args = Arrays.copyOfRange(args, 1, args.length);
+        this.instruction = instruction;
     }
 
     public String opcode() {

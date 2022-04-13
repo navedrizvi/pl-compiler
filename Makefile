@@ -40,11 +40,13 @@ SOURCES := \
 	src/codegen/FunctionBlock.java \
 	src/codegen/MipsCodeGenerator.java \
 	src/codegen/RegAllocTuple.java \
-	src/codegen/InstrRegallocTuple.java \
 	src/codegen/TargetCodeGenerator.java \
 	src/codegen/mips_instructions/*.java \
 	src/codegen/ir_instructions/*.java \
 	src/codegen/ir_instructions/types/*.java \
+	src/codegen/BasicBlock.java \
+	src/codegen/BasicBlockBuilder.java \
+	src/codegen/CFGBuilder.java \
 	src/Tiger.java
 
 .PHONY:

@@ -40,6 +40,9 @@ public class MipsCodeGenerator {
     String returnValueIndex = null;
     int stackFrameSize = 0;
     private Map<String, List<String>> globalFunctionToArgs;
+    // Will be used by intra-block and briggs to keep track of register assigned
+    // to var. For intra-block, it will be initialized per-block.
+    Map<String, String> varToRegister;
 
     /*
     Floating-point Registers
@@ -61,18 +64,17 @@ public class MipsCodeGenerator {
     Set<String> usedFnArgsFloatRegisters;
     SymbolTable symbolTable;
 
-    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, HashMap<String, RegAllocTuple> registerAllocation, SymbolTable symbolTable) {
+    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, SymbolTable symbolTable) {
         this.instructions = instructions;
         this.intList = Arrays.asList(functionBlock.getIntList());
-        this.floatList = Arrays.asList(functionBlock.getIntList());
+        this.floatList = Arrays.asList(functionBlock.getFloatList());
         this.functionName = functionBlock.getFunctionName();
-        this.registerAllocation = registerAllocation;
         this.freeSaveRegisters = new Stack<>();
         this.freeSaveRegisters.addAll(Arrays.asList("$s7", "$s6", "$s5", "$s4", "$s3", "$s2", "$s1", "$s0"));
         this.freeTempRegisters = new Stack<>();
         this.freeTempRegisters.addAll(Arrays.asList("$t7", "$t6", "$t5", "$t4", "$t3", "$t2", "$t1", "$t0"));
         this.freeReserveRegisters = new Stack<>();
-        this.freeReserveRegisters.addAll(Arrays.asList("$t8", "$t9", "$v1", "$gp", "$fp"));
+        this.freeReserveRegisters.addAll(Arrays.asList("$fp", "$gp", "$v1", "$t8", "$t9"));
         this.usedSaveRegisters = new HashSet<>();
         this.usedTempRegisters = new HashSet<>();
         this.usedReserveRegisters = new HashSet<>();
@@ -130,7 +132,46 @@ public class MipsCodeGenerator {
         return isf;
     }
 
+    public void calculateLocalVariableOffsets() {
+        HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
+        // Handling ints first
+        int offset = 0;
+        for (String intVar: intList) {
+            // int array
+            if (intVar.endsWith("]")) {
+                int size = Integer.parseInt(intVar.substring(intVar.indexOf("[") + 1, intVar.indexOf("]")));
+                String var = intVar.substring(0, intVar.indexOf("["));
+                varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
+                offset += size * 4;
+            }
+            else {
+                intVar = intVar.replace(",", "");
+                intVar = intVar.trim();
+                varToMemoryOffSet.put(intVar, new RegAllocTuple(intVar, null, Integer.toString(offset), null));
+                offset += 4;
+            }
+        }
+
+        for (String floatVar: floatList) {
+            if (floatVar.endsWith("]")) {
+                int size = Integer.parseInt(floatVar.substring(floatVar.indexOf("[") + 1, floatVar.indexOf("]")));
+                String var = floatVar.substring(0, floatVar.indexOf("["));
+                varToMemoryOffSet.put(var, new RegAllocTuple(var, null, Integer.toString(offset), size));
+                offset += size * 4;
+            }
+            else {
+                floatVar = floatVar.replace(",", "");
+                floatVar = floatVar.trim();
+                varToMemoryOffSet.put(floatVar, new RegAllocTuple(floatVar, null, Integer.toString(offset), null));
+                offset += 4;
+            }
+        }
+        this.registerAllocation = varToMemoryOffSet;
+    }
+
     public void emit(MipsInstruction instr) {
+        if (instr == null)
+            return;
         this.mipsOutput.add(instr);
     }
 
@@ -174,133 +215,206 @@ public class MipsCodeGenerator {
         return stackSize;
     }
 
-    public List<MipsInstruction> generateMipsInstructions() {
-        // For now assuming only main function. I think we should follow call convention for all functions
-        emit(new functionName(functionName));
-        emit(new comment("# start of prologue"));
-        // space for stack frame
-        stackFrameSize = getSpaceForStackFrame(registerAllocation);
-        emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * stackFrameSize)));
-        storeCallerFunctionArgs();
-        storeSaveRegisters();
-        emit(new sw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
-        emit(new comment("# end of prologue"));
+    public List<MipsInstruction> generateMipsInstructionsForNaive() {
+        varToRegister = new HashMap<>();
+        calculateLocalVariableOffsets();
+        addPrologue();
 
-        for (IRInstruction instruction: this.instructions) {
-            if (instruction instanceof Add) {
-                handleAdd((Add) instruction);
-            }
-            else if (instruction instanceof And) {
-                handleAnd((And) instruction);
-            }
-            // a := arr[index]
-            else if (instruction instanceof Array_load) {
-                handleArrayLoad((Array_load) instruction);
-            }
-            // arr[index] := a
-            else if (instruction instanceof Array_store) {
-                handleArrayStore((Array_store) instruction);
-            }
-            else if (instruction instanceof Breq) {
-                handleBreq((Breq) instruction);
-            }
-            else if (instruction instanceof Brgeq) {
-                handleBrgeq((Brgeq) instruction);
-            }
-            else if (instruction instanceof Brgt) {
-                handleBrgt((Brgt) instruction);
-            }
-            else if (instruction instanceof Brleq) {
-                handleBrleq((Brleq) instruction);
-            }
-            else if (instruction instanceof Brlt) {
-                handleBrlt((Brlt) instruction);
-            }
-            else if (instruction instanceof Brneq) {
-                handleBrneq((Brneq) instruction);
-            }
-            else if (instruction instanceof Call) {
-                handleCall((Call) instruction);
-            }
-            else if (instruction instanceof Callr) {
-                handleCallr((Callr) instruction);
-            }
-            else if (instruction instanceof Div) {
-                handleDiv((Div) instruction);
-            }
-            else if (instruction instanceof Goto) {
-                emit(new j(((Goto) instruction).getLabel()));
-            }
-            else if (instruction instanceof Label) {
-                emit(new label(((Label) instruction).getName()));
-            }
-            else if (instruction instanceof Mult) {
-                handleMult((Mult) instruction);
-            }
-            else if (instruction instanceof Or) {
-                handleOr((Or) instruction);
-            }
-            else if (instruction instanceof Sub) {
-                handleSub((Sub) instruction);
-            }
-            else if (instruction instanceof ReturnVoid) {
-                // TODO: might need to do opposite of storeCallerFunctionArgs
-                emit(new comment("# start of epilogue"));
-                // restore save registers
-                loadSaveRegisters();
-                // restore return address
-                emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
-                emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(stackFrameSize)));
-                emit(new comment("# end of epilogue"));
+        handleIRInstructionsForNaive();
 
+        return this.mipsOutput;
+    }
 
-                emit(new jr(RETURN_ADDRESS));
-            }
-            else if (instruction instanceof Return) {
-                String returnValue = ((Return) instruction).getReturn_var();
-                // return value is a variable, else return value is a var
-                if (registerAllocation.get(returnValue) != null) {
-                    returnValueIndex = registerAllocation.get(returnValue).getMemoryOffset();
-                }
-                // return value is a value
+    public List<MipsInstruction> generateMipsInstructionsForIntraBlock(Map<BasicBlock, Map<String, Integer>> sortedHistogramByCountDesc) {
+        calculateLocalVariableOffsets();
+        addPrologue();
 
-                if (functionName.equals("main")) {
-                    // main - return 0
-                    emit(new li(FUNCTION_RETURN_VALUE_0, "0"));
-                }
-                // function with non-void return value
-                else if (returnValueIndex != null) {
-                    emit(new lw(FUNCTION_RETURN_VALUE_0, returnValueIndex + "(" + STACK_POINTER + ")"));
-                }
-                else {
-                    emit(new li(FUNCTION_RETURN_VALUE_0, returnValue));
-                }
+        // For each block, we will load/store as many registers as early as possible (on the boundaries),
+        // rest will be loaded/stored from memory per use.
+        for(Map.Entry<BasicBlock, Map<String, Integer>> entry: sortedHistogramByCountDesc.entrySet()) {
+            BasicBlock block = entry.getKey();
+            Map<String, Integer> histogram = entry.getValue();
+            varToRegister = getVarToRegister(histogram);
+            System.out.println("block " + block + ": " + varToRegister);
+            // Load eligible registers from memory
+//            loadRegistersAtBlockEntry();
 
-                // TODO: might need to do opposite of storeCallerFunctionArgs
-                emit(new comment("# start of epilogue"));
-                // restore save registers
-                loadSaveRegisters();
-                // restore return address
-                emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
-                emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(stackFrameSize)));
-                emit(new comment("# end of epilogue"));
+            boolean exited = handleIRInstructionsForIntraBlock(block);
 
-                emit(new jr(RETURN_ADDRESS));
-            }
-            // assign, arr, size, default_value
-            else if (instruction instanceof AssignArray) {
-                handleAssignArray((AssignArray) instruction);
-            }
-            // assign, a, b
-            else if (instruction instanceof Assign) {
-                handleAssign((Assign) instruction);
-            }
-            else {
-                throw new UnsupportedOperationException("IR to mips not supported: " + instruction.opcode());
+            // Store eligible registers back into memory
+            if (!exited)
+                storeRegistersAtBlockExit();
+
+            for (Map.Entry<String, String> entry1: varToRegister.entrySet()) {
+                addBackRegister(entry1.getValue());
             }
         }
 
         return this.mipsOutput;
+    }
+
+    private void loadRegistersAtBlockEntry() {
+        for (Map.Entry<String, String> entry1: varToRegister.entrySet()) {
+            String variable = entry1.getKey();
+            String register = entry1.getValue();
+            if (staticIntList.contains(variable)) {
+                emit(new lw(register, variable));
+            }
+            // int local variable
+            else if (intList.contains(variable)) {
+                emit(new lw(register, registerAllocation.get(variable).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+            }
+        }
+    }
+
+    private void storeRegistersAtBlockExit() {
+        for (Map.Entry<String, String> entry1: varToRegister.entrySet()) {
+            String variable = entry1.getKey();
+            String register = entry1.getValue();
+            if (staticIntList.contains(variable)) {
+                emit(new sw(register, variable));
+            }
+            else {
+                emit(new sw(register, registerAllocation.get(variable).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+            }
+//            addBackRegister(register);
+        }
+    }
+
+    private Map<String, String> getVarToRegister(Map<String, Integer> histogram) {
+        Map<String, String> result = new HashMap<>();
+        for(String variable: histogram.keySet()) {
+            // first assign save registers
+            if (!freeSaveRegisters.isEmpty()) {
+                String register = getRegister(true);
+                result.put(variable, register);
+            }
+            // then assign temp registers
+            else if (!freeTempRegisters.isEmpty()) {
+                String register = getRegister(false);
+                result.put(variable, register);
+            }
+            // Else, no more registers and we will need to load/store from memory per use.
+        }
+        return result;
+    }
+
+    private void handleIRInstructionsForNaive() {
+        for (IRInstruction instruction: this.instructions) {
+            handleInstruction(instruction);
+        }
+    }
+
+    private boolean isBranchOrReturn(String instruction) {
+        Set<String> ops = Set.of("return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
+        String op = instruction.split(",")[0].trim();
+        if (ops.contains(op))
+            return true;
+        return false;
+    }
+
+    private boolean isLabel(String instruction) {
+        return instruction.startsWith("_L") && instruction.endsWith(":");
+    }
+
+    private boolean handleIRInstructionsForIntraBlock(BasicBlock block) {
+        boolean exited = false;
+        List<String> blockInstructions = block.getInstructions();
+
+        for (int i = 0; i < blockInstructions.size(); i++) {
+            IRInstruction instruction = instructions[block.getInstructionIndexes().get(i)];
+            if (blockInstructions.contains(instruction.getInstruction())) {
+                if (instruction.getInstruction().equals(block.getLastInstruction()) && isBranchOrReturn(instruction.getInstruction())) {
+                    // Store eligible registers back into memory
+                    storeRegistersAtBlockExit();
+                    exited = true;
+                }
+                if (instruction.getInstruction().equals(block.getLeader()) && !isLabel(instruction.getInstruction())) {
+                    loadRegistersAtBlockEntry();
+                }
+                handleInstruction(instruction);
+            }
+        }
+        return exited;
+    }
+
+    private void handleInstruction(IRInstruction instruction) {
+        if (instruction instanceof Add) {
+            handleAdd((Add) instruction);
+        }
+        else if (instruction instanceof And) {
+            handleAnd((And) instruction);
+        }
+        // a := arr[index]
+        else if (instruction instanceof Array_load) {
+            handleArrayLoad((Array_load) instruction);
+        }
+        // arr[index] := a
+        else if (instruction instanceof Array_store) {
+            handleArrayStore((Array_store) instruction);
+        }
+        else if (instruction instanceof Breq) {
+            handleBreq((Breq) instruction);
+        }
+        else if (instruction instanceof Brgeq) {
+            handleBrgeq((Brgeq) instruction);
+        }
+        else if (instruction instanceof Brgt) {
+            handleBrgt((Brgt) instruction);
+        }
+        else if (instruction instanceof Brleq) {
+            handleBrleq((Brleq) instruction);
+        }
+        else if (instruction instanceof Brlt) {
+            handleBrlt((Brlt) instruction);
+        }
+        else if (instruction instanceof Brneq) {
+            handleBrneq((Brneq) instruction);
+        }
+        else if (instruction instanceof Call) {
+            handleCall((Call) instruction);
+        }
+        else if (instruction instanceof Callr) {
+            handleCallr((Callr) instruction);
+        }
+        else if (instruction instanceof Div) {
+            handleDiv((Div) instruction);
+        }
+        else if (instruction instanceof Goto) {
+            emit(new j(((Goto) instruction).getLabel()));
+        }
+        else if (instruction instanceof Label) {
+            emit(new label(((Label) instruction).getName()));
+            if (!varToRegister.isEmpty()) {
+                loadRegistersAtBlockEntry();
+            }
+        }
+        else if (instruction instanceof Mult) {
+            handleMult((Mult) instruction);
+        }
+        else if (instruction instanceof Or) {
+            handleOr((Or) instruction);
+        }
+        else if (instruction instanceof Sub) {
+            handleSub((Sub) instruction);
+        }
+        else if (instruction instanceof ReturnVoid) {
+            handleReturnVoid((ReturnVoid) instruction);
+        }
+        else if (instruction instanceof Return) {
+            handleReturn((Return) instruction);
+        }
+        // assign, arr, size, default_value
+        else if (instruction instanceof AssignArray) {
+            handleAssignArray((AssignArray) instruction);
+        }
+        // assign, a, b
+        else if (instruction instanceof Assign) {
+            handleAssign((Assign) instruction);
+        }
+        else {
+            throw new UnsupportedOperationException("IR to mips not supported: " + instruction.opcode());
+        }
     }
 
     private void storeSaveRegisters() {
@@ -327,130 +441,283 @@ public class MipsCodeGenerator {
         }
     }
 
+    private void handleReturnVoid(ReturnVoid instruction) {
+        addEpilogue();
+    }
+
+    private void handleReturn(Return instruction) {
+        String returnValue = ((Return) instruction).getReturn_var();
+        // return value is a variable, else return value is a var
+        if (registerAllocation.get(returnValue) != null) {
+            returnValueIndex = registerAllocation.get(returnValue).getMemoryOffset();
+        }
+        // return value is a value
+
+        if (functionName.equals("main")) {
+            // main - return 0
+            emit(new li(FUNCTION_RETURN_VALUE_0, "0"));
+        }
+        // function with non-void return value
+        else if (returnValueIndex != null) {
+            emit(new lw(FUNCTION_RETURN_VALUE_0, returnValueIndex + "(" + STACK_POINTER + ")"));
+        }
+        else {
+            emit(new li(FUNCTION_RETURN_VALUE_0, returnValue));
+        }
+
+        addEpilogue();
+    }
+
+    private void addPrologue() {
+        emit(new functionName(functionName));
+        emit(new comment("# start of prologue"));
+        // space for stack frame
+        stackFrameSize = getSpaceForStackFrame(registerAllocation);
+        emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * stackFrameSize)));
+        storeCallerFunctionArgs();
+        storeSaveRegisters();
+        emit(new sw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
+        emit(new comment("# end of prologue"));
+    }
+
+    private void addEpilogue() {
+        emit(new comment("# start of epilogue"));
+        // restore save registers
+        loadSaveRegisters();
+        // restore return address
+        emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
+        emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(stackFrameSize)));
+        emit(new comment("# end of epilogue"));
+
+        emit(new jr(RETURN_ADDRESS));
+    }
+
     private void handleBrneq(Brneq instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a != b
         emit(new bne(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleBrlt(Brlt instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a < b
         emit(new blt(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleBrleq(Brleq instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a <= b
         emit(new ble(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleBrgt(Brgt instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a > b
         emit(new bgt(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleBrgeq(Brgeq instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a >= b
         emit(new bge(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleBreq(Breq instruction) {
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String label = instruction.args().get(2);
+        boolean addBackA = false;
+        boolean addBackB = false;
 
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
-
 
         // c = a == b
         emit(new beq(register_a, register_b, label));
 
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     private void handleArrayLoad(Array_load instruction) {
@@ -516,11 +783,12 @@ public class MipsCodeGenerator {
         try {
             int indexOffset = Integer.parseInt(registerAllocation.get(arrayVar).getMemoryOffset()) + Integer.parseInt(index) * 4;
             // value
-            String register_var = getRegister(false);
-            emit(new lw(register_var, indexOffset + "(" + STACK_POINTER + ")"));
-            emit(getStoreCommand(register_var, var));
+            String registerValue = getRegister(false);
+            emit(new lw(registerValue, indexOffset + "(" + STACK_POINTER + ")"));
+            emit(getStoreCommand(registerValue, var));
 
-            addBackRegister(register_var);
+            addBackRegister(registerValue);
+
         }
         // index is a variable
         catch (NumberFormatException e){
@@ -624,12 +892,12 @@ public class MipsCodeGenerator {
         try {
             int indexOffset = Integer.parseInt(registerAllocation.get(arrayVar).getMemoryOffset()) + Integer.parseInt(index) * 4;
             // value
-            String register_value = getRegister(false);
-            emit(getLoadCommand(register_value, value));
+            String registerValue = getRegister(false);
+            emit(getLoadCommand(registerValue, value));
 
-            emit(new sw(register_value, indexOffset + "(" + STACK_POINTER + ")"));
+            emit(new sw(registerValue, indexOffset + "(" + STACK_POINTER + ")"));
 
-            addBackRegister(register_value);
+            addBackRegister(registerValue);
         }
         // index is a variable
         catch (NumberFormatException e){
@@ -719,15 +987,59 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        String register_a="";
-        String register_b="";
-        String register_c="";
+        String register_a = "";
+        String register_b = "";
+        String register_c = "";
         boolean aWasCasted = false;
         boolean bWasCasted = false;
+        // all ints
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            register_a = getRegister(false);
-            register_b = getRegister(false);
-            register_c = getRegister(false);
+            boolean addBackA = false;
+            boolean addBackB = false;
+            boolean addBackC = false;
+
+            // a
+            if (varToRegister.containsKey(a)) {
+                register_a = varToRegister.get(a);
+            }
+            else {
+                addBackA = true;
+                register_a = getRegister(false);
+            }
+            emit(getLoadCommand(register_a, a));
+
+            // b
+            if (varToRegister.containsKey(b)) {
+                register_b = varToRegister.get(b);
+            }
+            else {
+                addBackB = true;
+                register_b = getRegister(false);
+            }
+            emit(getLoadCommand(register_b, b));
+
+            // c
+            if (varToRegister.containsKey(c)) {
+                register_c = varToRegister.get(c);
+            }
+            else {
+                addBackC = true;
+                register_c = getRegister(false);
+            }
+
+            emit(getLoadCommand(register_c, c));
+
+            // c = a + b
+            emit(new add(register_c, register_a, register_b));
+            emit(getStoreCommand(register_c, c));
+
+            if (addBackC)
+                addBackRegister(register_c);
+            if (addBackB)
+                addBackRegister(register_b);
+            if (addBackA)
+                addBackRegister(register_a);
+            return;
         }
         else {
             if (checkIsFloat(c)) {
@@ -836,15 +1148,58 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        String register_a="";
-        String register_b="";
+        String register_a = "";
+        String register_b = "";
         String register_c="";
         boolean aWasCasted = false;
         boolean bWasCasted = false;
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            register_a = getRegister(false);
-            register_b = getRegister(false);
-            register_c = getRegister(false);
+            boolean addBackA = false;
+            boolean addBackB = false;
+            boolean addBackC = false;
+
+            // a
+            if (varToRegister.containsKey(a)) {
+                register_a = varToRegister.get(a);
+            }
+            else {
+                addBackA = true;
+                register_a = getRegister(false);
+            }
+            emit(getLoadCommand(register_a, a));
+
+            // b
+            if (varToRegister.containsKey(b)) {
+                register_b = varToRegister.get(b);
+            }
+            else {
+                addBackB = true;
+                register_b = getRegister(false);
+            }
+            emit(getLoadCommand(register_b, b));
+
+            // c
+            if (varToRegister.containsKey(c)) {
+                register_c = varToRegister.get(c);
+            }
+            else {
+                addBackC = true;
+                register_c = getRegister(false);
+            }
+            emit(getLoadCommand(register_c, c));
+
+            // c = a - b
+            emit(new sub(register_c, register_a, register_b));
+            emit(getStoreCommand(register_c, c));
+
+            if (addBackC)
+                addBackRegister(register_c);
+            if (addBackB)
+                addBackRegister(register_b);
+            if (addBackA)
+                addBackRegister(register_a);
+
+            return;
         }
         else {
             if (checkIsFloat(c)) {
@@ -959,9 +1314,52 @@ public class MipsCodeGenerator {
         boolean aWasCasted = false;
         boolean bWasCasted = false;
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            register_a = getRegister(false);
-            register_b = getRegister(false);
-            register_c = getRegister(false);
+            boolean addBackA = false;
+            boolean addBackB = false;
+            boolean addBackC = false;
+
+            // a
+            if (varToRegister.containsKey(a)) {
+                register_a = varToRegister.get(a);
+            }
+            else {
+                addBackA = true;
+                register_a = getRegister(false);
+            }
+            emit(getLoadCommand(register_a, a));
+
+            // b
+            if (varToRegister.containsKey(b)) {
+                register_b = varToRegister.get(b);
+            }
+            else {
+                addBackB = true;
+                register_b = getRegister(false);
+            }
+            emit(getLoadCommand(register_b, b));
+
+            // c
+            if (varToRegister.containsKey(c)) {
+                register_c = varToRegister.get(c);
+            }
+            else {
+                addBackC = true;
+                register_c = getRegister(false);
+            }
+
+            emit(getLoadCommand(register_c, c));
+
+            // c = a * b
+            emit(new mul(register_c, register_a, register_b));
+            emit(getStoreCommand(register_c, c));
+
+            if (addBackC)
+                addBackRegister(register_c);
+            if (addBackB)
+                addBackRegister(register_b);
+            if (addBackA)
+                addBackRegister(register_a);
+            return;
         }
         else {
             if (checkIsFloat(c)) {
@@ -1076,9 +1474,52 @@ public class MipsCodeGenerator {
         boolean aWasCasted = false;
         boolean bWasCasted = false;
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            register_a = getRegister(false);
-            register_b = getRegister(false);
-            register_c = getRegister(false);
+            boolean addBackA = false;
+            boolean addBackB = false;
+            boolean addBackC = false;
+
+            // a
+            if (varToRegister.containsKey(a)) {
+                register_a = varToRegister.get(a);
+            }
+            else {
+                addBackA = true;
+                register_a = getRegister(false);
+            }
+            emit(getLoadCommand(register_a, a));
+
+            // b
+            if (varToRegister.containsKey(b)) {
+                register_b = varToRegister.get(b);
+            }
+            else {
+                addBackB = true;
+                register_b = getRegister(false);
+            }
+            emit(getLoadCommand(register_b, b));
+
+            // c
+            if (varToRegister.containsKey(c)) {
+                register_c = varToRegister.get(c);
+            }
+            else {
+                addBackC = true;
+                register_c = getRegister(false);
+            }
+
+            emit(getLoadCommand(register_c, c));
+
+            // c = a / b
+            emit(new div(register_c, register_a, register_b));
+            emit(getStoreCommand(register_c, c));
+
+            if (addBackC)
+                addBackRegister(register_c);
+            if (addBackB)
+                addBackRegister(register_b);
+            if (addBackA)
+                addBackRegister(register_a);
+            return;
         }
         else {
             if (checkIsFloat(c)) {
@@ -1187,25 +1628,53 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
+        boolean addBackA = false;
+        boolean addBackB = false;
+        boolean addBackC = false;
+
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
 
         // c
-        String register_c = getRegister(false);
+        String register_c;
+        if (varToRegister.containsKey(c)) {
+            register_c = varToRegister.get(c);
+        }
+        else {
+            addBackC = true;
+            register_c = getRegister(false);
+        }
         emit(getLoadCommand(register_c, c));
 
         // c = a & b
         emit(new and(register_c, register_a, register_b));
         emit(getStoreCommand(register_c, c));
 
-        addBackRegister(register_c);
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackC)
+            addBackRegister(register_c);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     // c = a | b
@@ -1217,25 +1686,53 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
+        boolean addBackA = false;
+        boolean addBackB = false;
+        boolean addBackC = false;
+
         // a
-        String register_a = getRegister(false);
+        String register_a;
+        if (varToRegister.containsKey(a)) {
+            register_a = varToRegister.get(a);
+        }
+        else {
+            addBackA = true;
+            register_a = getRegister(false);
+        }
         emit(getLoadCommand(register_a, a));
 
         // b
-        String register_b = getRegister(false);
+        String register_b;
+        if (varToRegister.containsKey(b)) {
+            register_b = varToRegister.get(b);
+        }
+        else {
+            addBackB = true;
+            register_b = getRegister(false);
+        }
         emit(getLoadCommand(register_b, b));
 
         // c
-        String register_c = getRegister(false);
+        String register_c;
+        if (varToRegister.containsKey(c)) {
+            register_c = varToRegister.get(c);
+        }
+        else {
+            addBackC = true;
+            register_c = getRegister(false);
+        }
         emit(getLoadCommand(register_c, c));
 
         // c = a | b
         emit(new or(register_c, register_a, register_b));
         emit(getStoreCommand(register_c, c));
 
-        addBackRegister(register_c);
-        addBackRegister(register_b);
-        addBackRegister(register_a);
+        if (addBackC)
+            addBackRegister(register_c);
+        if (addBackB)
+            addBackRegister(register_b);
+        if (addBackA)
+            addBackRegister(register_a);
     }
 
     // assign a, b
@@ -1314,8 +1811,9 @@ public class MipsCodeGenerator {
         }
         else {
             boolean aOrBIsFloat = checkIsFloat(a) || checkIsFloat(b);
-            String register = getRegister(false, aOrBIsFloat);
+
             if (aOrBIsFloat) {
+                String register = getRegister(false, aOrBIsFloat);
                 if (!checkIsFloat(b)) {
                     String floatTemp = emitFloatCastInstrs(b);
                     emit(getStoreCommand(floatTemp, a));
@@ -1325,12 +1823,27 @@ public class MipsCodeGenerator {
                     emit(getLoadCommand(register, b));
                     emit(getStoreCommand(register, a));
                 }
+                addBackRegister(register);
             }
             else {
+                // b
+                String register;
+                boolean addBack = false;
+                if (varToRegister.containsKey(b)) {
+                    register = varToRegister.get(b);
+                }
+                else {
+                    addBack = true;
+                    register = getRegister(false);
+                }
                 emit(getLoadCommand(register, b));
+
+                // a
                 emit(getStoreCommand(register, a));
+
+                if (addBack)
+                    addBackRegister(register);
             }
-            addBackRegister(register);
         }
     }
 
@@ -1376,7 +1889,14 @@ public class MipsCodeGenerator {
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
+            // Intra-block - update static variables from registers before function call.
+            if (!varToRegister.isEmpty()) {
+                storeRegistersAtBlockExit();
+            }
             emit(new jal(instruction.getFunction_name()));
+            if(!varToRegister.isEmpty()) {
+                loadRegistersAtBlockEntry();
+            }
         }
     }
 
@@ -1426,13 +1946,24 @@ public class MipsCodeGenerator {
         String arg = instruction.args().get(1);
         // printing a integer local variable
         if (intList.contains(arg)) {
-            String register = getRegister(false);
-            emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
-            emit(new move(PRINT_INTEGER_ARG, register));
-            addBackRegister(register);
+            String register = varToRegister.get(arg);
+            if (register != null) {
+                emit(new move(PRINT_INTEGER_ARG, register));
+            }
+            else {
+                register = getRegister(false);
+                emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                emit(new move(PRINT_INTEGER_ARG, register));
+                addBackRegister(register);
+            }
         }
         else if (staticIntList.contains(arg)) {
-            emit(new lw(PRINT_INTEGER_ARG, arg));
+            if (varToRegister.containsKey(arg)) {
+                emit(new move(PRINT_INTEGER_ARG, varToRegister.get(arg)));
+            }
+            else {
+                emit(new lw(PRINT_INTEGER_ARG, arg));
+            }
         }
         // printing an integer value
         else {
@@ -1467,7 +1998,14 @@ public class MipsCodeGenerator {
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
+            // Intra-block - update static variables from registers before function call.
+            if (!varToRegister.isEmpty()) {
+                storeRegistersAtBlockExit();
+            }
             emit(new jal(instruction.getFunction_name()));
+            if(!varToRegister.isEmpty()) {
+                loadRegistersAtBlockEntry();
+            }
             String a = instruction.args().get(0);
             emit(getStoreCommand(FUNCTION_RETURN_VALUE_0, a));
         }
@@ -1490,11 +2028,6 @@ public class MipsCodeGenerator {
                 addBackRegister(register);
             }
         }
-    }
-
-    // TODO: implement as part of epilogue as opposite to storeCallerFunctionArgs
-    private void loadCallerFunctionArgs() {
-
     }
 
     private void loadCalleeFunctionArgs(String calleeFunction, String[] args) {
@@ -1527,7 +2060,12 @@ public class MipsCodeGenerator {
     // Currently implementing for ints. Can extend to floats or handle floats in a separate function.
     private MipsInstruction getLoadCommand(String register, String operand) {
         MipsInstruction cmd = null;
-        if (staticIntList.contains(operand) || staticFloatList.contains(operand)) {
+        if (varToRegister.containsKey(operand)) {
+            if (!varToRegister.get(operand).equals(register))
+                cmd = new move(register, varToRegister.get(operand));
+        }
+        // int/float static variable
+        else if (staticIntList.contains(operand) || staticFloatList.contains(operand)) {
             cmd = new lw(register, operand);
         }
         else if (intList.contains(operand) || floatList.contains(operand)) {
@@ -1543,6 +2081,10 @@ public class MipsCodeGenerator {
     }
 
     private MipsInstruction getStoreCommand(String register, String operand) {
+        if (varToRegister.containsKey(operand)) {
+            if(!varToRegister.get(operand).equals(register))
+                return new move(varToRegister.get(operand), register);
+        }
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
@@ -1560,9 +2102,15 @@ public class MipsCodeGenerator {
             return temp;
         }
         if (freeTempRegisters.isEmpty() && freeSaveRegisters.isEmpty()) {
-            throw new UnsupportedOperationException("No more registers.");
+            // now look at reserved registers
+            if (freeReserveRegisters.isEmpty())
+                throw new UnsupportedOperationException("No more registers.");
+            temp = freeReserveRegisters.pop();
+            usedReserveRegisters.add(temp);
+            return temp;
         }
-        if (freeTempRegisters.isEmpty()) {
+
+        if (!freeSaveRegisters.isEmpty()) {
             temp = freeSaveRegisters.pop();
             usedSaveRegisters.add(temp);
             return temp;
@@ -1633,11 +2181,17 @@ public class MipsCodeGenerator {
                 freeSaveRegisters.push(register);
             }
         }
+
         if (register.startsWith("$f")) {
             if (usedSaveFloatRegisters.contains(register)) {
                 usedSaveFloatRegisters.remove(register);
                 freeSaveFloatRegisters.push(register);
             }
+        }
+
+        if (usedReserveRegisters.contains(register)) {
+            usedReserveRegisters.remove(register);
+            freeReserveRegisters.push(register);
         }
     }
 

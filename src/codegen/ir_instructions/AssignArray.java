@@ -9,11 +9,17 @@ public class AssignArray implements IRInstruction {
     private String arr_name;
     private int arr_size;
     private String arr_var;
+    private String instruction;
 
-    public AssignArray(String[] args) {
+    public String getInstruction() {
+        return instruction;
+    }
+
+    public AssignArray(String instruction, String[] args) {
         this.arr_name = args[0];
         this.arr_size = Integer.parseInt(args[1]);
         this.arr_var = args[2];
+        this.instruction = instruction;
     }
 
     public String opcode() {

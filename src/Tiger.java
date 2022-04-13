@@ -1,3 +1,5 @@
+import codegen.BasicBlock;
+import codegen.CFGBuilder;
 import codegen.TargetCodeGenerator;
 import common.Symbol;
 import common.SymbolTable;
@@ -343,12 +345,17 @@ public class Tiger {
                 }
             }
             else if (bFlagProvided) {
+                CFGBuilder cfgBuilder = new CFGBuilder(IR.irOutput);
+                cfgBuilder.build();
+                Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG = cfgBuilder.getFuncNameToCFG();
                 if (cfgFlagProvided) {
-                    CFGBuilder cfgBuilder = new CFGBuilder(IR.irOutput);
-                    cfgBuilder.build();
                     String graph = cfgBuilder.getGraph().toDOT();
-//                    System.out.println(graph);
                     writeCFGToFile(fileName, graph);
+                }
+                String mips = targetCodeGenerator.generateTargetMipsCodeIntraBlockAlloc(funcNameToCFG);
+                if (mipsFlagProvided) {
+//                    System.out.println(mips);
+                    writeMipsToFile(fileName, "ib", mips);
                 }
             }
         }

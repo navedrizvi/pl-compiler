@@ -6,7 +6,13 @@ import java.util.List;
 import java.util.Set;
 
 public class ReturnVoid implements IRInstruction {
-    public ReturnVoid() {
+    private String instruction;
+
+    public String getInstruction() {
+        return instruction;
+    }
+    public ReturnVoid(String instruction) {
+        this.instruction = instruction;
     }
 
     public String opcode() {

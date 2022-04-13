@@ -5,22 +5,24 @@ import java.util.List;
 import java.util.Set;
 
 public class Label implements IRInstruction {
+    private String instruction;
+
+    public String getInstruction() {
+        return instruction;
+    }
 
     private String name;
     public String getName() {
         return name;
     }
-    public Label(String[] args) {
+    public Label(String instruction, String[] args) {
         this.name = args[0];
+        this.instruction = instruction;
     }
 
     public String opcode() {
         return "label";
     } 
-
-    public List<String> params() {
-        return Arrays.asList(this.name);
-    }
 
     @Override
     public List<String> args() {

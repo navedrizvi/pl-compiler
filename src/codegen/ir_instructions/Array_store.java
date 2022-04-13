@@ -9,11 +9,17 @@ public class Array_store implements IRInstruction {
     private String array_name;
     private String idx;
     private String load_var;
+    private String instruction;
 
-    public Array_store(String[] args) {
+    public String getInstruction() {
+        return instruction;
+    }
+
+    public Array_store(String instruction, String[] args) {
         this.array_name = args[0];
         this.idx = args[1];
         this.load_var = args[2];
+        this.instruction = instruction;
     }
 
     public String opcode() {

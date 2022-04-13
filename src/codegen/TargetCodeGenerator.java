@@ -119,55 +119,55 @@ public class TargetCodeGenerator {
       args = args_ls.toArray(args);
       switch (type) {
          case "add":
-             return (IRInstruction) new Add(args);
+             return (IRInstruction) new Add(ir_instr, args);
          case "and":
-             return (IRInstruction) new And(args);
+             return (IRInstruction) new And(ir_instr, args);
          case "array_load":
-             return (IRInstruction) new Array_load(args);
+             return (IRInstruction) new Array_load(ir_instr, args);
          case "array_store":
-             return (IRInstruction) new Array_store(args);
+             return (IRInstruction) new Array_store(ir_instr, args);
          case "breq":
-            return (IRInstruction) new Breq(args);
+            return (IRInstruction) new Breq(ir_instr, args);
          case "brgeq":
-            return (IRInstruction) new Brgeq(args);
+            return (IRInstruction) new Brgeq(ir_instr, args);
          case "brgt":
-             return (IRInstruction) new Brgt(args);
+             return (IRInstruction) new Brgt(ir_instr, args);
          case "brleq":
-            return (IRInstruction) new Brleq(args);
+            return (IRInstruction) new Brleq(ir_instr, args);
          case "brlt":
-             return (IRInstruction) new Brlt(args);
+             return (IRInstruction) new Brlt(ir_instr, args);
          case "brneq":
-             return (IRInstruction) new Brneq(args);
+             return (IRInstruction) new Brneq(ir_instr, args);
          case "call":
-             return (IRInstruction) new Call(args);
+             return (IRInstruction) new Call(ir_instr, args);
          case "callr":
-             return (IRInstruction) new Callr(args);
+             return (IRInstruction) new Callr(ir_instr, args);
          case "div":
-             return (IRInstruction) new Div(args);
+             return (IRInstruction) new Div(ir_instr, args);
          case "goto":
-             return (IRInstruction) new Goto(args);
+             return (IRInstruction) new Goto(ir_instr, args);
          case "mult":
-             return (IRInstruction) new Mult(args);
+             return (IRInstruction) new Mult(ir_instr, args);
          case "or":
-             return (IRInstruction) new Or(args);
+             return (IRInstruction) new Or(ir_instr, args);
          case "sub":
-             return (IRInstruction) new Sub(args);
+             return (IRInstruction) new Sub(ir_instr, args);
          case "return":
                if (args.length == 0) {
-                  return (IRInstruction) new ReturnVoid();
+                  return (IRInstruction) new ReturnVoid(ir_instr);
                } else {
-                  return (IRInstruction) new Return(args);
+                  return (IRInstruction) new Return(ir_instr, args);
                }
          case "assign":
             if (args.length == 3) {
-               return (IRInstruction) new AssignArray(args);
+               return (IRInstruction) new AssignArray(ir_instr, args);
             }
             if (args.length == 2) {
-               return (IRInstruction) new Assign(args);
+               return (IRInstruction) new Assign(ir_instr, args);
             }
          default:
             // label
-            return (IRInstruction) new Label(split_instr[0].split(":"));
+            return (IRInstruction) new Label(ir_instr, split_instr[0].split(":"));
      }
    }
 
@@ -188,5 +188,25 @@ public class TargetCodeGenerator {
              ".text\n" + 
              ".globl main\n" +
              String.join("\n", mipsTextInstrs) + "\n";
+   }
+
+   public String generateTargetMipsCodeIntraBlockAlloc(Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG) {
+      List<FunctionBlock> functionBlocks = getTextSectionInstrs(staticIntList, staticFloatList);
+      for(FunctionBlock block: functionBlocks) {
+         block.setGlobalFunctionToArgs(functionToArgs);
+         block.setFuncNameToCFG(funcNameToCFG);
+      }
+      List<String> mipsDataInstrs = getDataSectionInstrs();
+      List<String> mipsTextInstrs = functionBlocks.stream()
+              .map(FunctionBlock::getIntraBlockMips)
+              .flatMap(Collection::stream)
+              .map(MipsInstruction::asString)
+              .collect(Collectors.toList());
+
+      return ".data\n" +
+              String.join("\n", mipsDataInstrs) + "\n" +
+              ".text\n" +
+              ".globl main\n" +
+              String.join("\n", mipsTextInstrs) + "\n";
    }
 }

@@ -10,6 +10,11 @@ public class Callr implements IRInstruction {
     private String store_var;
     private String function_name;
     private String[] function_args;
+    private String instruction;
+
+    public String getInstruction() {
+        return instruction;
+    }
 
     public String getStore_var() {
         return store_var;
@@ -23,10 +28,11 @@ public class Callr implements IRInstruction {
         return function_args;
     }
 
-    public Callr(String[] args) {
+    public Callr(String instruction, String[] args) {
         this.store_var = args[0];
         this.function_name = args[1];
         this.function_args = Arrays.copyOfRange(args, 2, args.length);
+        this.instruction = instruction;
     }
 
     public String opcode() {

@@ -7,8 +7,14 @@ import java.util.Set;
 
 public class Return implements IRInstruction {
     private String return_var;
-    public Return(String[] args) {
+    private String instruction;
+
+    public String getInstruction() {
+        return instruction;
+    }
+    public Return(String instruction, String[] args) {
         this.return_var = args[0];
+        this.instruction = instruction;
     }
 
     public String opcode() {

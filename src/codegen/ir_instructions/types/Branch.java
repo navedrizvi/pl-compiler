@@ -19,14 +19,4 @@ abstract public class Branch {
     public List<String> args() {
         return Arrays.asList(this.left, this.right, this.label);
     }
-
-    public Set<String> useSet() {
-        HashSet<String> uses = new HashSet<>();
-        // TODO fill uses
-        return uses;
-    }
-
-    public Set<String> defSet() {
-        return new HashSet<String>();
-    }
 }

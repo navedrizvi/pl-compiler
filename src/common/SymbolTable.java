@@ -76,7 +76,6 @@ public class SymbolTable {
         }
         else if (mangledName.startsWith("_")) {
             String[] nameSplit = mangledName.split("_");
-            System.out.println(nameSplit);
             int scope = Integer.parseInt(nameSplit[1]);
             String name = nameSplit[2];
         

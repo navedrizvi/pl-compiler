@@ -100,11 +100,9 @@ public class FunctionBlock {
         // Generate frequencies
         Map<BasicBlock, List<BasicBlock>> cfg = funcNameToCFG.get(functionName);
         Map<BasicBlock, Map<String, Integer>> histogram = generateHistogram(cfg);
-        System.out.println(histogram);
 
         // Sort frequencies by highest to lowest
         Map<BasicBlock, Map<String, Integer>> sortedHistogramByCountDesc = sortHistogramByCountDesc(histogram);
-        System.out.println(sortedHistogramByCountDesc);
 
         return sortedHistogramByCountDesc;
     }
@@ -148,7 +146,7 @@ public class FunctionBlock {
 
     private void count(Map<String, Integer> freq, ArrayList<String> args) {
         for(String arg: args) {
-            if (Arrays.asList(intList).contains(arg) || staticIntList.contains(arg)) {
+            if (Arrays.asList(intList).contains(arg) || staticIntList.contains(arg) || Arrays.asList(floatList).contains(arg) || staticFloatList.contains(arg)) {
                 Integer count = freq.get(arg);
                 if (count == null)
                     freq.put(arg, 1);

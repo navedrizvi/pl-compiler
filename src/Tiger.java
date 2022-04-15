@@ -396,8 +396,8 @@ public class Tiger {
                     writeCFGToFile(fileName, graph);
                 }
 
-                String mips = targetCodeGenerator.generateTargetMipsCodeIntraBlockAlloc(funcNameToCFG);
                 if (mipsFlagProvided) {
+                    String mips = targetCodeGenerator.generateTargetMipsCodeIntraBlockAlloc(funcNameToCFG);
 //                    System.out.println(mips);
                     writeMipsToFile(fileName, "ib", mips);
                 }
@@ -409,7 +409,7 @@ public class Tiger {
                 Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis = doFullLivenessAnalysis(funcNameToCFG, funcNameToFunc, cfgBuilder.getFuncNameToIntList(), cfgBuilder.getFuncNameToFloatList());
                 if (livenessFlagProvided) {
                     String livenessAnalysis = formatLivenessAnalysisOutput(funcNameToLivenessAnaylsis, funcNameToFunc);
-                    System.out.println(livenessAnalysis);
+//                    System.out.println(livenessAnalysis);
                     wrtieLivenessAnalysisToFile(fileName, livenessAnalysis);
                 }
 

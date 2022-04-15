@@ -3,28 +3,24 @@ package codegen;
 import codegen.ir_instructions.*;
 import org.antlr.v4.runtime.misc.MultiMap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CFGBuilder {
 
     private final List<String> ir;
-
     private final Graph graph = new Graph();
-
     private Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG = new HashMap<>();
+    private Map<String, List<String>> funcNameToIntList = new HashMap<>();
+    private Map<String, List<String>> funcNameToFloatList = new HashMap<>();
 
     public CFGBuilder(List<String> ir) {
         this.ir = ir;
     }
 
-    public void build() {
+    public Map<String, ArrayList<String>> build() {
         // create mapping of function to IR lines per function
         Map<String, ArrayList<String>> funcNameToFunc = getFuncNameToFunc();
         // for each function, create Basic Blocks and then CFG from the blocks
-//        Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG = new HashMap<>();
         for (Map.Entry<String, ArrayList<String>> entry: funcNameToFunc.entrySet()) {
             String funcName = entry.getKey();
             ArrayList<String> instructions = entry.getValue();
@@ -34,10 +30,20 @@ public class CFGBuilder {
             funcNameToCFG.put(funcName, cfg);
             populateGraphForDOT(cfg);
         }
+
+        return funcNameToFunc;
     }
 
     public Map<String, Map<BasicBlock, List<BasicBlock>>> getFuncNameToCFG() {
         return funcNameToCFG;
+    }
+
+    public Map<String, List<String>> getFuncNameToIntList() {
+        return funcNameToIntList;
+    }
+
+    public Map<String, List<String>> getFuncNameToFloatList() {
+        return funcNameToFloatList;
     }
 
     private void populateGraphForDOT(Map<BasicBlock, List<BasicBlock>> cfg) {
@@ -78,6 +84,14 @@ public class CFGBuilder {
 
             if (insideFunction) {
                 functionStartIndex++;
+                if (instruction.startsWith("int-list")) {
+                    funcNameToIntList.put(functioName, Arrays.asList(instruction.replace("int-list: ", "").split(", ")));
+                }
+
+                if (instruction.startsWith("float-list")) {
+                    funcNameToFloatList.put(functioName, Arrays.asList(instruction.replace("float-list: ", "").split(", ")));
+                }
+
                 if(functionStartIndex < 5)
                     continue;
                 funcNameToFunc.get(functioName).add(instruction);

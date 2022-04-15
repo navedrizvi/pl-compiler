@@ -1,10 +1,11 @@
 import codegen.BasicBlock;
 import codegen.CFGBuilder;
+import codegen.LivenessAnalysis;
 import codegen.TargetCodeGenerator;
 import common.Symbol;
 import common.SymbolTable;
 
-import java.util.Arrays;
+import java.util.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,8 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.Map;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -140,9 +139,13 @@ public class Tiger {
     }
 
     private static void writeCFGToFile(String fileName, String graph) {
-        // regAllocationStrategy is one of (briggs, ib, or naive) todo make enum
         String outputFile = fileName.replace(".tiger", ".cfg.gv");
         writeFileWithContent(outputFile, graph);
+    }
+
+    private static void wrtieLivenessAnalysisToFile(String fileName, String livenessAnalysis) {
+        String outputFile = fileName.replace(".tiger", ".liveness");
+        writeFileWithContent(outputFile, livenessAnalysis);
     }
 
     private static int getFlagIdx(String flag, String[] args) {
@@ -187,6 +190,40 @@ public class Tiger {
         return fileName;
     }
 
+    private static Map<String, LivenessAnalysis> doFullLivenessAnalysis(
+            Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG, Map<String, ArrayList<String>> funcNameToFunc,
+            Map<String, List<String>> funcNameToIntList, Map<String, List<String>> funcNameToFloatList
+    ) {
+        Map<String, LivenessAnalysis> funcNameToLivenessAnalysis = new HashMap<>();
+
+        for (Map.Entry<String, Map<BasicBlock, List<BasicBlock>>> entry: funcNameToCFG.entrySet()) {
+            String funcName = entry.getKey();
+            LivenessAnalysis livenessAnalysis = new LivenessAnalysis(
+                    entry.getValue(), funcNameToFunc.get(funcName), funcNameToIntList.get(funcName), funcNameToFloatList.get(funcName)
+            );
+            livenessAnalysis.execute();
+            funcNameToLivenessAnalysis.put(funcName, livenessAnalysis);
+        }
+
+        return funcNameToLivenessAnalysis;
+    }
+
+    private static String formatLivenessAnalysisOutput(Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis, Map<String, ArrayList<String>> funcNameToFunc) {
+        StringBuilder buf = new StringBuilder();
+
+        for(String funcName: funcNameToFunc.keySet()) {
+            buf.append(funcName + ":\n");
+            LivenessAnalysis livenessAnalysis = funcNameToLivenessAnaylsis.get(funcName);
+            for (String instruction: funcNameToFunc.get(funcName)) {
+                buf.append("\t" + instruction + "\n");
+                buf.append("\t\t" + "in: " + livenessAnalysis.getInSet().get(instruction) + "\n");
+                buf.append("\t\t" + "out: " + livenessAnalysis.getOutSet().get(instruction) + "\n");
+            }
+        }
+
+        return buf.toString();
+    }
+
     public static void main(String[] args) {
         // Validate args length
         if (!(args.length >= 2)) {
@@ -207,6 +244,8 @@ public class Tiger {
         boolean bFlagProvided = false;
         boolean mipsFlagProvided = false;
         boolean cfgFlagProvided = false;
+        boolean gFlagProvided = false;
+        boolean livenessFlagProvided = false;
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
@@ -241,6 +280,8 @@ public class Tiger {
                 nFlagProvided = true;
             else if (args[i].equals("-b"))
                 bFlagProvided = true;
+            else if (args[i].equals("-g"))
+                gFlagProvided = true;
             else if (args[i].equals("--st"))
                 stFlagProvided = true;
             else if (args[i].equals("--ir"))
@@ -249,6 +290,8 @@ public class Tiger {
                 mipsFlagProvided = true;
             else if (args[i].equals("--cfg"))
                 cfgFlagProvided = true;
+            else if (args[i].equals("--liveness"))
+                livenessFlagProvided = true;
             else {
                 System.err.println("Error in program arguments: unknown argument " + args[i]);
                 System.exit(1); // Error in program arguments: unknown argument
@@ -297,7 +340,7 @@ public class Tiger {
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
         // and write to .ir file.
-        else if (nFlagProvided || irFlagProvided || bFlagProvided) {
+        else if (nFlagProvided || irFlagProvided || bFlagProvided || gFlagProvided) {
             checkScannerErrors(lexer); // checks for scanner errors
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TigerParser parser = getTigerParser(tokens);
@@ -352,10 +395,28 @@ public class Tiger {
                     String graph = cfgBuilder.getGraph().toDOT();
                     writeCFGToFile(fileName, graph);
                 }
+
                 String mips = targetCodeGenerator.generateTargetMipsCodeIntraBlockAlloc(funcNameToCFG);
                 if (mipsFlagProvided) {
 //                    System.out.println(mips);
                     writeMipsToFile(fileName, "ib", mips);
+                }
+            }
+            else if (gFlagProvided) {
+                CFGBuilder cfgBuilder = new CFGBuilder(IR.irOutput);
+                Map<String, ArrayList<String>> funcNameToFunc = cfgBuilder.build();
+                Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG = cfgBuilder.getFuncNameToCFG();
+                Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis = doFullLivenessAnalysis(funcNameToCFG, funcNameToFunc, cfgBuilder.getFuncNameToIntList(), cfgBuilder.getFuncNameToFloatList());
+                if (livenessFlagProvided) {
+                    String livenessAnalysis = formatLivenessAnalysisOutput(funcNameToLivenessAnaylsis, funcNameToFunc);
+                    System.out.println(livenessAnalysis);
+                    wrtieLivenessAnalysisToFile(fileName, livenessAnalysis);
+                }
+
+                String mips = "";
+                if (mipsFlagProvided) {
+//                    System.out.println(mips);
+                    writeMipsToFile(fileName, "briggs", mips);
                 }
             }
         }

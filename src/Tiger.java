@@ -383,7 +383,7 @@ public class Tiger {
             if (nFlagProvided) {
                 String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {
-                    System.out.println(mips);
+//                    System.out.println(mips);
                     writeMipsToFile(fileName, "naive", mips);
                 }
             }
@@ -409,12 +409,11 @@ public class Tiger {
                 Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis = doFullLivenessAnalysis(funcNameToCFG, funcNameToFunc, cfgBuilder.getFuncNameToIntList(), cfgBuilder.getFuncNameToFloatList());
                 if (livenessFlagProvided) {
                     String livenessAnalysis = formatLivenessAnalysisOutput(funcNameToLivenessAnaylsis, funcNameToFunc);
-//                    System.out.println(livenessAnalysis);
                     wrtieLivenessAnalysisToFile(fileName, livenessAnalysis);
                 }
 
-                String mips = "";
                 if (mipsFlagProvided) {
+                    String mips = targetCodeGenerator.generateTargetMipsCodeBriggsAlloc(funcNameToLivenessAnaylsis);;
 //                    System.out.println(mips);
                     writeMipsToFile(fileName, "briggs", mips);
                 }

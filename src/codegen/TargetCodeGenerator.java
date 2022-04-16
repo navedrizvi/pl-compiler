@@ -176,6 +176,7 @@ public class TargetCodeGenerator {
       for(FunctionBlock block: functionBlocks) {
          block.setGlobalFunctionToArgs(functionToArgs);
       }
+
       List<String> mipsDataInstrs = getDataSectionInstrs();
       List<String> mipsTextInstrs = functionBlocks.stream()
                                        .map(FunctionBlock::getNaiveMips)
@@ -196,9 +197,31 @@ public class TargetCodeGenerator {
          block.setGlobalFunctionToArgs(functionToArgs);
          block.setFuncNameToCFG(funcNameToCFG);
       }
+
       List<String> mipsDataInstrs = getDataSectionInstrs();
       List<String> mipsTextInstrs = functionBlocks.stream()
               .map(FunctionBlock::getIntraBlockMips)
+              .flatMap(Collection::stream)
+              .map(MipsInstruction::asString)
+              .collect(Collectors.toList());
+
+      return ".data\n" +
+              String.join("\n", mipsDataInstrs) + "\n" +
+              ".text\n" +
+              ".globl main\n" +
+              String.join("\n", mipsTextInstrs) + "\n";
+   }
+
+   public String generateTargetMipsCodeBriggsAlloc(Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis) {
+      List<FunctionBlock> functionBlocks = getTextSectionInstrs(staticIntList, staticFloatList);
+      for(FunctionBlock block: functionBlocks) {
+         block.setGlobalFunctionToArgs(functionToArgs);
+         block.setFuncNameToLivenessAnaylsis(funcNameToLivenessAnaylsis);
+      }
+
+      List<String> mipsDataInstrs = getDataSectionInstrs();
+      List<String> mipsTextInstrs = functionBlocks.stream()
+              .map(FunctionBlock::getBriggsMips)
               .flatMap(Collection::stream)
               .map(MipsInstruction::asString)
               .collect(Collectors.toList());

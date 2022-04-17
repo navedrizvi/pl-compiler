@@ -1,6 +1,8 @@
 package codegen;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import codegen.ir_instructions.*;
 import codegen.mips_instructions.MipsInstruction;
@@ -8,7 +10,7 @@ import common.Symbol;
 import common.SymbolTable;
 
 public class MipsCodeGenerator {
-    public List<MipsInstruction> mipsOutput = new ArrayList<>();
+    private List<MipsInstruction> mipsOutput = new ArrayList<>();
 
     String functionName;
     List<String> intList;
@@ -65,6 +67,7 @@ public class MipsCodeGenerator {
     Set<String> usedFnArgsFloatRegisters;
     Set<String> usedReserveFloatRegisters;
     SymbolTable symbolTable;
+    String currentRegisterAllocationAlgorithm;
 
     public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, SymbolTable symbolTable) {
         this.instructions = instructions;
@@ -128,7 +131,7 @@ public class MipsCodeGenerator {
         Symbol b = this.symbolTable.lookUpMangledName(a);
 
         boolean isf;
-        if (b==null) {
+        if (b == null) {
             isf = false;
         }
         else {
@@ -137,7 +140,7 @@ public class MipsCodeGenerator {
         return isf;
     }
 
-    public void calculateLocalVariableOffsets() {
+    private void calculateLocalVariableOffsets() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
         // Handling ints first
         int offset = 0;
@@ -174,7 +177,7 @@ public class MipsCodeGenerator {
         this.registerAllocation = varToMemoryOffSet;
     }
 
-    public void emit(MipsInstruction instr) {
+    private void emit(MipsInstruction instr) {
         if (instr == null)
             return;
         this.mipsOutput.add(instr);
@@ -221,6 +224,7 @@ public class MipsCodeGenerator {
     }
 
     public List<MipsInstruction> generateMipsInstructionsForNaive() {
+        currentRegisterAllocationAlgorithm = "naive";
         varToRegister = new HashMap<>();
         calculateLocalVariableOffsets();
         addPrologue();
@@ -231,6 +235,7 @@ public class MipsCodeGenerator {
     }
 
     public List<MipsInstruction> generateMipsInstructionsForIntraBlock(Map<BasicBlock, Map<String, Integer>> sortedHistogramByCountDesc) {
+        currentRegisterAllocationAlgorithm = "intraBlock";
         calculateLocalVariableOffsets();
         addPrologue();
 
@@ -255,6 +260,92 @@ public class MipsCodeGenerator {
         return this.mipsOutput;
     }
 
+    public List<MipsInstruction> generateMipsInstructionsForBriggs(InterferenceGraph interferenceGraph) {
+        currentRegisterAllocationAlgorithm = "briggs";
+        varToRegister = new HashMap<>();
+        colourIG(interferenceGraph);
+
+        calculateLocalVariableOffsets();
+        addPrologue();
+
+        handleIRInstructionsForNaive();
+        return this.mipsOutput;
+    }
+
+    private void colourIG(InterferenceGraph interferenceGraph) {
+        InterferenceGraph clonedIG = interferenceGraph.clone();
+        Stack<String> intStack = new Stack<>();
+        Stack<String> floatStack = new Stack<>();
+        Integer intK = freeSaveRegisters.size() + freeTempRegisters.size();
+        Integer floatK = freeSaveFloatRegisters.size() + freeTempFloatRegisters.size();
+
+        // first take care of all nodes with degree < k
+        for (String node : interferenceGraph.getNodes()) {
+            if (intList.contains(node)) {
+                if (clonedIG.getNodeDegree(node) < intK) {
+                    intStack.push(node);
+                }
+            }
+
+            if (floatList.contains(node)) {
+                if (clonedIG.getNodeDegree(node) < floatK) {
+                    floatStack.push(node);
+                }
+            }
+
+            clonedIG.removeNode(node);
+        }
+
+        // now we have a graph with nodes that all have degree >= k
+        if (!clonedIG.isEmpty()) {
+            while (true) {
+                // choose node with least spill cost - current algorithm: random
+                String selected = ((new ArrayList<>(clonedIG.getNodes())).get((new Random()).nextInt(clonedIG.getNodes().size())));
+                if (floatList.contains(selected)) {
+                    floatStack.push(selected);
+                }
+                else {
+                    intStack.push(selected);
+                }
+                clonedIG.removeNode(selected);
+                if (clonedIG.isEmpty())
+                    break;
+            }
+        }
+
+        if (!intStack.isEmpty())
+            colour(intStack, interferenceGraph, freeSaveRegisters, freeTempRegisters);
+
+        if (!floatStack.isEmpty())
+            colour(floatStack, interferenceGraph, freeSaveFloatRegisters, freeTempFloatRegisters);
+    }
+
+    private void colour(Stack<String> stack, InterferenceGraph graph, List<String> saveRegisters, List<String> tempRegisters) {
+        Set<String> colours = new HashSet<>(Stream.of(saveRegisters, tempRegisters).flatMap(Collection::stream).collect(Collectors.toList()));
+        while (!stack.isEmpty()) {
+            String node = stack.pop();
+            Set<String> usedColours = new HashSet<>();
+            Set<String> edges = graph.getEdges(node);
+            if (edges != null) {
+                for (String edge : edges) {
+                    if (varToRegister.containsKey(edge)) {
+                        usedColours.add(varToRegister.get(edge));
+                    }
+                }
+            }
+            Set<String> availableColours = new HashSet<>(colours);
+            availableColours.removeAll(usedColours);
+            // spill to memory since no satisfying colour found.
+            if (availableColours.isEmpty())
+                continue;
+
+            // Remove first option from list of available colours
+            String colour = (new ArrayList<>(availableColours)).remove(0);
+            varToRegister.put(node, colour);
+        }
+
+    }
+
     private void loadRegistersAtBlockEntry() {
         for (Map.Entry<String, String> entry1: varToRegister.entrySet()) {
             String variable = entry1.getKey();
@@ -263,7 +354,7 @@ public class MipsCodeGenerator {
                 emit(new lw(register, variable));
             }
             // int local variable
-            else { //if (intList.contains(variable)) {
+            else {
                 emit(new lw(register, registerAllocation.get(variable).getMemoryOffset() + "(" + STACK_POINTER + ")"));
             }
         }
@@ -412,7 +503,8 @@ public class MipsCodeGenerator {
         }
         else if (instruction instanceof Label) {
             emit(new label(((Label) instruction).getName()));
-            if (!varToRegister.isEmpty()) {
+            // only for intra-block
+            if (!varToRegister.isEmpty() && currentRegisterAllocationAlgorithm.equals("intraBlock")) {
                 loadRegistersAtBlockEntry();
             }
         }
@@ -1605,11 +1697,12 @@ public class MipsCodeGenerator {
         }
         else {
             loadCalleeFunctionArgs(instruction.getFunction_name(), instruction.getFunction_args());
-            // Intra-block - update static variables from registers before function call.
+            // store registers to stack before function call
             if (!varToRegister.isEmpty()) {
                 storeRegistersAtBlockExit();
             }
             emit(new jal(instruction.getFunction_name()));
+            // load registers from stack after function call
             if(!varToRegister.isEmpty()) {
                 loadRegistersAtBlockEntry();
             }

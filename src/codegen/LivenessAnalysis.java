@@ -69,6 +69,10 @@ public class LivenessAnalysis {
         return outSet;
     }
 
+    public ArrayList<String> getInstructions() {
+        return instructions;
+    }
+
     private void createDefandUseSets() {
         for(String instruction: instructions) {
             defSet.put(instruction, new HashSet<>());

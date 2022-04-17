@@ -18,9 +18,9 @@ public class FunctionBlock {
     private IRInstruction[] instructions;
     private int maxArgs;
     private SymbolTable symbolTable;
-
     private Map<String, List<String>> globalFunctionToArgs;
     Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG;
+    Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis;
 
     public FunctionBlock(
             String functionName, String returnType, List<String> functionArgs, List<String> staticIntList,
@@ -51,8 +51,8 @@ public class FunctionBlock {
         this.funcNameToCFG = funcNameToCFG;
     }
 
-    public Map<String, Map<BasicBlock, List<BasicBlock>>> getFuncNameToCFG() {
-        return funcNameToCFG;
+    public void setFuncNameToLivenessAnaylsis(Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis) {
+        this.funcNameToLivenessAnaylsis = funcNameToLivenessAnaylsis;
     }
 
     public String getFunctionName() {
@@ -94,6 +94,60 @@ public class FunctionBlock {
         MipsCodeGenerator intraBlockMips = new MipsCodeGenerator(instructions, this, symbolTable);
         List<MipsInstruction> out = intraBlockMips.generateMipsInstructionsForIntraBlock(sortedHistogramByCountDesc);
         return out;
+    }
+
+    public List<MipsInstruction> getBriggsMips() {
+        InterferenceGraph interferenceGraph = buildInterferenceGraph();
+        MipsCodeGenerator intraBlockMips = new MipsCodeGenerator(instructions, this, symbolTable);
+        List<MipsInstruction> out = intraBlockMips.generateMipsInstructionsForBriggs(interferenceGraph);
+        return out;
+    }
+
+    private InterferenceGraph buildInterferenceGraph() {
+        InterferenceGraph interferenceGraph = new InterferenceGraph();
+        LivenessAnalysis livenessAnalysis = funcNameToLivenessAnaylsis.get(functionName);
+
+        for (String instruction : livenessAnalysis.getInstructions()) {
+            Set<String> inSet = livenessAnalysis.getInSet().get(instruction);
+            for(String variable1 : inSet) {
+                interferenceGraph.addNode(variable1);
+                for (String variable2 : inSet) {
+                    interferenceGraph.addNode(variable2);
+
+                    if (variable1.equals(variable2))
+                        continue;
+
+                    if (Arrays.asList(intList).contains(variable1) && Arrays.asList(intList).contains(variable2)) {
+                        interferenceGraph.addEdge(variable1, variable2);
+                    }
+
+                    if (Arrays.asList(floatList).contains(variable1) && Arrays.asList(floatList).contains(variable2)) {
+                        interferenceGraph.addEdge(variable1, variable2);
+                    }
+                }
+            }
+
+            Set<String> outSet = livenessAnalysis.getOutSet().get(instruction);
+            for(String variable1 : outSet) {
+                interferenceGraph.addNode(variable1);
+                for (String variable2 : outSet) {
+                    interferenceGraph.addNode(variable2);
+
+                    if (variable1.equals(variable2))
+                        continue;
+
+                    if (Arrays.asList(intList).contains(variable1) && Arrays.asList(intList).contains(variable2)) {
+                        interferenceGraph.addEdge(variable1, variable2);
+                    }
+
+                    if (Arrays.asList(floatList).contains(variable1) && Arrays.asList(floatList).contains(variable2)) {
+                        interferenceGraph.addEdge(variable1, variable2);
+                    }
+                }
+            }
+        }
+
+        return interferenceGraph;
     }
 
     private Map<BasicBlock, Map<String, Integer>> generateSortedHistogramByCountDesc() {

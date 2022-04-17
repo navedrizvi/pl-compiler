@@ -20,17 +20,24 @@ public class MipsCodeGenerator {
     int maxArgs;
     // keeping track of offsets of various groups in the stack frame
     Map<String, Integer> stackFrame = new HashMap<>();
+    Map<String, RegisterType> argToType = new HashMap<>();
     List<String> functionArgs;
 
     final String STACK_POINTER = "$sp";
     final String RETURN_ADDRESS = "$ra";
     final String FUNCTION_RETURN_VALUE_0 = "$v0";
     final String FUNCTION_RETURN_VALUE_1 = "$v1";
+
+    final String FLOAT_FUNCTION_RETURN_VALUE_0 = "$f0";
+    final String FLOAT_FUNCTION_RETURN_VALUE_1 = "$f1";
+    final String FUNCTION_RETURN_VALUE_2 = "$f2";
+    final String FUNCTION_RETURN_VALUE_3 = "$f3";
     final String PRINT_INTEGER_ARG = "$a0";
     final String PRINT_FLOAT_ARG = "$f12";
     final String PRINT_STRING_ARG = "$a0";
     final String ZERO = "$zero";
     final String[] argRegisters = {"$a0", "$a1", "$a2", "$a3"};
+    final String[] floatArgRegisters = {"$f12", "$f13", "$f14", "$15"};
     IRInstruction[] instructions;
     HashMap<String, RegAllocTuple> registerAllocation;
     Stack<String> freeSaveRegisters;
@@ -594,6 +601,7 @@ public class MipsCodeGenerator {
         stackFrameSize = getSpaceForStackFrame(registerAllocation);
         emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * stackFrameSize)));
         storeCallerFunctionArgs();
+        // TODO fix this
         storeSaveRegisters();
         emit(new sw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
         emit(new comment("# end of prologue"));
@@ -1827,7 +1835,12 @@ public class MipsCodeGenerator {
         int numOfArgs = functionArgs.size();
         for (int i = 0; i < numOfArgs; i++) {
             if (i < 4) {
-                emit(new sw(argRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                if (checkIsFloat(functionArgs.get(i))) {
+                    emit(new sw(floatArgRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                }
+                else {
+                    emit(new sw(argRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                }
             }
             else {
                 String register = getRegister(false);
@@ -1838,7 +1851,10 @@ public class MipsCodeGenerator {
             }
         }
     }
-
+    enum RegisterType {
+        Float,
+        Any
+    }
     private void loadCalleeFunctionArgs(String calleeFunction, String[] args) {
         List<String> calleeFunctionArgs = globalFunctionToArgs.get(calleeFunction);
         if (calleeFunctionArgs.isEmpty())
@@ -1847,10 +1863,15 @@ public class MipsCodeGenerator {
         int argsOffset = stackFrame.get("funcArgs");
         for (int i = 0; i < numOfArgs; i++) {
             if (i < 4) {
-                emit(getLoadCommand(argRegisters[i], args[i]));
+                if (checkIsFloat(args[i])) {
+                    emit(getLoadCommand(floatArgRegisters[i], args[i]));
+                }
+                else {
+                    emit(getLoadCommand(argRegisters[i], args[i]));
+                }
             }
             else {
-                String register = getRegister(false);
+                String register = getRegister(false, checkIsFloat(args[i]));
                 emit(getLoadCommand(register, args[i]));
                 int offset = argsOffset + i * 4;
                 emit(new sw(register, offset + "(" + STACK_POINTER + ")"));

@@ -109,15 +109,17 @@ java Tiger -i ../phase2_test_files_v1/tiger/print_example.tiger --ir
 
 4.1) demo_selection_sort (Manually Graded) (0.0/0.0)
 4.5) demo_prng (Manually Graded) (0.0/0.0)
-4.6) demo_motor (Manually Graded) (0.0/0.0)
 4.8) demo_matrix (Manually Graded) (0.0/0.0)
 4.9) demo_jacobi (Manually Graded) (0.0/0.0)
 
 
 
 TODO: 
-4.4) demo_square_root
-4.3) demo_fib
-4.7) demo_priority_queue
 4.2) demo_slope
-4.10) demo_tak
+4.4) demo_square_root
+4.6) demo_motor (Manually Graded) (0.0/0.0)
+
+
+4.3) demo_fib
+4.7) demo_priority_queue: NOT float related. dk whatsup
+4.10) demo_tak: NOT float related. this uses the -g

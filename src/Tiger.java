@@ -27,7 +27,7 @@ public class Tiger {
     private static void writeFileWithContent(String fpath, String content) {
         Path targetPath = Paths.get(fpath);
         try {
-            Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+            Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             System.err.println("Error in creating new file");
         }

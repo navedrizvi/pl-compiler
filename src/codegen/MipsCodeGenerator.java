@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import codegen.ir_instructions.*;
 import codegen.mips_instructions.MipsInstruction;
+import common.SubroutineSymbol;
 import common.Symbol;
 import common.SymbolTable;
 
@@ -21,6 +22,7 @@ public class MipsCodeGenerator {
     // keeping track of offsets of various groups in the stack frame
     Map<String, Integer> stackFrame = new HashMap<>();
     Map<String, RegisterType> argToType = new HashMap<>();
+    Map<String, RegisterType> locToType = new HashMap<>();
     List<String> functionArgs;
 
     final String STACK_POINTER = "$sp";
@@ -97,7 +99,7 @@ public class MipsCodeGenerator {
         this.globalFunctionToArgs = functionBlock.getGlobalFunctionToArgs();
 
         this.freeSaveFloatRegisters = new Stack<>();
-        this.freeSaveFloatRegisters.addAll(Arrays.asList("$f31", "$f30", "$f29", "$f28", "$f27", "$f26", "$f25", "$f24", "$f23", "$f22", "$f21", "$f20"));
+        this.freeSaveFloatRegisters.addAll(Arrays.asList("$f20", "$f21", "$f22", "$f23", "$f24", "$f25", "$f26", "$f27", "$f28", "$f29", "$f30", "$f31"));
         this.freeTempFloatRegisters = new Stack<>();
         this.freeTempFloatRegisters.addAll(Arrays.asList("$f19", "$f18", "$f17", "$f16", "$f11", "$f10", "$f9", "$f8", "$f7", "$f6", "$f5", "$f4"));
         this.freeReserveFloatRegisters = new Stack<>();
@@ -199,6 +201,8 @@ public class MipsCodeGenerator {
         stackSize += maxArgs * 4;
 
         // save registers - for now lets allocate for all save registers
+
+        // TODO1 change these freeSaveRegisters to freeFloatSaveRegisters
         stackFrame.put("saveRegisters", stackSize);
         stackSize += freeSaveRegisters.size() * 4;
 
@@ -543,15 +547,47 @@ public class MipsCodeGenerator {
         }
     }
 
+
     private void storeSaveRegisters() {
         int saveRegisterOffset = stackFrame.get("saveRegisters");
         int i = saveRegisterOffset;
+
+        // $s0 to $s7
         List<String> temp = new ArrayList<>(freeSaveRegisters);
         Collections.reverse(temp);
-        // $s0 to $s7
-        for (String register: temp) {
+        // $f20 to $f31
+        List<String> tempFloat = new ArrayList<>(freeSaveFloatRegisters);
+
+        /// TODO1 needed?
+        // int float_idx = 0;
+        // int int_idx = 0;
+        // for (SubroutineSymbol.Tuple param: params) {
+        //     if (param.type.equals("float")) {
+        //         emit(new sw(tempFloat.get(float_idx), i + "(" + STACK_POINTER + ")"));
+        //         float_idx += 1;
+        //     }
+        //     else {
+        //         emit(new sw(temp.get(int_idx), i + "(" + STACK_POINTER + ")"));
+        //         int_idx += 1;
+        //     }
+        //     i += 4;
+        // }
+        // System.out.println(fn.getParameters());
+        // for (String register: temp) {
+        //     emit(new sw(register, i + "(" + STACK_POINTER + ")"));
+        //     i += 4;
+        // }
+
+        int i2=0;
+        for (String register: tempFloat) {
+            // addrIsFloat(idx)
             emit(new sw(register, i + "(" + STACK_POINTER + ")"));
+            addToFloatMap(i + "(" + STACK_POINTER + ")", RegisterType.Float);
             i += 4;
+            if (i2==7) {
+                break;
+            }
+            i2+=1;
         }
     }
 
@@ -559,11 +595,23 @@ public class MipsCodeGenerator {
         int saveRegisterOffset = stackFrame.get("saveRegisters");
         int i = saveRegisterOffset;
         List<String> temp = new ArrayList<>(freeSaveRegisters);
+        // $f20 to $f31
+        List<String> tempFloat = new ArrayList<>(freeSaveFloatRegisters);
+
         Collections.reverse(temp);
         // $s0 to $s7
-        for (String register: temp) {
+        // for (String register: temp) {
+        //     emit(new lw(register, i + "(" + STACK_POINTER + ")"));
+        //     i+= 4;
+        // }
+        int i2=0;
+        for (String register: tempFloat) {
             emit(new lw(register, i + "(" + STACK_POINTER + ")"));
-            i+= 4;
+            i += 4;
+            if (i2==7) {
+                break;
+            }
+            i2+=1;
         }
     }
 
@@ -600,8 +648,10 @@ public class MipsCodeGenerator {
         // space for stack frame
         stackFrameSize = getSpaceForStackFrame(registerAllocation);
         emit(new addiu(STACK_POINTER, STACK_POINTER, Integer.toString(-1 * stackFrameSize)));
+
+        // TODO1 fix this
         storeCallerFunctionArgs();
-        // TODO fix this
+        // TODO1 fix this
         storeSaveRegisters();
         emit(new sw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
         emit(new comment("# end of prologue"));
@@ -610,6 +660,7 @@ public class MipsCodeGenerator {
     private void addEpilogue() {
         emit(new comment("# start of epilogue"));
         // restore save registers
+        // TODO1 fix this
         loadSaveRegisters();
         // restore return address
         emit(new lw(RETURN_ADDRESS, stackFrame.get("returnAddress") + "(" + STACK_POINTER + ")"));
@@ -709,7 +760,7 @@ public class MipsCodeGenerator {
         }
         else {
             addBackA = true;
-            register_a = getRegister(false);
+            register_a = getRegister(false, addrIsFloat3(a));
         }
         emit(getLoadCommand(register_a, a));
 
@@ -720,7 +771,7 @@ public class MipsCodeGenerator {
         }
         else {
             addBackB = true;
-            register_b = getRegister(false);
+            register_b = getRegister(false, addrIsFloat3(a));
         }
         emit(getLoadCommand(register_b, b));
 
@@ -1116,7 +1167,12 @@ public class MipsCodeGenerator {
 
         // only ints
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            handleIntBinOp(c, a, b, "add");
+            if (addrIsFloat3(b)) {
+                handleFloatBinOp(c, a, b, "add");
+            }
+            else {
+                handleIntBinOp(c, a, b, "add");
+            }
         }
         // Contains floats
         else {
@@ -1133,9 +1189,14 @@ public class MipsCodeGenerator {
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
 
-        // only ints
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            handleIntBinOp(c, a, b, "sub");
+            if (addrIsFloat3(b)) {
+                handleFloatBinOp(c, a, b, "sub");
+            }
+            else {
+                // only ints
+                handleIntBinOp(c, a, b, "sub");
+            }
         }
         // Contains floats
         else {
@@ -1172,8 +1233,14 @@ public class MipsCodeGenerator {
         String c = instruction.args().get(2);
 
         // only ints
+        // if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c) && !addrIsFloat2(b)) {
         if (!checkIsFloat(a) && !checkIsFloat(b) && !checkIsFloat(c)) {
-            handleIntBinOp(c, a, b, "div");
+            if (addrIsFloat3(b)) {
+                handleFloatBinOp(c, a, b, "div");
+            }
+            else {
+                handleIntBinOp(c, a, b, "div");
+            }
         }
         // Contains floats
         else {
@@ -1182,6 +1249,7 @@ public class MipsCodeGenerator {
     }
 
     private void handleFloatBinOp(String c, String a, String b, String op) {
+        // TODO0001 : needs to get set 
         String register_a = "";
         String register_b = "";
         String register_c = "";
@@ -1191,8 +1259,17 @@ public class MipsCodeGenerator {
         boolean aWasCasted = false;
         boolean bWasCasted = false;
 
+        if (floatList.contains(a)) {
+            register_a = getRegister(false, true);
+        }
+        if (floatList.contains(b)) {
+            register_b = getRegister(false, true);
+        }
+        if (floatList.contains(c)) {
+            register_c = getRegister(false, true);
+        }
+
         if (checkIsFloat(c)) {
-//            register_c = getRegister(false, true);
             if (varToRegister.containsKey(c)) {
                 register_c = varToRegister.get(c);
             }
@@ -1208,7 +1285,6 @@ public class MipsCodeGenerator {
                 }
             }
             else {
-//                register_a = getRegister(false, true);
                 if (varToRegister.containsKey(a)) {
                     register_a = varToRegister.get(a);
                 }
@@ -1225,7 +1301,6 @@ public class MipsCodeGenerator {
                 }
             }
             else {
-//                register_b = getRegister(false, true);
                 if (varToRegister.containsKey(b)) {
                     register_b = varToRegister.get(b);
                 }
@@ -1236,7 +1311,6 @@ public class MipsCodeGenerator {
             }
         }
         else if (checkIsFloat(a)) {
-//            register_a = getRegister(false, true);
             if (varToRegister.containsKey(a)) {
                 register_a = varToRegister.get(a);
             }
@@ -1252,7 +1326,6 @@ public class MipsCodeGenerator {
                 }
             }
             else {
-//                register_b = getRegister(false, true);
                 if (varToRegister.containsKey(b)) {
                     register_b = varToRegister.get(b);
                 }
@@ -1267,7 +1340,6 @@ public class MipsCodeGenerator {
                     emit(getStoreCommand(register_c, c));
             }
             else {
-//                register_c = getRegister(false, true);
                 if (varToRegister.containsKey(c)) {
                     register_c = varToRegister.get(c);
                 }
@@ -1278,7 +1350,6 @@ public class MipsCodeGenerator {
             }
         }
         else if (checkIsFloat(b)) {
-//            register_b = getRegister(false, true);
             if (varToRegister.containsKey(b)) {
                 register_b = varToRegister.get(b);
             }
@@ -1294,7 +1365,6 @@ public class MipsCodeGenerator {
                 }
             }
             else {
-//                register_a = getRegister(false, true);
                 if (varToRegister.containsKey(a)) {
                     register_a = varToRegister.get(a);
                 }
@@ -1309,7 +1379,6 @@ public class MipsCodeGenerator {
                     emit(getStoreCommand(register_c, c));
             }
             else {
-//                register_c = getRegister(false, true);
                 if (varToRegister.containsKey(c)) {
                     register_c = varToRegister.get(c);
                 }
@@ -1643,6 +1712,7 @@ public class MipsCodeGenerator {
             }
             else {
                 // b
+                /// TODO0000
                 String register;
                 boolean addBack = false;
                 if (varToRegister.containsKey(b)) {
@@ -1650,7 +1720,18 @@ public class MipsCodeGenerator {
                 }
                 else {
                     addBack = true;
-                    register = getRegister(false);
+                    if (registerAllocation.get(b) !=null ) {
+                        String loc = registerAllocation.get(b).getMemoryOffset() + "(" + STACK_POINTER + ")";
+                        if (argToType.containsKey(loc)) {
+                            register = getRegister(false, addrIsFloat2(loc));
+                        }
+                        else {
+                            register = getRegister(false);//, addrIsFloat2(loc));
+                        }
+                    }
+                    else {
+                        register = getRegister(false);
+                    }
                 }
                 emit(getLoadCommand(register, b));
 
@@ -1828,6 +1909,54 @@ public class MipsCodeGenerator {
         }
     }
 
+    private boolean addrIsFloat(int idx) {
+        SubroutineSymbol fn = (SubroutineSymbol) symbolTable.lookUp(functionName);
+        SubroutineSymbol.CustomArrayList params = fn.getParameters();
+        if (params.get(idx).type.equals("float")) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean addrIsFloat2(String addr) {
+        // SubroutineSymbol fn = (SubroutineSymbol) symbolTable.lookUp(functionName);
+        // SubroutineSymbol.CustomArrayList params = fn.getParameters();
+
+        // String addr2 = registerAllocation.get(addr).getMemoryOffset() + "(" + STACK_POINTER + ")";
+        // System.out.println(addr);
+        // if (argToType.get(addr) == RegisterType.Float) {
+        //     return true;
+        // }
+        // return false;
+        // return addrIsFloat(nFnArg);
+        System.out.println(argToType.keySet());
+        if (argToType.containsKey("60($sp)")) {
+            System.out.println(argToType.get("60($sp)"));
+        }
+        if (argToType.get(addr) == RegisterType.Float) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean addrIsFloat3(String addr) {
+        // SubroutineSymbol fn = (SubroutineSymbol) symbolTable.lookUp(functionName);
+        // SubroutineSymbol.CustomArrayList params = fn.getParameters();
+
+        // String addr2 = registerAllocation.get(addr).getMemoryOffset() + "(" + STACK_POINTER + ")";
+        // System.out.println(addr);
+        // if (argToType.get(addr) == RegisterType.Float) {
+        //     return true;
+        // }
+        // return false;
+        // return addrIsFloat(nFnArg);
+        return floatList.contains(addr);
+    }
+
+    private void addToFloatMap(String key, RegisterType type) {
+        argToType.put(key, type);
+    }
+
     private void storeCallerFunctionArgs() {
         if (functionArgs.isEmpty())
             return;
@@ -1835,11 +1964,20 @@ public class MipsCodeGenerator {
         int numOfArgs = functionArgs.size();
         for (int i = 0; i < numOfArgs; i++) {
             if (i < 4) {
+                // TODO2 needed?
                 if (checkIsFloat(functionArgs.get(i))) {
                     emit(new sw(floatArgRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
                 }
                 else {
-                    emit(new sw(argRegisters[i], registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")"));
+                    String addr = registerAllocation.get(functionArgs.get(i)).getMemoryOffset() + "(" + STACK_POINTER + ")";
+                    if (addrIsFloat(i)) {
+                        emit(new sw(floatArgRegisters[i], addr));
+                        addToFloatMap(addr, RegisterType.Float);
+                    }
+                    else {
+                        emit(new sw(argRegisters[i], addr));
+                        // addToTypeMap(addr, RegisterType.Any);
+                    }
                 }
             }
             else {
@@ -1867,12 +2005,12 @@ public class MipsCodeGenerator {
                     emit(getLoadCommand(floatArgRegisters[i], args[i]));
                 }
                 else {
-                    emit(getLoadCommand(argRegisters[i], args[i]));
+                    emit(getLoadCommand(argRegisters[i]+"OPOPOPO", args[i]));
                 }
             }
             else {
                 String register = getRegister(false, checkIsFloat(args[i]));
-                emit(getLoadCommand(register, args[i]));
+                emit(getLoadCommand(register +"chuchuchu", args[i]));
                 int offset = argsOffset + i * 4;
                 emit(new sw(register, offset + "(" + STACK_POINTER + ")"));
                 addBackRegister(register);
@@ -1899,6 +2037,7 @@ public class MipsCodeGenerator {
             cmd = new lw(register, operand);
         }
         else if (intList.contains(operand) || floatList.contains(operand)) {
+            String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
             cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
         }
         else if (symbolTable.lookUpMangledName(operand)!=null) {
@@ -1917,6 +2056,15 @@ public class MipsCodeGenerator {
         }
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
+        }
+        // if (isInt(operand)||isFloat(operand)) {
+        //     return new sw(register, operand);
+        // }
+
+        if (register.startsWith("$f")) {
+            String loc = registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")";
+            addToFloatMap(loc, RegisterType.Float);
+            // locToType.put(loc, Re)
         }
         return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
     }
@@ -1945,6 +2093,7 @@ public class MipsCodeGenerator {
             usedSaveRegisters.add(temp);
             return temp;
         }
+        // TODO1 add handling freesfloatsave
 
         temp = freeTempRegisters.pop();
         usedTempRegisters.add(temp);
@@ -1970,7 +2119,6 @@ public class MipsCodeGenerator {
                 usedSaveRegisters.add(temp);
                 return temp;
             }
-
             temp = freeTempRegisters.pop();
             usedTempRegisters.add(temp);
             return temp;

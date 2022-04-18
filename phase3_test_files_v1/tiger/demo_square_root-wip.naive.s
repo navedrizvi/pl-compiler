@@ -29,41 +29,48 @@ l.s $f9, 72($sp)
 sub.s $f9, $f7, $f8
 s.s $f9, 72($sp)
 
-# TODO
+
+# TODO need checks : use the jump test translation, semantics on subset
 li $s0, 0
 sw $s0, 52($sp)
-
-l.s $f10, 72($sp)
-l.s $f11, 68($sp)
-ble $f10, $f11, _L1
-
-# Cast
+lw $s0, 72($sp)
+lw $s1, 68($sp)
+ble $s0, $s1, _L1
 li $s0, 1
 sw $s0, 52($sp)
-l.s $f16, 60($sp)
-l.s $f17, 64($sp)
-l.s $f18, 76($sp)
-add.s $f18, $f16, $f17
-s.s $f18, 76($sp)
+
+
+l.s $f10, 60($sp)
+l.s $f11, 64($sp)
+l.s $f16, 76($sp)
+add.s $f16, $f10, $f11
+s.s $f16, 76($sp)
+
+
+
+# TODO need checks: this is s.s in prev line...
 lw $s0, 76($sp)
+# TODO need to cast
 li $s1, 2
 lw $s2, 80($sp)
 div $s2, $s0, $s1
 sw $s2, 80($sp)
 lw $s0, 80($sp)
 sw $s0, 60($sp)
-l.s $f19, 56($sp)
-l.s $f31, 60($sp)
-l.s $f30, 84($sp)
-div.s $f30, $f19, $f31
-s.s $f30, 84($sp)
-l.s $f29, 84($sp)
-s.s $f29, 64($sp)
+
+
+
+
+l.s $f17, 56($sp)
+l.s $f18, 60($sp)
+l.s $f19, 84($sp)
+div.s $f19, $f17, $f18
+s.s $f19, 84($sp)
+l.s $f31, 84($sp)
+s.s $f31, 64($sp)
 j _L0
 _L1:
 lw $v0, 60($sp)
-
-
 # start of epilogue
 l.s $f20, 16($sp)
 l.s $f21, 20($sp)

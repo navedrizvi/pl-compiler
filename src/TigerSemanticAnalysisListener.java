@@ -3,6 +3,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import common.SubroutineSymbol;
 import common.Symbol;
 import common.SymbolTable;
 

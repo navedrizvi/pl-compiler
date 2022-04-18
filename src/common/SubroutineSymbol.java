@@ -1,6 +1,5 @@
+package common;
 import java.util.ArrayList;
-
-import common.Symbol;
 
 public class SubroutineSymbol extends Symbol {
 

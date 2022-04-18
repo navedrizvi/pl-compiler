@@ -1,0 +1,17 @@
+square:
+	mult, _1_x, _1_x, _t0
+		in: [_1_x]
+		out: [_t0]
+	return, _t0
+		in: [_t0]
+		out: []
+main:
+	callr, _3_result, square, 5
+		in: []
+		out: [_3_result]
+	call, printi, _3_result
+		in: [_3_result]
+		out: []
+	return, 0
+		in: []
+		out: []

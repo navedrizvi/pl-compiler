@@ -28,23 +28,35 @@ l.s $f8, 64($sp)
 l.s $f9, 72($sp)
 sub.s $f9, $f7, $f8
 s.s $f9, 72($sp)
-
-# TODO
 li $s0, 0
 sw $s0, 52($sp)
-
 l.s $f10, 72($sp)
 l.s $f11, 68($sp)
 ble $f10, $f11, _L1
 
-# Cast
+
+
+
+
+
+
+
+
+#TODO1- cast
 li $s0, 1
 sw $s0, 52($sp)
+
+
+
 l.s $f16, 60($sp)
 l.s $f17, 64($sp)
 l.s $f18, 76($sp)
 add.s $f18, $f16, $f17
 s.s $f18, 76($sp)
+
+
+
+#TODO1- cast
 lw $s0, 76($sp)
 li $s1, 2
 lw $s2, 80($sp)
@@ -52,6 +64,14 @@ div $s2, $s0, $s1
 sw $s2, 80($sp)
 lw $s0, 80($sp)
 sw $s0, 60($sp)
+
+
+
+
+
+
+
+
 l.s $f19, 56($sp)
 l.s $f31, 60($sp)
 l.s $f30, 84($sp)
@@ -62,8 +82,6 @@ s.s $f29, 64($sp)
 j _L0
 _L1:
 lw $v0, 60($sp)
-
-
 # start of epilogue
 l.s $f20, 16($sp)
 l.s $f21, 20($sp)
@@ -113,4 +131,6 @@ l.s $f27, 44($sp)
 lw $ra, 48($sp)
 addiu $sp, $sp, 60
 # end of epilogue
+jr $ra
+of epilogue
 jr $ra

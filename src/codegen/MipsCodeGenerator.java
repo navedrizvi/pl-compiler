@@ -1809,6 +1809,7 @@ public class MipsCodeGenerator {
             addBackRegister(register);
         }
         else if (floatList.contains(arg)) {
+            // TODO no addback?
             String register = getRegister(false, true);
             emit(new lw(register, registerAllocation.get(arg).getMemoryOffset() + "(" + STACK_POINTER + ")"));
             emit(new move(PRINT_FLOAT_ARG, register));

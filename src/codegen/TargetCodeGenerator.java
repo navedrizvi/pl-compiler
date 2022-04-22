@@ -15,13 +15,15 @@ public class TargetCodeGenerator {
    List<String> staticFloatList;
    Map<String, List<String>> functionToArgs = new HashMap<>();
    SymbolTable symbolTable;
+   int registerLimit;
 
-   public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList, SymbolTable symbolTable) {
+   public TargetCodeGenerator(List<String> srcIrInstrs, List<String> staticIntList, List<String> staticFloatList, SymbolTable symbolTable, int registerLimit) {
       // @ir is called with IR.irOutput
       this.srcIrInstrs = srcIrInstrs;
       this.staticIntList = staticIntList;
       this.staticFloatList = staticFloatList;
       this.symbolTable = symbolTable;
+      this.registerLimit = registerLimit;
    }
 
    private List<String> getDataSectionInstrs() {
@@ -89,7 +91,7 @@ public class TargetCodeGenerator {
                i += 1;
             }
             text.add(new FunctionBlock(func_name, return_type, funcArgs, staticIntList, staticFloatList, int_list, float_list,
-                                       instructions.toArray(new IRInstruction[instructions.size()]), maxArgs, this.symbolTable));
+                                       instructions.toArray(new IRInstruction[instructions.size()]), maxArgs, this.symbolTable, this.registerLimit));
             functionToArgs.put(func_name, funcArgs);
          }
       }

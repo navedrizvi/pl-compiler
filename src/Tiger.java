@@ -230,7 +230,7 @@ public class Tiger {
             System.err.println("Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)");
             System.exit(1); // Error in program arguments: must have 2 necessary args (-i and <path/to/source> are necessary)
         }
-        else if (args.length > 7) {
+        else if (args.length > 9) {
             System.err.println("Error in program arguments: additional args provided (only '-l', '-p', '-i <path/to/tiger-source>', '-r <path/to/ir-source>', '--ir' are supported)");
             System.exit(1); // Error in program arguments
         }
@@ -246,6 +246,9 @@ public class Tiger {
         boolean cfgFlagProvided = false;
         boolean gFlagProvided = false;
         boolean livenessFlagProvided = false;
+        boolean limitFlagProvided = false;
+        // A limit of 0 means limit arg was not given - TODO not sure if this is safe
+        int limit = 0;
 
         // assert -i and filename provided somewhere //
         if (!Arrays.asList(args).contains("-i")) {
@@ -265,11 +268,19 @@ public class Tiger {
         else {
             fileName = getFileName(args, iIdx + 1, ".tiger");
         }
+        int limitIdx = getFlagIdx("--limit", args);
+        if (limitIdx!=-1) {
+            limit = Integer.parseInt(args[limitIdx+1]);
+            limitFlagProvided = true;
+            if (limit !=0 && limit<4){
+                System.err.println("invalid limit");
+            }
+        }
 
         // validate optional flags //
         for (int i=0; i < args.length; i++) {
-            if (args[i].equals("-i") || args[i].equals("-r")) {
-                // assuming thing after -i or -r is filename; validation is done above
+            if (args[i].equals("-i") || args[i].equals("-r") || args[i].equals("--limit")) {
+                // assuming thing after -i or -r is filename, and after --limit is number; validation is done above
                 i += 1;
             }
             else if (args[i].equals("-l"))
@@ -378,8 +389,13 @@ public class Tiger {
             if (irFlagProvided) {
                 writeIRToFile(fileName, IR.toFormattedString());
             }
-
-            TargetCodeGenerator targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, stAsList.get(stAsList.size()-1));
+            TargetCodeGenerator targetCodeGenerator;
+            if (limitFlagProvided && limit!=0) {
+                targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, stAsList.get(stAsList.size()-1), limit);
+            }
+            else {
+                targetCodeGenerator = new TargetCodeGenerator(IR.irOutput, IR.staticIntList, IR.staticFloatList, stAsList.get(stAsList.size()-1), 0);
+            }
             if (nFlagProvided) {
                 String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {

@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
+import common.SubroutineSymbol;
 import common.Symbol;
 import common.SymbolTable;
 

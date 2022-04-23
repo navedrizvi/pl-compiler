@@ -193,6 +193,9 @@ public class MipsCodeGenerator {
         if (isFloat(a)) {
             return true;
         }
+        else if (floatList.contains(a)) {
+            return true;
+        }
         Symbol b = this.symbolTable.lookUpMangledName(a);
 
         boolean isf;
@@ -1165,7 +1168,24 @@ public class MipsCodeGenerator {
                 handleFloatBinOp(c, a, b, "div");
             }
             else {
-                handleIntBinOp(c, a, b, "div");
+                // if (c.equals("$s2") && a.equals("$s0") && b.equals("$s1")) {
+                // }
+                // if ()
+                if (checkIsFloat(a) || checkIsFloat(b) || checkIsFloat(c)) {
+                    System.out.println("HERREE");
+                    System.out.println(a);
+                    System.out.println(b);
+                    System.out.println(c);
+                    handleFloatBinOp(c, a, b, "div");
+                }
+                else {
+                    System.out.println("WHYYY");
+                    System.out.println(a);
+                    System.out.println(b);
+                    System.out.println(c);
+                    handleIntBinOp(c, a, b, "div");
+
+                }
             }
         }
         // Contains floats
@@ -1558,7 +1578,6 @@ public class MipsCodeGenerator {
             }
             else {
                 // b
-                /// TODO0000
                 String register;
                 boolean addBack = false;
                 if (varToRegister.containsKey(b)) {
@@ -1566,7 +1585,7 @@ public class MipsCodeGenerator {
                 }
                 else {
                     addBack = true;
-                    if (registerAllocation.get(b) !=null ) {
+                    if (registerAllocation.get(b) !=null) {
                         String loc = registerAllocation.get(b).getMemoryOffset() + "(" + STACK_POINTER + ")";
                         if (argToType.containsKey(loc)) {
                             register = getRegister(false, addrIsFloat2(loc));
@@ -1576,9 +1595,16 @@ public class MipsCodeGenerator {
                         }
                     }
                     else {
-                        register = getRegister(false);
+                        System.out.println("BBBBBBBBB: " + b);
+                        if (checkIsFloat(b)) {
+                            register = getRegister(false, true);
+                        }
+                        else {
+                            register = getRegister(false);
+                        }
                     }
                 }
+                // TODO0 fixx
                 emit(getLoadCommand(register, b));
 
                 // a
@@ -1852,12 +1878,12 @@ public class MipsCodeGenerator {
                     emit(getLoadCommand(floatArgRegisters[i], args[i]));
                 }
                 else {
-                    emit(getLoadCommand(argRegisters[i]+"OPOPOPO", args[i]));
+                    emit(getLoadCommand(argRegisters[i], args[i]));
                 }
             }
             else {
                 String register = getRegister(false, checkIsFloat(args[i]));
-                emit(getLoadCommand(register +"chuchuchu", args[i]));
+                emit(getLoadCommand(register, args[i]));
                 int offset = argsOffset + i * 4;
                 emit(new sw(register, offset + "(" + STACK_POINTER + ")"));
                 addBackRegister(register);
@@ -1876,6 +1902,13 @@ public class MipsCodeGenerator {
     private MipsInstruction getLoadCommand(String register, String operand) {
         MipsInstruction cmd = null;
         System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
+
+        // comment is a util to print java stacktrace
+        if (register.equals("$s0") && operand.equals("1")) {
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                System.out.println(ste);
+            }
+        }
         if (varToRegister.containsKey(operand)) {
             if (!varToRegister.get(operand).equals(register)) {
                 cmd = new move(register, varToRegister.get(operand));

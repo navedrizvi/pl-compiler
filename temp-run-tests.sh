@@ -147,6 +147,8 @@ make clean
 make
 cd cs8803_bin
 
+
 TEST=demo_square_root
-ALLOCATOR=-b # can be -g, -b, -n
-java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --limit 4 --ir $ALLOCATOR --mips
+ALLOCATOR=-n # can be -g, -b, -n
+# java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --limit 4 --ir $ALLOCATOR --mips
+java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips

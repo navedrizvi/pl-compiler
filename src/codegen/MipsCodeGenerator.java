@@ -69,40 +69,96 @@ public class MipsCodeGenerator {
     SymbolTable symbolTable;
     String currentRegisterAllocationAlgorithm;
 
-    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, SymbolTable symbolTable) {
+    public MipsCodeGenerator(IRInstruction[] instructions, FunctionBlock functionBlock, SymbolTable symbolTable, int limit) {
+//        limit of 0 is when no limit arg is provided (so 0 is no limit)
         this.instructions = instructions;
+        this.symbolTable = symbolTable;
+
+        this.freeSaveRegisters = getSaveRegisters(limit);
+        this.freeTempRegisters = getTempRegisters(limit);
+        this.freeSaveFloatRegisters = getSaveFloatRegisters(limit);
+        this.freeTempFloatRegisters = getTempFloatRegisters(limit);
+
         this.intList = Arrays.asList(functionBlock.getIntList());
         this.floatList = Arrays.asList(functionBlock.getFloatList());
+        this.staticIntList = functionBlock.getStaticIntList();
+        this.staticFloatList = functionBlock.getStaticFloatList();
+
         this.functionName = functionBlock.getFunctionName();
-        this.freeSaveRegisters = new Stack<>();
-        this.freeSaveRegisters.addAll(Arrays.asList("$s7", "$s6", "$s5", "$s4", "$s3", "$s2", "$s1", "$s0"));
-        this.freeTempRegisters = new Stack<>();
-        this.freeTempRegisters.addAll(Arrays.asList("$t7", "$t6", "$t5", "$t4", "$t3", "$t2", "$t1", "$t0"));
+        this.functionArgs = functionBlock.getFunctionArgs();
+        this.globalFunctionToArgs = functionBlock.getGlobalFunctionToArgs();
+        this.maxArgs = Math.max(functionBlock.getMaxArgs(), 4);
+
         this.freeReserveRegisters = new Stack<>();
+        this.freeReserveFloatRegisters = new Stack<>();
+        this.freeFnArgsFloatRegisters = new Stack<>();
         this.freeReserveRegisters.addAll(Arrays.asList("$fp", "$gp", "$v1", "$t8", "$t9"));
+        this.freeReserveFloatRegisters.addAll(Arrays.asList("$f3", "$f2", "$f1"));
+        this.freeFnArgsFloatRegisters.addAll(Arrays.asList("$f15", "$f14", "$f13", "$f12"));
+
         this.usedSaveRegisters = new HashSet<>();
         this.usedTempRegisters = new HashSet<>();
         this.usedReserveRegisters = new HashSet<>();
-        this.staticIntList = functionBlock.getStaticIntList();
-        this.staticFloatList = functionBlock.getStaticFloatList();
-        this.maxArgs = Math.max(functionBlock.getMaxArgs(), 4);
-        this.functionArgs = functionBlock.getFunctionArgs();
-        this.globalFunctionToArgs = functionBlock.getGlobalFunctionToArgs();
-
-        this.freeSaveFloatRegisters = new Stack<>();
-        this.freeSaveFloatRegisters.addAll(Arrays.asList("$f31", "$f30", "$f29", "$f28", "$f27", "$f26", "$f25", "$f24", "$f23", "$f22", "$f21", "$f20"));
-        this.freeTempFloatRegisters = new Stack<>();
-        this.freeTempFloatRegisters.addAll(Arrays.asList("$f19", "$f18", "$f17", "$f16", "$f11", "$f10", "$f9", "$f8", "$f7", "$f6", "$f5", "$f4"));
-        this.freeReserveFloatRegisters = new Stack<>();
-        this.freeReserveFloatRegisters.addAll(Arrays.asList("$f3", "$f2", "$f1"));
-        this.freeFnArgsFloatRegisters = new Stack<>();
-        this.freeFnArgsFloatRegisters.addAll(Arrays.asList("$f15", "$f14", "$f13", "$f12"));
         this.usedSaveFloatRegisters = new HashSet<>();
         this.usedTempFloatRegisters = new HashSet<>();
         this.usedFnArgsFloatRegisters = new HashSet<>();
         this.usedReserveFloatRegisters = new HashSet<>();
+    }
 
-        this.symbolTable = symbolTable;
+    private Stack<String> getSaveRegisters(int limit) {
+        // pass @limit as 0 to get all registers
+        Stack<String> s = new Stack<>();
+        List<String> l = Arrays.asList("$s7", "$s6", "$s5", "$s4", "$s3", "$s2", "$s1", "$s0");
+        if (limit >= l.size() || limit==0) {
+            s.addAll(l);
+        }
+        else {
+            Collections.reverse(l);
+            s.addAll(l.subList(0, limit));
+        }
+        return s;
+    }
+
+    private Stack<String> getTempRegisters(int limit) {
+        // pass @limit as 0 to get all registers
+        Stack<String> s = new Stack<>();
+        List<String> l = Arrays.asList("$t7", "$t6", "$t5", "$t4", "$t3", "$t2", "$t1", "$t0");
+        if (limit >= l.size() || limit==0) {
+            s.addAll(l);
+        }
+        else {
+            Collections.reverse(l);
+            s.addAll(l.subList(0, limit));
+        }
+        return s;
+    }
+
+    private Stack<String> getSaveFloatRegisters(int limit) {
+        // pass @limit as 0 to get all registers
+        Stack<String> s = new Stack<>();
+        List<String> l = Arrays.asList("$f31", "$f30", "$f29", "$f28", "$f27", "$f26", "$f25", "$f24", "$f23", "$f22", "$f21", "$f20");
+        if (limit >= l.size() || limit==0) {
+            s.addAll(l);
+        }
+        else {
+            Collections.reverse(l);
+            s.addAll(l.subList(0, limit));
+        }
+        return s;
+    }
+
+    private Stack<String> getTempFloatRegisters(int limit) {
+        // pass @limit as 0 to get all registers
+        Stack<String> s = new Stack<>();
+        List<String> l = Arrays.asList("$f19", "$f18", "$f17", "$f16", "$f11", "$f10", "$f9", "$f8", "$f7", "$f6", "$f5", "$f4");
+        if (limit >= l.size() || limit==0) {
+            s.addAll(l);
+        }
+        else {
+            Collections.reverse(l);
+            s.addAll(l.subList(0, limit));
+        }
+        return s;
     }
 
     private static boolean isInt(String s) {
@@ -142,6 +198,7 @@ public class MipsCodeGenerator {
 
     private void calculateLocalVariableOffsets() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
+        // TODO0
         // Handling ints first
         int offset = 0;
         for (String intVar: intList) {
@@ -432,7 +489,8 @@ public class MipsCodeGenerator {
     }
 
     private boolean isBranchOrReturn(String instruction) {
-        Set<String> ops = Set.of("return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq");
+        Set<String> ops = new HashSet<>();
+        ops.addAll(Arrays.asList("return", "goto", "breq", "brneq", "brlt", "brgt", "brleq", "brgeq"));
         String op = instruction.split(",")[0].trim();
         if (ops.contains(op))
             return true;

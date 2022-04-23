@@ -1228,6 +1228,7 @@ public class MipsCodeGenerator {
                 if (!isInt(a)) {
                     emit(getStoreCommand(register_a, a));
                     aWasCasted = true;
+                    addBackA = true;
                 }
             }
             else {
@@ -1244,6 +1245,7 @@ public class MipsCodeGenerator {
                 if (!isInt(b)) {
                     emit(getStoreCommand(register_b, b));
                     bWasCasted = true;
+                    addBackB = true;
                 }
             }
             else {
@@ -1269,6 +1271,7 @@ public class MipsCodeGenerator {
                 if (!isInt(b)) {
                     emit(getStoreCommand(register_b, b));
                     bWasCasted = true;
+                    addBackB = true;
                 }
             }
             else {
@@ -1282,6 +1285,7 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(c)) {
                 register_c = emitFloatCastInstrs(c);
+                addBackC = true;
                 if (!isInt(c))
                     emit(getStoreCommand(register_c, c));
             }
@@ -1305,6 +1309,7 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(a)) {
                 register_a = emitFloatCastInstrs(a);
+                addBackA = true;
                 if (!isInt(a)) {
                     emit(getStoreCommand(register_a, a));
                     aWasCasted = true;
@@ -1321,6 +1326,7 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(c)) {
                 register_c = emitFloatCastInstrs(c);
+                addBackC = true;
                 if (!isInt(c))
                     emit(getStoreCommand(register_c, c));
             }
@@ -1617,6 +1623,7 @@ public class MipsCodeGenerator {
     }
 
     /* Returns name of float register */ 
+    /* Must add back this register manually after done using */
     private String emitFloatCastInstrs(String operand) {
         String floatTemp = getRegister(false, true);
         if (!isFloat(operand)) {

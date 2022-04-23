@@ -98,8 +98,8 @@ public class FunctionBlock {
 
     public List<MipsInstruction> getBriggsMips() {
         InterferenceGraph interferenceGraph = buildInterferenceGraph();
-        MipsCodeGenerator intraBlockMips = new MipsCodeGenerator(instructions, this, symbolTable);
-        List<MipsInstruction> out = intraBlockMips.generateMipsInstructionsForBriggs(interferenceGraph);
+        MipsCodeGeneratorBriggs briggsMips = new MipsCodeGeneratorBriggs(instructions, this, symbolTable);
+        List<MipsInstruction> out = briggsMips.generateMipsInstructionsForBriggs(interferenceGraph);
         return out;
     }
 

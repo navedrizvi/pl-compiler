@@ -7,6 +7,7 @@ import common.SymbolTable;
 
 import java.util.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,11 +24,13 @@ public class Tiger {
         return f.exists();
     }
 
-    // TODO make this a hard overwrite
     private static void writeFileWithContent(String fpath, String content) {
-        Path targetPath = Paths.get(fpath);
+        // Path targetPath = Paths.get(fpath);
         try {
-            Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+            // Files.write(targetPath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+            FileWriter writer = new FileWriter(fpath, false);
+            writer.write(content);
+            writer.close();
         } catch (IOException e) {
             System.err.println("Error in creating new file");
         }

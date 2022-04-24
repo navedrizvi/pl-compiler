@@ -1,0 +1,22 @@
+/* Parse test: precedence of relational ops */
+
+program parse_precedence4
+let
+    static a: int;
+begin
+
+    function main() : int
+    begin
+
+        /* Grammatically correct, but semantically incorrect. */
+        a := 1 == 2 != 3 > 4 >= 5 < 6 <= 7;
+        a := 1 <= 2 < 3 >= 4 > 5 != 6 == 7;
+
+        a := 1 + 2 == 3 + 4;
+        a := 1 & 2 == 3 & 4;
+        a := 1 | 2 == 3 | 4;
+
+        return 0;
+    end
+
+end

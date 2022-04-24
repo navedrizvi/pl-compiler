@@ -1268,12 +1268,15 @@ public class MipsCodeGenerator {
         boolean bWasCasted = false;
 
         if (floatList.contains(a)) {
+            addBackA = true;
             register_a = getRegister(false, true);
         }
         if (floatList.contains(b)) {
+            addBackB = true;
             register_b = getRegister(false, true);
         }
         if (floatList.contains(c)) {
+            addBackC = true;
             register_c = getRegister(false, true);
         }
 
@@ -1282,8 +1285,10 @@ public class MipsCodeGenerator {
                 register_c = varToRegister.get(c);
             }
             else {
-                addBackC = true;
-                register_c = getRegister(false, true);
+                if (!addBackC) {
+                    addBackC = true;
+                    register_c = getRegister(false, true);
+                }
             }
             if (!checkIsFloat(a)) {
                 register_a = emitFloatCastInstrs(a);
@@ -1298,8 +1303,10 @@ public class MipsCodeGenerator {
                     register_a = varToRegister.get(a);
                 }
                 else {
-                    addBackA = true;
-                    register_a = getRegister(false, true);
+                    if (!addBackA) {
+                        addBackA = true;
+                        register_a = getRegister(false, true);
+                    }
                 }
             }
             if (!checkIsFloat(b)) {
@@ -1315,8 +1322,10 @@ public class MipsCodeGenerator {
                     register_b = varToRegister.get(b);
                 }
                 else {
-                    addBackB = true;
-                    register_b = getRegister(false, true);
+                    if (!addBackB) {
+                        addBackB = true;
+                        register_b = getRegister(false, true);
+                    }
                 }
             }
         }
@@ -1325,8 +1334,10 @@ public class MipsCodeGenerator {
                 register_a = varToRegister.get(a);
             }
             else {
-                addBackA = true;
-                register_a = getRegister(false, true);
+                if (!addBackA) {
+                    addBackA = true;
+                    register_a = getRegister(false, true);
+                }
             }
             if (!checkIsFloat(b)) {
                 register_b = emitFloatCastInstrs(b);
@@ -1341,8 +1352,10 @@ public class MipsCodeGenerator {
                     register_b = varToRegister.get(b);
                 }
                 else {
-                    addBackB = true;
-                    register_b = getRegister(false, true);
+                    if (!addBackB) {
+                        addBackB = true;
+                        register_b = getRegister(false, true);
+                    }
                 }
             }
             if (!checkIsFloat(c)) {
@@ -1356,8 +1369,10 @@ public class MipsCodeGenerator {
                     register_c = varToRegister.get(c);
                 }
                 else {
-                    addBackC = true;
-                    register_c = getRegister(false, true);
+                    if (!addBackC) {
+                        addBackC = true;
+                        register_c = getRegister(false, true);
+                    }
                 }
             }
         }
@@ -1366,8 +1381,10 @@ public class MipsCodeGenerator {
                 register_b = varToRegister.get(b);
             }
             else {
-                addBackB = true;
-                register_b = getRegister(false, true);
+                if (!addBackB) {
+                    addBackB = true;
+                    register_b = getRegister(false, true);
+                }
             }
             if (!checkIsFloat(a)) {
                 register_a = emitFloatCastInstrs(a);
@@ -1382,8 +1399,10 @@ public class MipsCodeGenerator {
                     register_a = varToRegister.get(a);
                 }
                 else {
-                    addBackA = true;
-                    register_a = getRegister(false, true);
+                    if (!addBackA) {
+                        addBackA = true;
+                        register_a = getRegister(false, true);
+                    }
                 }
             }
             if (!checkIsFloat(c)) {
@@ -1397,8 +1416,10 @@ public class MipsCodeGenerator {
                     register_c = varToRegister.get(c);
                 }
                 else {
-                    addBackC = true;
-                    register_c = getRegister(false, true);
+                    if (!addBackC) {
+                        addBackC = true;
+                        register_c = getRegister(false, true);
+                    }
                 }
             }
         }
@@ -2277,12 +2298,9 @@ public class MipsCodeGenerator {
         public move(String destination, String source) {
             this.destination = destination;
             this.source = source;
-            System.out.println("HIHIHi");
-            System.out.println(destination);
-            System.out.println(source);
-            System.out.println(destination);
 
             // $f20, $v0
+            // TODO1 is doing this fine
             if (this.destination.startsWith("$f") && this.source.equals("$v0")) {
                 this.source = "$f0";
             }

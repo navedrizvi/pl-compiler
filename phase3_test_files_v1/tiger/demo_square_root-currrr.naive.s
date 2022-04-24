@@ -32,8 +32,8 @@ li $s0, 0
 sw $s0, 52($sp)
 l.s $f17, 72($sp)
 l.s $f18, 68($sp)
-c.le.s $f17, $f18
-bc1t _L1
+# TODO need to make this float
+ble $f17, $f18, _L1
 li $s0, 1
 sw $s0, 52($sp)
 l.s $f23, 60($sp)
@@ -85,7 +85,7 @@ sw $ra, 48($sp)
 # end of prologue
 li.s $f12, 42.0
 jal squareRoot
-s.s $f0, 56($sp)
+sw $v0, 56($sp)
 li $v0, 2
 l.s $f4, 56($sp)
 mov.s $f12, $f4
@@ -107,3 +107,4 @@ lw $ra, 48($sp)
 addiu $sp, $sp, 60
 # end of epilogue
 jr $ra
+

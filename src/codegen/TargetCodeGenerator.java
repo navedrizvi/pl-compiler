@@ -46,7 +46,9 @@ public class TargetCodeGenerator {
          }
       }
       for (String e: this.staticFloatList) {
-         out.add("_" + e + ": .float 0.0");
+         // out.add("_" + e + ": .float 0.0");
+         if (!e.endsWith("]"))
+            out.add(e + ": .float 0.0");
       }
       return out;
    }

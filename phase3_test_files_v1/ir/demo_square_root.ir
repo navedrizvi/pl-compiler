@@ -12,6 +12,8 @@ start_function squareRoot
     assign, _2_y, 1.0,
     _L0:
     sub, _2_x, _2_y, _t1
+
+    
     assign, _t2, 1,
     brgt, _t1, _2_e, _L2
     assign, _t2, 0,

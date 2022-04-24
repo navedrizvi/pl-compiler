@@ -1241,21 +1241,10 @@ public class MipsCodeGenerator {
                 handleFloatBinOp(c, a, b, "div");
             }
             else {
-                // if (c.equals("$s2") && a.equals("$s0") && b.equals("$s1")) {
-                // }
-                // if ()
                 if (checkIsFloat(a) || checkIsFloat(b) || checkIsFloat(c)) {
-                    System.out.println("HERREE");
-                    System.out.println(a);
-                    System.out.println(b);
-                    System.out.println(c);
                     handleFloatBinOp(c, a, b, "div");
                 }
                 else {
-                    System.out.println("WHYYY");
-                    System.out.println(a);
-                    System.out.println(b);
-                    System.out.println(c);
                     handleIntBinOp(c, a, b, "div");
 
                 }
@@ -1881,20 +1870,6 @@ public class MipsCodeGenerator {
     }
 
     private boolean addrIsFloat2(String addr) {
-        // SubroutineSymbol fn = (SubroutineSymbol) symbolTable.lookUp(functionName);
-        // SubroutineSymbol.CustomArrayList params = fn.getParameters();
-
-        // String addr2 = registerAllocation.get(addr).getMemoryOffset() + "(" + STACK_POINTER + ")";
-        // System.out.println(addr);
-        // if (argToType.get(addr) == RegisterType.Float) {
-        //     return true;
-        // }
-        // return false;
-        // return addrIsFloat(nFnArg);
-        System.out.println(argToType.keySet());
-        if (argToType.containsKey("60($sp)")) {
-            System.out.println(argToType.get("60($sp)"));
-        }
         if (argToType.get(addr) == RegisterType.Float) {
             return true;
         }
@@ -1902,16 +1877,6 @@ public class MipsCodeGenerator {
     }
 
     private boolean addrIsFloat3(String addr) {
-        // SubroutineSymbol fn = (SubroutineSymbol) symbolTable.lookUp(functionName);
-        // SubroutineSymbol.CustomArrayList params = fn.getParameters();
-
-        // String addr2 = registerAllocation.get(addr).getMemoryOffset() + "(" + STACK_POINTER + ")";
-        // System.out.println(addr);
-        // if (argToType.get(addr) == RegisterType.Float) {
-        //     return true;
-        // }
-        // return false;
-        // return addrIsFloat(nFnArg);
         return floatList.contains(addr);
     }
 
@@ -1992,12 +1957,6 @@ public class MipsCodeGenerator {
         MipsInstruction cmd = null;
         System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
 
-        // // comment is a util to print java stacktrace
-        // if (register.equals("$s0") && operand.equals("1")) {
-        //     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-        //         System.out.println(ste);
-        //     }
-        // }
         if (varToRegister.containsKey(operand)) {
             if (!varToRegister.get(operand).equals(register)) {
                 cmd = new move(register, varToRegister.get(operand));
@@ -2008,7 +1967,6 @@ public class MipsCodeGenerator {
             cmd = new lw(register, operand);
         }
         else if (intList.contains(operand) || floatList.contains(operand)) {
-            String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
             cmd = new lw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
         }
         else if (symbolTable.lookUpMangledName(operand)!=null) {
@@ -2018,6 +1976,11 @@ public class MipsCodeGenerator {
             cmd = new li(register, operand);
         }
         return cmd;
+    }
+
+    private void printJavaStacktrace() {
+        String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
+        System.out.println(fullStackTrace);
     }
 
     private MipsInstruction getStoreCommand(String register, String operand) {

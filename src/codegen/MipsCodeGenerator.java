@@ -210,7 +210,6 @@ public class MipsCodeGenerator {
 
     private void calculateLocalVariableOffsets() {
         HashMap<String, RegAllocTuple> varToMemoryOffSet = new HashMap<>();
-        // TODO0
         // Handling ints first
         int offset = 0;
         for (String intVar: intList) {
@@ -262,9 +261,9 @@ public class MipsCodeGenerator {
 
         // save registers - for now lets allocate for all save registers
 
-        // TODO1 change these freeSaveRegisters to freeFloatSaveRegisters
         stackFrame.put("saveRegisters", stackSize);
         stackSize += freeSaveRegisters.size() * 4;
+        stackSize += freeSaveFloatRegisters.size() * 4;
 
         // $ra - return address
         stackFrame.put("returnAddress", stackSize);
@@ -626,6 +625,7 @@ public class MipsCodeGenerator {
         Collections.reverse(temp);
         // $f20 to $f31
         List<String> tempFloat = new ArrayList<>(freeSaveFloatRegisters);
+        Collections.reverse(tempFloat);
 
         /// TODO1 needed?
         // int float_idx = 0;
@@ -642,10 +642,10 @@ public class MipsCodeGenerator {
         //     i += 4;
         // }
         // System.out.println(fn.getParameters());
-        // for (String register: temp) {
-        //     emit(new sw(register, i + "(" + STACK_POINTER + ")"));
-        //     i += 4;
-        // }
+        for (String register: temp) {
+            emit(new sw(register, i + "(" + STACK_POINTER + ")"));
+            i += 4;
+        }
 
         int i2=0;
         for (String register: tempFloat) {

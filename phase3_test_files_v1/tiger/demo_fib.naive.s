@@ -3,19 +3,18 @@ newline: .asciiz "\n"
 _0_result: .word 0
 .text
 .globl main
-
 fib:
 # start of prologue
 addiu $sp, $sp, -84
 sw $a0, 52($sp)
-sw $s0, 16($sp)
-sw $s1, 20($sp)
-sw $s2, 24($sp)
-sw $s3, 28($sp)
-sw $s4, 32($sp)
-sw $s5, 36($sp)
-sw $s6, 40($sp)
-sw $s7, 44($sp)
+s.s $f31, 16($sp)
+s.s $f30, 20($sp)
+s.s $f29, 24($sp)
+s.s $f28, 28($sp)
+s.s $f27, 32($sp)
+s.s $f26, 36($sp)
+s.s $f25, 40($sp)
+s.s $f24, 44($sp)
 sw $ra, 48($sp)
 # end of prologue
 li $s0, 0
@@ -24,21 +23,21 @@ li $s0, 0
 sw $s0, 60($sp)
 li $s0, 0
 sw $s0, 64($sp)
-lw $s0, 52($sp)
-li $s1, 1
-bgt $s0, $s1, _L0
+lw $t0, 52($sp)
+li $t1, 1
+bgt $t0, $t1, _L0
 li $s0, 1
 sw $s0, 64($sp)
 lw $v0, 52($sp)
 # start of epilogue
-lw $s0, 16($sp)
-lw $s1, 20($sp)
-lw $s2, 24($sp)
-lw $s3, 28($sp)
-lw $s4, 32($sp)
-lw $s5, 36($sp)
-lw $s6, 40($sp)
-lw $s7, 44($sp)
+l.s $f31, 16($sp)
+l.s $f30, 20($sp)
+l.s $f29, 24($sp)
+l.s $f28, 28($sp)
+l.s $f27, 32($sp)
+l.s $f26, 36($sp)
+l.s $f25, 40($sp)
+l.s $f24, 44($sp)
 lw $ra, 48($sp)
 addiu $sp, $sp, 84
 # end of epilogue
@@ -68,35 +67,30 @@ add $s2, $s0, $s1
 sw $s2, 76($sp)
 lw $v0, 76($sp)
 # start of epilogue
-lw $s0, 16($sp)
-lw $s1, 20($sp)
-lw $s2, 24($sp)
-lw $s3, 28($sp)
-lw $s4, 32($sp)
-lw $s5, 36($sp)
-lw $s6, 40($sp)
-lw $s7, 44($sp)
+l.s $f31, 16($sp)
+l.s $f30, 20($sp)
+l.s $f29, 24($sp)
+l.s $f28, 28($sp)
+l.s $f27, 32($sp)
+l.s $f26, 36($sp)
+l.s $f25, 40($sp)
+l.s $f24, 44($sp)
 lw $ra, 48($sp)
 addiu $sp, $sp, 84
 # end of epilogue
 jr $ra
 _L1:
-
-
-
-
-
 main:
 # start of prologue
 addiu $sp, $sp, -60
-sw $s0, 16($sp)
-sw $s1, 20($sp)
-sw $s2, 24($sp)
-sw $s3, 28($sp)
-sw $s4, 32($sp)
-sw $s5, 36($sp)
-sw $s6, 40($sp)
-sw $s7, 44($sp)
+s.s $f31, 16($sp)
+s.s $f30, 20($sp)
+s.s $f29, 24($sp)
+s.s $f28, 28($sp)
+s.s $f27, 32($sp)
+s.s $f26, 36($sp)
+s.s $f25, 40($sp)
+s.s $f24, 44($sp)
 sw $ra, 48($sp)
 # end of prologue
 li $a0, 12
@@ -110,14 +104,14 @@ la $a0, newline
 syscall
 li $v0, 0
 # start of epilogue
-lw $s0, 16($sp)
-lw $s1, 20($sp)
-lw $s2, 24($sp)
-lw $s3, 28($sp)
-lw $s4, 32($sp)
-lw $s5, 36($sp)
-lw $s6, 40($sp)
-lw $s7, 44($sp)
+l.s $f31, 16($sp)
+l.s $f30, 20($sp)
+l.s $f29, 24($sp)
+l.s $f28, 28($sp)
+l.s $f27, 32($sp)
+l.s $f26, 36($sp)
+l.s $f25, 40($sp)
+l.s $f24, 44($sp)
 lw $ra, 48($sp)
 addiu $sp, $sp, 60
 # end of epilogue

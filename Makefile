@@ -33,7 +33,6 @@ SOURCES := \
 	src/LexicalErrorListener.java \
 	src/ParserErrorListener.java \
 	src/SemanticError.java \
-	src/SubroutineSymbol.java \
 	src/DefinedTypeArraySymbol.java \
 	src/DefinedTypeSymbol.java \
 	src/VariableSymbol.java \

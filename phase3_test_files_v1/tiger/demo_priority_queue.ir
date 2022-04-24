@@ -1,0 +1,207 @@
+start_program demo_priority_queue
+static-int-list: _0_MAX_SIZE, _0_keys[21], _0_values[21], _0_size
+static-float-list:
+start_function swap
+void swap(int _1_i, int _1_j)
+int-list: _1_i, _1_j, _2_tmp_value, _2_tmp_key, _t0, _t1, _t2, _t3
+float-list:
+swap:
+array_load, _t0, _0_keys, _1_j
+assign, _2_tmp_key, _t0
+array_load, _t1, _0_values, _1_j
+assign, _2_tmp_value, _t1
+array_load, _t2, _0_keys, _1_i
+array_store, _0_keys, _1_j, _t2
+array_load, _t3, _0_values, _1_i
+array_store, _0_values, _1_j, _t3
+array_store, _0_keys, _1_i, _2_tmp_key
+array_store, _0_values, _1_i, _2_tmp_value
+return
+end_function swap
+start_function up_heap
+void up_heap(int _3_from)
+int-list: _3_from, _4_swap_made, _4_parent, _t4, _t5, _t6, _t7, _t8, _t9, _t10, _t11
+float-list:
+up_heap:
+assign, _4_swap_made, 1
+div, _3_from, 2, _t4
+assign, _4_parent, _t4
+_L0:
+assign, _t5, 0
+brleq, _4_parent, 0, _L1
+assign, _t5, 1
+assign, _t6, 0
+breq, _4_swap_made, 0, _L1
+assign, _t6, 1
+and, _t5, _t6, _t7
+array_load, _t8, _0_keys, _4_parent
+array_load, _t9, _0_keys, _3_from
+assign, _t10, 0
+brleq, _t8, _t9, _L2
+assign, _t10, 1
+call, swap, _4_parent, _3_from
+assign, _3_from, _4_parent
+div, _3_from, 2, _t11
+assign, _4_parent, _t11
+goto, _L3
+_L2:
+assign, _4_swap_made, 0
+_L3:
+goto, _L0
+_L1:
+return
+end_function up_heap
+start_function down_heap
+void down_heap(int _5_at)
+int-list: _5_at, _6_r, _6_l, _6_left, _6_right, _t12, _t13, _t14, _t15, _t16, _t17, _t18, _t19, _t20, _t21, _t22, _t23, _7_child, _t24, _t25, _t26, _t27, _t28, _t29
+float-list:
+down_heap:
+mult, _5_at, 2, _t12
+assign, _6_left, _t12
+add, _6_left, 1, _t13
+assign, _6_right, _t13
+assign, _6_l, 0
+assign, _6_r, 0
+assign, _t14, 0
+brgt, _6_left, _0_size, _L4
+assign, _t14, 1
+array_load, _t15, _0_keys, _5_at
+array_load, _t16, _0_keys, _6_left
+assign, _t17, 0
+brleq, _t15, _t16, _L5
+assign, _t17, 1
+assign, _6_l, 1
+_L5:
+_L4:
+assign, _t18, 0
+brgt, _6_right, _0_size, _L6
+assign, _t18, 1
+array_load, _t19, _0_keys, _5_at
+array_load, _t20, _0_keys, _6_right
+assign, _t21, 0
+brleq, _t19, _t20, _L7
+assign, _t21, 1
+assign, _6_r, 1
+_L7:
+_L6:
+or, _6_r, _6_l, _t22
+assign, _t23, 0
+brleq, _t22, 0, _L8
+assign, _t23, 1
+and, _6_r, _6_l, _t24
+assign, _t25, 0
+brleq, _t24, 0, _L9
+assign, _t25, 1
+array_load, _t26, _0_keys, _6_left
+array_load, _t27, _0_keys, _6_right
+assign, _t28, 0
+brgeq, _t26, _t27, _L11
+assign, _t28, 1
+assign, _7_child, _6_left
+goto, _L12
+_L11:
+assign, _7_child, _6_right
+_L12:
+goto, _L10
+_L9:
+assign, _t29, 0
+brleq, _6_l, 0, _L13
+assign, _t29, 1
+assign, _7_child, _6_left
+assign, _7_child, _6_right
+_L14:
+goto, _L10
+_L13:
+_L10:
+call, swap, _5_at, _7_child
+call, down_heap, _7_child
+_L8:
+return
+end_function down_heap
+start_function peek
+int peek()
+int-list: _9_result, _t30
+float-list:
+peek:
+array_load, _t30, _0_values, 1
+assign, _9_result, _t30
+return, _9_result
+end_function peek
+start_function push
+void push(int _10_key, int _10_value)
+int-list: _10_key, _10_value, _t31, _t32
+float-list:
+push:
+assign, _t31, 0
+brneq, _0_size, _0_MAX_SIZE, _L15
+assign, _t31, 1
+call, exit, 1
+_L15:
+add, _0_size, 1, _t32
+assign, _0_size, _t32
+array_store, _0_keys, _0_size, _10_key
+array_store, _0_values, _0_size, _10_value
+call, up_heap, _0_size
+return
+end_function push
+start_function pop
+void pop()
+int-list: _t33, _t34, _t35, _t36
+float-list:
+pop:
+assign, _t33, 0
+brneq, _0_size, 0, _L16
+assign, _t33, 1
+call, exit, 2
+_L16:
+array_load, _t34, _0_keys, _0_size
+array_store, _0_keys, 1, _t34
+array_load, _t35, _0_values, _0_size
+array_store, _0_values, 1, _t35
+sub, _0_size, 1, _t36
+assign, _0_size, _t36
+call, down_heap, 1
+return
+end_function pop
+start_function init_data
+void init_data()
+int-list:
+float-list:
+init_data:
+call, push, 5, 108
+call, push, 8, 87
+call, push, 18, 100
+call, push, 22, 33
+call, push, 6, 111
+call, push, 7, 32
+call, push, 11, 111
+call, push, 13, 114
+call, push, 15, 108
+call, push, 0, 72
+call, push, 1, 101
+call, push, 2, 108
+return
+end_function init_data
+start_function main
+int main()
+int-list: _14_n, _14_i, _14_value, _t37
+float-list:
+main:
+assign, _0_keys, 21, 0
+assign, _0_values, 21, 0
+assign, _0_size, 0
+assign, _0_MAX_SIZE, 20
+call, init_data
+assign, _14_n, _0_size
+assign, _14_i,1
+_L17:
+brgt, _14_i, _14_n, _L18
+callr, _14_value, peek
+call, printi, _14_value
+call, pop
+add, _14_i, 1, _14_i
+goto, _L17
+_L18:
+return, 0
+end_function main
+end_program demo_priority_queue

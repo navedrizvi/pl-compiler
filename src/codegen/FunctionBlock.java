@@ -21,11 +21,12 @@ public class FunctionBlock {
     private Map<String, List<String>> globalFunctionToArgs;
     Map<String, Map<BasicBlock, List<BasicBlock>>> funcNameToCFG;
     Map<String, LivenessAnalysis> funcNameToLivenessAnaylsis;
+    int registerLimit;
 
     public FunctionBlock(
             String functionName, String returnType, List<String> functionArgs, List<String> staticIntList,
             List<String> staticFloatList, String[] intList, String[] floatList, IRInstruction[] instructions,
-            int maxArgs, SymbolTable symbolTable
+            int maxArgs, SymbolTable symbolTable, int registerLimit
     ) {
         this.functionName = functionName;
         this.returnType = returnType;
@@ -37,6 +38,7 @@ public class FunctionBlock {
         this.staticFloatList = staticFloatList;
         this.maxArgs = maxArgs;
         this.symbolTable = symbolTable;
+        this.registerLimit = registerLimit;
     }
 
     public void setGlobalFunctionToArgs(Map<String, List<String>> functionToArgs) {
@@ -84,21 +86,21 @@ public class FunctionBlock {
     }
 
     public List<MipsInstruction> getNaiveMips() {
-        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, symbolTable);
+        MipsCodeGenerator naiveMips = new MipsCodeGenerator(instructions, this, symbolTable, this.registerLimit);
         List<MipsInstruction> out = naiveMips.generateMipsInstructionsForNaive();
         return out;
     }
 
     public List<MipsInstruction> getIntraBlockMips() {
         Map<BasicBlock, Map<String, Integer>> sortedHistogramByCountDesc = generateSortedHistogramByCountDesc();
-        MipsCodeGenerator intraBlockMips = new MipsCodeGenerator(instructions, this, symbolTable);
+        MipsCodeGenerator intraBlockMips = new MipsCodeGenerator(instructions, this, symbolTable, this.registerLimit);
         List<MipsInstruction> out = intraBlockMips.generateMipsInstructionsForIntraBlock(sortedHistogramByCountDesc);
         return out;
     }
 
     public List<MipsInstruction> getBriggsMips() {
         InterferenceGraph interferenceGraph = buildInterferenceGraph();
-        MipsCodeGeneratorBriggs briggsMips = new MipsCodeGeneratorBriggs(instructions, this, symbolTable);
+        MipsCodeGenerator briggsMips = new MipsCodeGenerator(instructions, this, symbolTable, this.registerLimit);
         List<MipsInstruction> out = briggsMips.generateMipsInstructionsForBriggs(interferenceGraph);
         return out;
     }

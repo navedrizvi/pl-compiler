@@ -143,6 +143,42 @@ set -v
 # 5.9) Allocation with Limit: demo_jacobi --limit 4 (Manually Graded) (0.0/0.0)
 # 5.10) Allocation with Limit: demo_tak --limit 4 (Manually Graded) (0.0/0.0)
 
+
+# 4.6) Allocation: demo_motor (Manually Graded) (0.0/0.0)
+# 4.2) Allocation: demo_slope (Manually Graded) (0.0/0.0)
+# 4.8) Allocation: demo_matrix (Manually Graded) (0.0/0.0)
+# 4.9) Allocation: demo_jacobi (Manually Graded) (0.0/0.0)
+# 5.6) Allocation with Limit: demo_motor --limit 4 (Manually Graded) (0.0/0.0)
+# 5.8) Allocation with Limit: demo_matrix --limit 4 (Manually Graded) (0.0/0.0)
+# 5.9) Allocation with Limit: demo_jacobi --limit 4 (Manually Graded) (0.0/0.0)
+
+
+
+
+# ####################3
+
+# ####################3
+
+# ignoring:
+# 4.7) Allocation: demo_priority_queue (Manually Graded) (0.0/0.0)
+# 5.7) Allocation with Limit: demo_priority_queue --limit 4 (Manually Graded) (0.0/0.0)
+
+
+# 5.2) Allocation with Limit: demo_slope --limit 4 (Manually Graded) (0.0/0.0)
+
+
+# Li float-issue:
+    # Demo_slope + limit
+    # Demo_matrix + limit
+
+# No more registers:
+    # Benchmark4
+    # Motor + limit
+    # Jacobi + limit
+    # Square_root + limit
+
+
+
 make clean
 make
 cd cs8803_bin

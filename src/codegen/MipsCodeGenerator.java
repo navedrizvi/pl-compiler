@@ -1305,18 +1305,6 @@ public class MipsCodeGenerator {
         boolean aWasCasted = false;
         boolean bWasCasted = false;
 
-        if (floatList.contains(a)) {
-            addBackA = true;
-            register_a = getRegister(false, true);
-        }
-        if (floatList.contains(b)) {
-            addBackB = true;
-            register_b = getRegister(false, true);
-        }
-        if (floatList.contains(c)) {
-            addBackC = true;
-            register_c = getRegister(false, true);
-        }
 
         if (checkIsFloat(c)) {
             if (varToRegister.containsKey(c)) {
@@ -1330,10 +1318,10 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(a)) {
                 register_a = emitFloatCastInstrs(a);
+                addBackA = true;
                 if (!isInt(a)) {
                     emit(getStoreCommand(register_a, a));
                     aWasCasted = true;
-                    addBackA = true;
                 }
             }
             else {
@@ -1349,10 +1337,10 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(b)) {
                 register_b = emitFloatCastInstrs(b);
+                addBackB = true;
                 if (!isInt(b)) {
                     emit(getStoreCommand(register_b, b));
                     bWasCasted = true;
-                    addBackB = true;
                 }
             }
             else {
@@ -1379,10 +1367,10 @@ public class MipsCodeGenerator {
             }
             if (!checkIsFloat(b)) {
                 register_b = emitFloatCastInstrs(b);
+                addBackB = true;
                 if (!isInt(b)) {
                     emit(getStoreCommand(register_b, b));
                     bWasCasted = true;
-                    addBackB = true;
                 }
             }
             else {
@@ -2061,6 +2049,10 @@ public class MipsCodeGenerator {
         //     // System.out.println(operand);
         //     // System.out.println(locToType);
         // }
+        if (isInt(operand) || isFloat(operand)) {
+            return new sw(register, operand);
+
+        }
         return new sw(register, registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")");
     }
 

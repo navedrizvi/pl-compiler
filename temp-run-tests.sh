@@ -36,7 +36,6 @@ set -v
 # 5.10) Allocation with Limit: demo_tak --limit 4 (Manually Graded) (0.0/0.0)
 
 
-
 # 4.6) Allocation: demo_motor (Manually Graded) (0.0/0.0)
 # 4.2) Allocation: demo_slope (Manually Graded) (0.0/0.0)
 # 4.8) Allocation: demo_matrix (Manually Graded) (0.0/0.0)
@@ -70,6 +69,20 @@ set -v
 # 5.2) Allocation with Limit: demo_slope --limit 4 (Manually Graded) (0.0/0.0)
 
 
+# Li float-issue:
+    # Demo_slope + limit
+    # /// TODO01
+    # Demo_matrix + limit 
+
+# No more registers:
+    # /// TODO02
+    # Benchmark4
+    # Motor + limit
+    # Jacobi + limit
+    # Square_root + limit
+
+
+
 make clean
 make
 cd cs8803_bin
@@ -77,10 +90,16 @@ cd cs8803_bin
 
 # TEST=demo_fib
 # TEST=demo_square_root
-TEST=demo_slope
 # TEST=demo_motor
-ALLOCATOR=-n # can be -g, -b, -n
+# TEST=demo_slope
+    # li $s2, 2.0
+# TEST=demo_matrix
+TEST=float_math_mixed
+ALLOCATOR=-b # can be -g, -b, -n
 # ALLOCATOR=-n # can be -g, -b, -n
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --limit 4 --ir $ALLOCATOR --mips
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips
-java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips --limit 4
+# java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips --limit 4
+java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger --ir $ALLOCATOR --mips
+
+# java -jar tigerc.jar -r ../benchmark_files_v1/benchmark4.ir -i ../benchmark_files_v1/benchmark4.tiger  --ir $ALLOCATOR --mips

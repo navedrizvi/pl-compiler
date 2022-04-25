@@ -70,18 +70,17 @@ set -v
 
 
 # Li float-issue:
-    # Demo_slope + limit
     # /// TODO01
     # Demo_matrix + limit 
 
 # No more registers:
     # /// TODO02
-    # Benchmark4
-    # Motor + limit
     # Jacobi + limit
+
+# TODO0:
+    # Demo_slope + limit
     # Square_root + limit
-
-
+    # Motor + limit
 
 make clean
 make
@@ -91,11 +90,11 @@ cd cs8803_bin
 # TEST=demo_fib
 # TEST=demo_square_root
 # TEST=demo_motor
-# TEST=demo_slope
+TEST=demo_slope
     # li $s2, 2.0
 # TEST=demo_matrix
-TEST=float_math_mixed
-ALLOCATOR=-b # can be -g, -b, -n
+# TEST=float_math_mixed
+ALLOCATOR=-n # can be -g, -b, -n
 # ALLOCATOR=-n # can be -g, -b, -n
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --limit 4 --ir $ALLOCATOR --mips
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips

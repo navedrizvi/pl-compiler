@@ -373,6 +373,11 @@ public class Tiger {
                 System.exit(4);
             }
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
+            String stAsFormattedString = getSTAsFormattedString(stAsList);
+            // Remove when done
+            System.out.println("OUUUU");
+            System.out.println(stAsFormattedString);
+ 
 
             // Semantic analysis
             TigerSemanticAnalysisListener tigerSemanticAnalysisListener = new TigerSemanticAnalysisListener(stAsList);

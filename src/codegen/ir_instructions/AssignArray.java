@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 public class AssignArray implements IRInstruction {
-    private String arr_name;
+    public String arr_name;
     private int arr_size;
     private String arr_var;
-    private String instruction;
+    public String instruction;
 
     public String getInstruction() {
         return instruction;

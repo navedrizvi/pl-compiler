@@ -87,6 +87,10 @@ public class SymbolTable {
             while (parent != null && parent.getScopeNumber() != scope) {
                 Map<String, Symbol> map = parent.getST();
                 symbol = map.get(name);
+                System.out.println("YEEE");
+                System.out.println(symbol);
+                System.out.println(name);
+                System.out.println(map);
                 if (symbol != null)
                     return symbol;
                 parent = parent.getParent();
@@ -96,6 +100,21 @@ public class SymbolTable {
         else {
             return null;
         }
+    }
+
+    public Symbol lookUpMangledNameUnsafe(String mangledName) {
+        // bad b/c it will return the name in latest scope (disregards scope in @mangledName)
+        if (!mangledName.startsWith("_")) {
+            return this.lookUp(mangledName);
+        }
+        // else if (mangledName.startsWith("_")) {
+            String[] nameSplit = mangledName.split("_");
+            String name = nameSplit[2];
+            return this.lookUp(name);
+        // }
+        // else {
+        //     return null;
+        // }
     }
 
     public int getScopeNumber(String name) {

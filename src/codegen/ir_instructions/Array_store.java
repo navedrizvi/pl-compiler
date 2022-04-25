@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 public class Array_store implements IRInstruction {
-    private String array_name;
+    public String array_name;
     private String idx;
     private String load_var;
-    private String instruction;
+    public String instruction;
 
     public String getInstruction() {
         return instruction;

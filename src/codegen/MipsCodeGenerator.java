@@ -759,10 +759,14 @@ public class MipsCodeGenerator {
         if (!checkIsFloat(a)) {
             register_a = emitFloatCastInstrs(a);
             aWasCasted = true;
+            if (!isInt(a))
+                emit(getStoreCommand(register_a, a));
         }
         if (!checkIsFloat(b)) {
             register_b = emitFloatCastInstrs(b);
             bWasCasted = true;
+            if (!isInt(b))
+                emit(getStoreCommand(register_b, b));
         }
 
         if (op.equals("beq")) {
@@ -1939,22 +1943,6 @@ public class MipsCodeGenerator {
         return floatTemp;
     }
 
-    /* Returns name of float register */ 
-    /* Must add back this register manually after done using */
-    private String emitFloatCastInstrs2(String operand, String temp) {
-        String floatTemp = getRegister(false, true);
-        if (!isFloat(operand)) {
-            // Cast arg to float
-            emit(new mtc1(temp, floatTemp));
-            emit(new cvt_s_w(floatTemp, floatTemp));
-            addBackRegister(temp);
-        }
-        else {
-            emit(getLoadCommand(floatTemp, operand));
-        }
-        return floatTemp;
-    }
-
     private int staticArraySize(String a) {
         for (String intVar : staticIntList) {
             int isArray = intVar.indexOf("[");
@@ -2449,12 +2437,6 @@ public class MipsCodeGenerator {
         public li(String register, String immediate) {
             this.register = register;
             this.immediate = immediate;
-            if (register.equals("$t1") && immediate.equals("0.0")) {
-        String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-        // // System.out.println(fullStackTrace);
-
-            }
-
         }
         public String asString() {
             if (register.startsWith("$f")) {
@@ -2536,12 +2518,6 @@ public class MipsCodeGenerator {
         public la(String register, String label) {
             this.register = register;
             this.label = label;
-            if (register.equals("$t0") && label.equals("_0_p1")) {
-                // printJavaStacktrace();    
-                String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-                // System.out.println(fullStackTrace);
-                // System.out.println("HIHIhih");
-            }
         }
         @Override
         public List<String> args() {
@@ -2555,13 +2531,6 @@ public class MipsCodeGenerator {
         public move(String destination, String source) {
             this.destination = destination;
             this.source = source;
-
-            if (this.source.startsWith("$f22") && this.destination.startsWith("$s2"))
-            {
-        String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-        // System.out.println(fullStackTrace);
-            }
-
             // $f20, $v0
             // TODO1 is doing this fine
             if (this.destination.startsWith("$f") && this.source.equals("$v0")) {

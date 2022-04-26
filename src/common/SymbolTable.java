@@ -98,6 +98,21 @@ public class SymbolTable {
         }
     }
 
+    public Symbol lookUpMangledNameUnsafe(String mangledName) {
+        // bad b/c it will return the name in latest scope (disregards scope in @mangledName)
+        if (!mangledName.startsWith("_")) {
+            return this.lookUp(mangledName);
+        }
+        // else if (mangledName.startsWith("_")) {
+            String[] nameSplit = mangledName.split("_");
+            String name = nameSplit[2];
+            return this.lookUp(name);
+        // }
+        // else {
+        //     return null;
+        // }
+    }
+
     public int getScopeNumber(String name) {
         Symbol symbol = ST.get(name);
         if (symbol != null)

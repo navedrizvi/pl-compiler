@@ -237,8 +237,8 @@ public class MipsCodeGeneratorBriggs {
     public List<MipsInstruction> generateMipsInstructionsForBriggs(InterferenceGraph interferenceGraph) {
         varToRegister = new HashMap<>();
         colourIG(interferenceGraph);
-        System.out.println(functionName  + ": " + interferenceGraph.edges);
-        System.out.println(functionName  + ": " + varToRegister);
+        // // System.out.println(functionName  + ": " + interferenceGraph.edges);
+        // // System.out.println(functionName  + ": " + varToRegister);
 
         calculateLocalVariableOffsets();
         addPrologue();
@@ -881,7 +881,7 @@ public class MipsCodeGeneratorBriggs {
     // a, b can be int or float
     // c is a variable; can be int or float
     private void handleMult(Mult instruction) {
-        System.out.println("int mult");
+        // // System.out.println("int mult");
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
@@ -1100,7 +1100,7 @@ public class MipsCodeGeneratorBriggs {
     }
 
     private void handleIntBinOp(String c, String a, String b, String op) {
-        System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
+        // // System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
         String register_a;
         String register_b ;
         String register_c;

@@ -200,6 +200,9 @@ public class MipsCodeGenerator {
         else if (floatList.contains(a)) {
             return true;
         }
+        else if (staticFloatList.contains(a)) {
+            return true;
+        }
         Symbol b = this.symbolTable.lookUpMangledName(a);
 
         boolean isf;
@@ -338,8 +341,8 @@ public class MipsCodeGenerator {
         currentRegisterAllocationAlgorithm = "briggs";
         varToRegister = new HashMap<>();
         colourIG(interferenceGraph);
-        System.out.println(functionName  + ": " + interferenceGraph.edges);
-        System.out.println(functionName  + ": " + varToRegister);
+        // System.out.println(functionName  + ": " + interferenceGraph.edges);
+        // System.out.println(functionName  + ": " + varToRegister);
 
         calculateLocalVariableOffsets();
         addPrologue();
@@ -645,7 +648,7 @@ public class MipsCodeGenerator {
         //     }
         //     i += 4;
         // }
-        // System.out.println(fn.getParameters());
+        // // System.out.println(fn.getParameters());
         for (String register: temp) {
             emit(new sw(register, i + "(" + STACK_POINTER + ")"));
             i += 4;
@@ -755,17 +758,15 @@ public class MipsCodeGenerator {
         boolean bWasCasted = false;
         if (!checkIsFloat(a)) {
             register_a = emitFloatCastInstrs(a);
-            if (!isInt(a)) {
+            aWasCasted = true;
+            if (!isInt(a))
                 emit(getStoreCommand(register_a, a));
-                aWasCasted = true;
-            }
         }
         if (!checkIsFloat(b)) {
             register_b = emitFloatCastInstrs(b);
-            if (!isInt(b)) {
+            bWasCasted = true;
+            if (!isInt(b))
                 emit(getStoreCommand(register_b, b));
-                bWasCasted = true;
-            }
         }
 
         if (op.equals("beq")) {
@@ -938,7 +939,58 @@ public class MipsCodeGenerator {
         handleCompOp(a, b, label, "bge");
     }
 
+    private boolean r(String array_name) {
+        Symbol q = symbolTable.lookUpMangledNameUnsafe(array_name);
+        if (q==null)
+            return false;
+        String basetype = q.getName();
+        String basebasetype = symbolTable.lookUpMangledNameUnsafe(basetype).getType();
+        Symbol a = symbolTable.lookUpMangledNameUnsafe(basebasetype);
+        if (a!=null) {
+            String raw = a.toFormattedString();
+            if (raw.endsWith("float")) {
+                return true;
+            }
+            return false;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean isFloatInstrArray(Array_load instruction) {
+        return r(instruction.array_name);
+    }
+
+    private boolean isFloatInstrArray2(Array_store instruction) {
+        return r(instruction.array_name);
+    }
+    private boolean isFloatInstrArray3(AssignArray instruction) {
+        return r(instruction.arr_name);
+    }
+
+    private void handleAssignArray(AssignArray instruction) {
+        if (isFloatInstrArray3(instruction)) {
+            handleFloatAssignArray(instruction);
+            return;
+        }
+        String arrayVar = instruction.args().get(0);
+        int size = Integer.parseInt(instruction.args().get(1));
+        String defaultValue = instruction.args().get(2);
+
+        if (registerAllocation.get(arrayVar) == null) {
+            handleAssignArrayStatic(arrayVar, size, defaultValue);
+        }
+        else {
+            handleAssignArrayLocal(arrayVar, size, defaultValue);
+        }
+    }
+
     private void handleArrayLoad(Array_load instruction) {
+        if (isFloatInstrArray(instruction)) {
+            handleFloatArrayLoad(instruction);
+            return;
+        }
         String var = instruction.args().get(0);
         String arrayVar = instruction.args().get(1);
         String index = instruction.args().get(2);
@@ -950,13 +1002,248 @@ public class MipsCodeGenerator {
         }
     }
 
+    private void handleArrayStore(Array_store instruction) {
+        if (isFloatInstrArray2(instruction)) {
+            handleFloatArrayStore(instruction);
+            return;
+        }
+        String arrayVar = instruction.args().get(0);
+        String index = instruction.args().get(1);
+        String value = instruction.args().get(2);
+
+        if (registerAllocation.get(arrayVar) == null) {
+            handleArrayStoreStatic(arrayVar, index, value);
+        } else {
+            handleArrayStoreLocal(arrayVar, index, value);
+        }
+    }
+
+    private void handleFloatAssignArray(AssignArray instruction) {
+        String arrayVar = instruction.args().get(0);
+        int size = Integer.parseInt(instruction.args().get(1));
+        String defaultValue = instruction.args().get(2);
+        if (registerAllocation.get(arrayVar) == null) {
+            handleFloatAssignArrayStatic(arrayVar, size, defaultValue);
+        }
+        else {
+            handleFloatAssignArrayLocal(arrayVar, size, defaultValue);
+        }
+    }
+
+    private void handleFloatArrayLoad(Array_load instruction) {
+        String var = instruction.args().get(0);
+        String arrayVar = instruction.args().get(1);
+        String index = instruction.args().get(2);
+        if (registerAllocation.get(arrayVar) == null) {
+            handleFloatArrayLoadStatic(var, arrayVar, index);
+        } else {
+            handleFloatArrayLoadLocal(var, arrayVar, index);
+        }
+    }
+
+    private void handleFloatArrayStore(Array_store instruction) {
+        String arrayVar = instruction.args().get(0);
+        String index = instruction.args().get(1);
+        String value = instruction.args().get(2);
+        if (registerAllocation.get(arrayVar) == null) {
+            handleFloatArrayStoreStatic(arrayVar, index, value);
+        } else {
+            handleFloatArrayStoreLocal(arrayVar, index, value);
+        }
+    }
+
+    private void handleFloatAssignArrayLocal(String arrayVar, int size, String defaultValue) {
+        String register = getRegister(false);
+        emit(new li(register, defaultValue));
+        int indexOffset = 0;
+        for(int i = 0; i < size; i++) {
+            indexOffset = Integer.parseInt(registerAllocation.get(arrayVar).getMemoryOffset()) + i * 4;
+            emit(new sw(register, indexOffset + "(" + STACK_POINTER + ")"));
+        }
+        addBackRegister(register);
+    }
+
+    private void handleFloatArrayLoadStatic(String var, String arrayVar, String index) {
+        // TODO2
+        try {
+            int indexOffSet = Integer.parseInt(index) * 4;
+            String registerArrayVar = getRegister(false);
+            String registerVar = getRegister(false);
+
+            emit(new la(registerArrayVar, arrayVar));
+            emit(new addi(registerArrayVar, registerArrayVar, Integer.toString(indexOffSet)));
+            emit(new lw(registerVar, "(" + registerArrayVar + ")"));
+            emit(getStoreCommand(registerVar, var));
+
+            addBackRegister(registerVar);
+            addBackRegister(registerArrayVar);
+        }
+        catch (NumberFormatException e){
+            List<String> z = a(arrayVar, index);
+            String registerArrayVar = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
+            String registerVar = getRegister(false, true);
+            emit(new lw(registerVar, "(" + registerArrayVar + ")"));
+            emit(getStoreCommand(registerVar, var));
+            addBackRegister(registerTemp);
+            addBackRegister(registerIndex);
+            addBackRegister(registerVar);
+            addBackRegister(registerArrayVar);
+        }
+    }
+
+    private void handleFloatArrayLoadLocal(String var, String arrayVar, String index) {
+        try {
+            int indexOffset = Integer.parseInt(registerAllocation.get(arrayVar).getMemoryOffset()) + Integer.parseInt(index) * 4;
+            String registerValue = getRegister(false, true);
+            emit(new lw(registerValue, indexOffset + "(" + STACK_POINTER + ")"));
+            emit(getStoreCommand(registerValue, var));
+            addBackRegister(registerValue);
+        }
+        catch (NumberFormatException e){
+            List<String> z = b(arrayVar, index);
+            String registerPointer = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
+            String register_var = getRegister(false, true);
+            emit(new lw(register_var,  "0(" + registerPointer + ")"));
+            emit(getStoreCommand(register_var, var));
+            addBackRegister(register_var);
+            addBackRegister(registerTemp);
+            addBackRegister(registerIndex);
+            addBackRegister(registerPointer);
+        }
+    }
+
+    private void handleFloatArrayStoreStatic(String arrayVar, String index, String value) {
+        // TODO1
+        try {
+            int indexOffSet = Integer.parseInt(index) * 4;
+            String registerArrayVar = getRegister(false);
+            String registerValue = getRegister(false, true);
+
+            emit(new la(registerArrayVar, arrayVar));
+            emit(getLoadCommand(registerValue, value));
+            emit(new addi(registerArrayVar, registerArrayVar, Integer.toString(indexOffSet)));
+            emit(new sw(registerValue,  "(" + registerArrayVar + ")"));
+
+            addBackRegister(registerArrayVar);
+            addBackRegister(registerValue);
+        }
+        // index is a variable
+        catch (NumberFormatException e){
+            List<String> z = a(arrayVar, index);
+            String registerArrayVar = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
+            String registerValue = getRegister(false, true);
+            emit(getLoadCommand(registerValue, value));
+            emit(new sw(registerValue,  "(" + registerArrayVar + ")"));
+            addBackRegister(registerTemp);
+            addBackRegister(registerIndex);
+            addBackRegister(registerValue);
+            addBackRegister(registerArrayVar);
+        }
+    }
+
+    private void handleFloatArrayStoreLocal(String arrayVar, String index, String value) {
+        // index is an integer value
+        try {
+            int indexOffset = Integer.parseInt(registerAllocation.get(arrayVar).getMemoryOffset()) + Integer.parseInt(index) * 4;
+            // value
+            String registerValue = getRegister(false, true);
+            emit(getLoadCommand(registerValue, value));
+            emit(new sw(registerValue, indexOffset + "(" + STACK_POINTER + ")"));
+            addBackRegister(registerValue);
+        }
+        // index is a variable
+        catch (NumberFormatException e){
+            List<String> z = b(arrayVar, index);
+            String registerPointer = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
+            // value
+            String registerValue = getRegister(false, true);
+            emit(getLoadCommand(registerValue, value));
+            // store value in index of array
+            emit(new sw(registerValue, "0(" + registerPointer + ")"));
+            addBackRegister(registerValue);
+            addBackRegister(registerTemp);
+            addBackRegister(registerIndex);
+            addBackRegister(registerPointer);
+        }
+    }
+
+    private void handleFloatAssignArrayStatic(String arrayVar, int size, String defaultValue) {
+        String registerDefaultValue = getRegister(false, true);
+        String registerArrayVar = getRegister(false, true);
+        emit(new li(registerDefaultValue + " hihihih1", defaultValue));
+        emit (new la(registerArrayVar, arrayVar));
+        int indexOffset = 4;
+        emit(new sw(registerDefaultValue,  "(" + registerArrayVar + ")"));
+        for(int i = 1; i < size; i++) {
+            // addi $t0, $t0, $t1
+            emit(new addi(registerArrayVar, registerArrayVar, Integer.toString(indexOffset)));
+            emit(new sw(registerDefaultValue,  "(" + registerArrayVar + ")"));
+        }
+        addBackRegister(registerArrayVar);
+        addBackRegister(registerDefaultValue);
+    }
+
+    public List<String> b(String arrayVar, String index) {
+        // register pointer
+        String registerPointer = getRegister(false);
+        // move $t0, $sp
+        
+        // TODO00
+        emit(new move(registerPointer, STACK_POINTER));
+        // addiu $t0, $t0, <base offset of array>
+        emit(new addiu(registerPointer, registerPointer, registerAllocation.get(arrayVar).getMemoryOffset()));
+        // index variable - stored in $t1
+        String registerIndex = getRegister(false);
+        emit(getLoadCommand(registerIndex, index));
+        String registerTemp = getRegister(false);
+        emit(new li(registerTemp, "4"));
+        emit(new mul(registerTemp, registerIndex, registerTemp));
+        // addu $t0, $t0, $t1
+        emit(new addu(registerPointer, registerPointer, registerTemp));
+
+        List<String> out = new ArrayList<String>();
+        out.add(registerPointer);
+        out.add(registerTemp);
+        out.add(registerIndex);
+        return out;
+    }
+
+    private List<String> a(String arrayVar, String index) {
+        // arrayVar
+        String registerArrayVar = getRegister(false);
+        emit(new la(registerArrayVar, arrayVar));
+        // index variable - stored in $t1
+        String registerIndex = getRegister(false);
+        emit(getLoadCommand(registerIndex, index));
+        String registerTemp = getRegister(false);
+        emit(new li(registerTemp, "4"));
+        emit(new mul(registerTemp, registerIndex, registerTemp));
+        // addu $t0, $t0, $t1
+        emit(new addu(registerArrayVar, registerArrayVar, registerTemp));
+
+        List<String> out = new ArrayList<String>();
+        out.add(registerArrayVar);
+        out.add(registerTemp);
+        out.add(registerIndex);
+        return out;
+    }
+
     private void handleArrayLoadStatic(String var, String arrayVar, String index) {
         // index is an integer value
         try {
+            int indexOffSet = Integer.parseInt(index) * 4;
+
             String registerArrayVar = getRegister(false);
             emit(new la(registerArrayVar, arrayVar));
 
-            int indexOffSet = Integer.parseInt(index) * 4;
             // addi $t0, $t0, $t1
             emit(new addi(registerArrayVar, registerArrayVar, Integer.toString(indexOffSet)));
 
@@ -969,26 +1256,13 @@ public class MipsCodeGenerator {
         }
         // index is a variable
         catch (NumberFormatException e){
-            // arrayVar
-            String registerArrayVar = getRegister(false);
-            emit(new la(registerArrayVar, arrayVar));
-
-            // index variable - stored in $t1
-            String registerIndex = getRegister(false);
-            emit(getLoadCommand(registerIndex, index));
-
-            String registerTemp = getRegister(false);
-            emit(new li(registerTemp, "4"));
-
-            emit(new mul(registerTemp, registerIndex, registerTemp));
-
-            // addu $t0, $t0, $t1
-            emit(new addu(registerArrayVar, registerArrayVar, registerTemp));
-
+            List<String> z = a(arrayVar, index);
+            String registerArrayVar = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
             String registerVar = getRegister(false);
             emit(new lw(registerVar, "(" + registerArrayVar + ")"));
             emit(getStoreCommand(registerVar, var));
-
             addBackRegister(registerTemp);
             addBackRegister(registerIndex);
             addBackRegister(registerVar);
@@ -1010,30 +1284,13 @@ public class MipsCodeGenerator {
         }
         // index is a variable
         catch (NumberFormatException e){
-
-            // register pointer
-            String registerPointer = getRegister(false);
-            // move $t0, $sp
-            emit(new move(registerPointer, STACK_POINTER));
-            // addiu $t0, $t0, <base offset of array>
-            emit(new addiu(registerPointer, registerPointer, registerAllocation.get(arrayVar).getMemoryOffset()));
-
-            // index variable - stored in $t1
-            String registerIndex = getRegister(false);
-            emit(getLoadCommand(registerIndex, index));
-
-            String registerTemp = getRegister(false);
-            emit(new li(registerTemp, "4"));
-
-            emit(new mul(registerTemp, registerIndex, registerTemp));
-
-            // addu $t0, $t0, $t1
-            emit(new addu(registerPointer, registerPointer, registerTemp));
-
+            List<String> z = b(arrayVar, index);
+            String registerPointer = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
             String register_var = getRegister(false);
             emit(new lw(register_var,  "0(" + registerPointer + ")"));
             emit(getStoreCommand(register_var, var));
-
             addBackRegister(register_var);
             addBackRegister(registerTemp);
             addBackRegister(registerIndex);
@@ -1041,21 +1298,11 @@ public class MipsCodeGenerator {
         }
     }
 
-    private void handleArrayStore(Array_store instruction) {
-        String arrayVar = instruction.args().get(0);
-        String index = instruction.args().get(1);
-        String value = instruction.args().get(2);
-
-        if (registerAllocation.get(arrayVar) == null) {
-            handleArrayStoreStatic(arrayVar, index, value);
-        } else {
-            handleArrayStoreLocal(arrayVar, index, value);
-        }
-    }
-
     private void handleArrayStoreStatic(String arrayVar, String index, String value) {
         // index is an integer value
         try {
+            int indexOffSet = Integer.parseInt(index) * 4;
+
             // arrayVar
             String registerArrayVar = getRegister(false);
             emit(new la(registerArrayVar, arrayVar));
@@ -1063,8 +1310,6 @@ public class MipsCodeGenerator {
             // value
             String registerValue = getRegister(false);
             emit(getLoadCommand(registerValue, value));
-
-            int indexOffSet = Integer.parseInt(index) * 4;
 
             // addi $t0, $t0, $t1
             emit(new addi(registerArrayVar, registerArrayVar, Integer.toString(indexOffSet)));
@@ -1076,28 +1321,13 @@ public class MipsCodeGenerator {
         }
         // index is a variable
         catch (NumberFormatException e){
-            // arrayVar
-            String registerArrayVar = getRegister(false);
-            emit(new la(registerArrayVar, arrayVar));
-
-            // value
+            List<String> z = a(arrayVar, index);
+            String registerArrayVar = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
             String registerValue = getRegister(false);
             emit(getLoadCommand(registerValue, value));
-
-            // index variable - stored in $t1
-            String registerIndex = getRegister(false);
-            emit(getLoadCommand(registerIndex, index));
-
-            String registerTemp = getRegister(false);
-            emit(new li(registerTemp, "4"));
-
-            emit(new mul(registerTemp, registerIndex, registerTemp));
-
-            // addu $t0, $t0, $t1
-            emit(new addu(registerArrayVar, registerArrayVar, registerTemp));
-
             emit(new sw(registerValue,  "(" + registerArrayVar + ")"));
-
             addBackRegister(registerTemp);
             addBackRegister(registerIndex);
             addBackRegister(registerValue);
@@ -1119,50 +1349,19 @@ public class MipsCodeGenerator {
         }
         // index is a variable
         catch (NumberFormatException e){
-
-            // register pointer
-            String registerPointer = getRegister(false);
-            // move $t0, $sp
-            emit(new move(registerPointer, STACK_POINTER));
-            // addiu $t0, $t0, <base offset of array>
-            emit(new addiu(registerPointer, registerPointer, registerAllocation.get(arrayVar).getMemoryOffset()));
-
-            // index variable - stored in $t1
-            String registerIndex = getRegister(false);
-            emit(getLoadCommand(registerIndex, index));
-
-            String registerTemp = getRegister(false);
-            emit(new li(registerTemp, "4"));
-
-            emit(new mul(registerTemp, registerIndex, registerTemp));
-
-            // addu $t0, $t0, $t1
-            emit(new addu(registerPointer, registerPointer, registerTemp));
-
+            List<String> z = b(arrayVar, index);
+            String registerPointer = z.get(0);
+            String registerTemp = z.get(1);
+            String registerIndex = z.get(2);
             // value
             String registerValue = getRegister(false);
             emit(getLoadCommand(registerValue, value));
-
             // store value in index of array
             emit(new sw(registerValue, "0(" + registerPointer + ")"));
-
             addBackRegister(registerValue);
             addBackRegister(registerTemp);
             addBackRegister(registerIndex);
             addBackRegister(registerPointer);
-        }
-    }
-
-    private void handleAssignArray(AssignArray instruction) {
-        String arrayVar = instruction.args().get(0);
-        int size = Integer.parseInt(instruction.args().get(1));
-        String defaultValue = instruction.args().get(2);
-
-        if (registerAllocation.get(arrayVar) == null) {
-            handleAssignArrayStatic(arrayVar, size, defaultValue);
-        }
-        else {
-            handleAssignArrayLocal(arrayVar, size, defaultValue);
         }
     }
 
@@ -1249,7 +1448,7 @@ public class MipsCodeGenerator {
     // a, b can be int or float
     // c is a variable; can be int or float
     private void handleMult(Mult instruction) {
-        System.out.println("int mult");
+        // System.out.println("int mult");
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
@@ -1496,7 +1695,7 @@ public class MipsCodeGenerator {
     }
 
     private void handleIntBinOp(String c, String a, String b, String op) {
-        System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
+        // System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
         String register_a;
         String register_b ;
         String register_c;
@@ -1512,7 +1711,7 @@ public class MipsCodeGenerator {
             addBackA = true;
             register_a = getRegister(false);
         }
-        System.out.println("register a");
+        // System.out.println("register a");
         emit(getLoadCommand(register_a, a));
 
         // b
@@ -1523,7 +1722,7 @@ public class MipsCodeGenerator {
             addBackB = true;
             register_b = getRegister(false);
         }
-        System.out.println("register b");
+        // System.out.println("register b");
         emit(getLoadCommand(register_b, b));
 
         // c
@@ -1534,7 +1733,7 @@ public class MipsCodeGenerator {
             addBackC = true;
             register_c = getRegister(false);
         }
-        System.out.println("register c");
+        // System.out.println("register c");
         if (!(register_c.equals(register_b) || register_c.equals(register_a)))
             emit(getLoadCommand(register_c, c));
 
@@ -1921,7 +2120,7 @@ public class MipsCodeGenerator {
     }
 
     private boolean addrIsFloat3(String addr) {
-        return floatList.contains(addr);
+        return checkIsFloat(addr);
     }
 
     private void addToFloatMap(String key, RegisterType type) {
@@ -1996,7 +2195,7 @@ public class MipsCodeGenerator {
     // Currently implementing for ints. Can extend to floats or handle floats in a separate function.
     private MipsInstruction getLoadCommand(String register, String operand) {
         MipsInstruction cmd = null;
-        System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
+        // System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
 
         if (varToRegister.containsKey(operand)) {
             if (!varToRegister.get(operand).equals(register)) {
@@ -2021,33 +2220,36 @@ public class MipsCodeGenerator {
 
     private void printJavaStacktrace() {
         String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-        System.out.println(fullStackTrace);
+        // System.out.println(fullStackTrace);
     }
 
     private MipsInstruction getStoreCommand(String register, String operand) {
         if (varToRegister.containsKey(operand)) {
             if(!varToRegister.get(operand).equals(register))
-                return new move(varToRegister.get(operand), register);
+
+                // else {
+                    return new move(varToRegister.get(operand), register);
+                // }
         }
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
         if (staticFloatList.contains(operand) && !register.endsWith("]")) {
-            // System.out.println(register);
-            // System.out.println(operand);
-            // System.out.println("HIHIHIIII");
+            // // System.out.println(register);
+            // // System.out.println(operand);
+            // // System.out.println("HIHIHIIII");
             // if (register.equals(anObject))
             //     printJavaStacktrace();
             return new sw(register, operand);
         }
         if (register.startsWith("$f")) {
-            // System.out.println(operand);
+            // // System.out.println(operand);
             String loc = registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")";
             addToFloatMap(loc, RegisterType.Float);
         }
         // if (floatList.contains(operand)) {
-        //     // System.out.println(operand);
-        //     // System.out.println(locToType);
+        //     // // System.out.println(operand);
+        //     // // System.out.println(locToType);
         // }
         if (isInt(operand) || isFloat(operand)) {
             return new sw(register, operand);
@@ -2329,7 +2531,6 @@ public class MipsCodeGenerator {
         public move(String destination, String source) {
             this.destination = destination;
             this.source = source;
-
             // $f20, $v0
             // TODO1 is doing this fine
             if (this.destination.startsWith("$f") && this.source.equals("$v0")) {

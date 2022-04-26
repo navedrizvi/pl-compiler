@@ -7,9 +7,9 @@ import java.util.Set;
 
 public class Array_load implements IRInstruction {
     private String store_var;
-    private String array_name;
+    public String array_name;
     private String idx;
-    private String instruction;
+    public String instruction;
 
     public String getInstruction() {
         return instruction;

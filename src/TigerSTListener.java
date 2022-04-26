@@ -116,7 +116,7 @@ public class TigerSTListener extends TigerBaseListener {
             type = typeContext.getText();
             symbol = new DefinedTypeSymbol(name, ctx.TYPE().getText(), currentScope, type);
         }
-//        System.out.println(symbol);
+//        // System.out.println(symbol);
         currentST.insert(name, symbol);
     }
 
@@ -170,12 +170,12 @@ public class TigerSTListener extends TigerBaseListener {
         }
 
         if (ctx.id_list() instanceof TigerParser.IdListIdContext) {
-            //System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
+            //// System.out.println(((TigerParser.IdListIdContext) ctx.id_list()).ID());
             String name = ((TigerParser.IdListIdContext) ctx.id_list()).ID().getText();
             Symbol lookUp = currentST.lookUpCurrentScope(name);
             if (lookUp != null) {
                 // collect error during ST step
-//                System.out.println(ctx.);
+//                // System.out.println(ctx.);
                 errors.add(
                     new SemanticError(
                         ctx.id_list().getStart().getLine(),
@@ -191,7 +191,7 @@ public class TigerSTListener extends TigerBaseListener {
             String name;
             Symbol lookUp;
             while (true) {
-               // System.out.println(temp.ID());
+               // // System.out.println(temp.ID());
                 name = temp.ID().getText();
                 lookUp = currentST.lookUpCurrentScope(name);
                 if (lookUp != null) {
@@ -206,7 +206,7 @@ public class TigerSTListener extends TigerBaseListener {
                 }
                 currentST.insert(name, new VariableSymbol(name, ctx.type().getText(), currentScope, storageClassForSymbol));
                 if (temp.id_list() instanceof TigerParser.IdListIdContext) {
-                    //System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
+                    //// System.out.println(((TigerParser.IdListIdContext) temp.id_list()).ID());
                     name = ((TigerParser.IdListIdContext) temp.id_list()).ID().getText();
                     lookUp = currentST.lookUpCurrentScope(name);
                     if (lookUp != null) {

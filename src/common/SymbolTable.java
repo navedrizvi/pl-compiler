@@ -87,10 +87,6 @@ public class SymbolTable {
             while (parent != null && parent.getScopeNumber() != scope) {
                 Map<String, Symbol> map = parent.getST();
                 symbol = map.get(name);
-                System.out.println("YEEE");
-                System.out.println(symbol);
-                System.out.println(name);
-                System.out.println(map);
                 if (symbol != null)
                     return symbol;
                 parent = parent.getParent();

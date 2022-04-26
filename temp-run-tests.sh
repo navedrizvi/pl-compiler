@@ -100,9 +100,9 @@ cd cs8803_bin
 # TEST=demo_fib
 # TEST=demo_square_root
 # TEST=demo_motor
-TEST=demo_slope
+# TEST=demo_slope
     # li $s2, 2.0
-# TEST=demo_matrix
+TEST=demo_matrix
 # TEST=float_math_mixed
 ALLOCATOR=-b # can be -g, -b, -n
 # ALLOCATOR=-n # can be -g, -b, -n

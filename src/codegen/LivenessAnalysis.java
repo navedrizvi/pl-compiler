@@ -33,9 +33,9 @@ public class LivenessAnalysis {
 
         createDefandUseSets();
         Map<String, Set<String>> successors = determineSuccessors();
-//        System.out.println(defSet);
-//        System.out.println(useSet);
-//        System.out.println(successors);
+//        // System.out.println(defSet);
+//        // System.out.println(useSet);
+//        // System.out.println(successors);
 
         Map<String, Set<String>> previousInSet = new HashMap<>();
         Map<String, Set<String>> previousOutSet = new HashMap<>();

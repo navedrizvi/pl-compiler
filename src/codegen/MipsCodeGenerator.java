@@ -341,8 +341,8 @@ public class MipsCodeGenerator {
         currentRegisterAllocationAlgorithm = "briggs";
         varToRegister = new HashMap<>();
         colourIG(interferenceGraph);
-        System.out.println(functionName  + ": " + interferenceGraph.edges);
-        System.out.println(functionName  + ": " + varToRegister);
+        // System.out.println(functionName  + ": " + interferenceGraph.edges);
+        // System.out.println(functionName  + ": " + varToRegister);
 
         calculateLocalVariableOffsets();
         addPrologue();
@@ -648,7 +648,7 @@ public class MipsCodeGenerator {
         //     }
         //     i += 4;
         // }
-        // System.out.println(fn.getParameters());
+        // // System.out.println(fn.getParameters());
         for (String register: temp) {
             emit(new sw(register, i + "(" + STACK_POINTER + ")"));
             i += 4;
@@ -1191,6 +1191,8 @@ public class MipsCodeGenerator {
         // register pointer
         String registerPointer = getRegister(false);
         // move $t0, $sp
+        
+        // TODO00
         emit(new move(registerPointer, STACK_POINTER));
         // addiu $t0, $t0, <base offset of array>
         emit(new addiu(registerPointer, registerPointer, registerAllocation.get(arrayVar).getMemoryOffset()));
@@ -1442,7 +1444,7 @@ public class MipsCodeGenerator {
     // a, b can be int or float
     // c is a variable; can be int or float
     private void handleMult(Mult instruction) {
-        System.out.println("int mult");
+        // System.out.println("int mult");
         String a = instruction.args().get(0);
         String b = instruction.args().get(1);
         String c = instruction.args().get(2);
@@ -1689,7 +1691,7 @@ public class MipsCodeGenerator {
     }
 
     private void handleIntBinOp(String c, String a, String b, String op) {
-        System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
+        // System.out.println("in handleIntBinOp: " + a + " " + " " + b + " " + c + " " + op);
         String register_a;
         String register_b ;
         String register_c;
@@ -1705,7 +1707,7 @@ public class MipsCodeGenerator {
             addBackA = true;
             register_a = getRegister(false);
         }
-        System.out.println("register a");
+        // System.out.println("register a");
         emit(getLoadCommand(register_a, a));
 
         // b
@@ -1716,7 +1718,7 @@ public class MipsCodeGenerator {
             addBackB = true;
             register_b = getRegister(false);
         }
-        System.out.println("register b");
+        // System.out.println("register b");
         emit(getLoadCommand(register_b, b));
 
         // c
@@ -1727,7 +1729,7 @@ public class MipsCodeGenerator {
             addBackC = true;
             register_c = getRegister(false);
         }
-        System.out.println("register c");
+        // System.out.println("register c");
         if (!(register_c.equals(register_b) || register_c.equals(register_a)))
             emit(getLoadCommand(register_c, c));
 
@@ -1927,6 +1929,22 @@ public class MipsCodeGenerator {
             // Cast arg to float
             String temp = getRegister(false);
             emit(getLoadCommand(temp, operand));
+            emit(new mtc1(temp, floatTemp));
+            emit(new cvt_s_w(floatTemp, floatTemp));
+            addBackRegister(temp);
+        }
+        else {
+            emit(getLoadCommand(floatTemp, operand));
+        }
+        return floatTemp;
+    }
+
+    /* Returns name of float register */ 
+    /* Must add back this register manually after done using */
+    private String emitFloatCastInstrs2(String operand, String temp) {
+        String floatTemp = getRegister(false, true);
+        if (!isFloat(operand)) {
+            // Cast arg to float
             emit(new mtc1(temp, floatTemp));
             emit(new cvt_s_w(floatTemp, floatTemp));
             addBackRegister(temp);
@@ -2189,7 +2207,7 @@ public class MipsCodeGenerator {
     // Currently implementing for ints. Can extend to floats or handle floats in a separate function.
     private MipsInstruction getLoadCommand(String register, String operand) {
         MipsInstruction cmd = null;
-        System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
+        // System.out.println("getLoadCommand :" + register + " " + operand + " " + varToRegister.get(operand));
 
         if (varToRegister.containsKey(operand)) {
             if (!varToRegister.get(operand).equals(register)) {
@@ -2214,33 +2232,36 @@ public class MipsCodeGenerator {
 
     private void printJavaStacktrace() {
         String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-        System.out.println(fullStackTrace);
+        // System.out.println(fullStackTrace);
     }
 
     private MipsInstruction getStoreCommand(String register, String operand) {
         if (varToRegister.containsKey(operand)) {
             if(!varToRegister.get(operand).equals(register))
-                return new move(varToRegister.get(operand), register);
+
+                // else {
+                    return new move(varToRegister.get(operand), register);
+                // }
         }
         if (staticIntList.contains(operand)) {
             return new sw(register, operand);
         }
         if (staticFloatList.contains(operand) && !register.endsWith("]")) {
-            // System.out.println(register);
-            // System.out.println(operand);
-            // System.out.println("HIHIHIIII");
+            // // System.out.println(register);
+            // // System.out.println(operand);
+            // // System.out.println("HIHIHIIII");
             // if (register.equals(anObject))
             //     printJavaStacktrace();
             return new sw(register, operand);
         }
         if (register.startsWith("$f")) {
-            // System.out.println(operand);
+            // // System.out.println(operand);
             String loc = registerAllocation.get(operand).getMemoryOffset() + "(" + STACK_POINTER + ")";
             addToFloatMap(loc, RegisterType.Float);
         }
         // if (floatList.contains(operand)) {
-        //     // System.out.println(operand);
-        //     // System.out.println(locToType);
+        //     // // System.out.println(operand);
+        //     // // System.out.println(locToType);
         // }
         if (isInt(operand) || isFloat(operand)) {
             return new sw(register, operand);
@@ -2430,7 +2451,7 @@ public class MipsCodeGenerator {
             this.immediate = immediate;
             if (register.equals("$t1") && immediate.equals("0.0")) {
         String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-        System.out.println(fullStackTrace);
+        // // System.out.println(fullStackTrace);
 
             }
 
@@ -2518,8 +2539,8 @@ public class MipsCodeGenerator {
             if (register.equals("$t0") && label.equals("_0_p1")) {
                 // printJavaStacktrace();    
                 String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
-                System.out.println(fullStackTrace);
-                System.out.println("HIHIhih");
+                // System.out.println(fullStackTrace);
+                // System.out.println("HIHIhih");
             }
         }
         @Override
@@ -2534,6 +2555,12 @@ public class MipsCodeGenerator {
         public move(String destination, String source) {
             this.destination = destination;
             this.source = source;
+
+            if (this.source.startsWith("$f22") && this.destination.startsWith("$s2"))
+            {
+        String fullStackTrace = Arrays.toString(Thread.currentThread().getStackTrace()).replace( ',', '\n' );
+        // System.out.println(fullStackTrace);
+            }
 
             // $f20, $v0
             // TODO1 is doing this fine

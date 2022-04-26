@@ -349,7 +349,7 @@ public class Tiger {
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
             String stAsFormattedString = getSTAsFormattedString(stAsList);
             // Remove when done
-            System.out.println(stAsFormattedString);
+            // System.out.println(stAsFormattedString);
             writeSTToFile(fileName, stAsFormattedString);
         }
         // Run semantic checks. If no failures, generate IR for provided tiger file
@@ -375,8 +375,8 @@ public class Tiger {
             List<SymbolTable> stAsList = tigerSTListener.getSTAsList();
             String stAsFormattedString = getSTAsFormattedString(stAsList);
             // Remove when done
-            System.out.println("OUUUU");
-            System.out.println(stAsFormattedString);
+            // System.out.println("OUUUU");
+            // System.out.println(stAsFormattedString);
  
 
             // Semantic analysis
@@ -393,7 +393,7 @@ public class Tiger {
             // IR generation
             TigerIRListener tigerIRListener = new TigerIRListener(stAsList);
             walker.walk(tigerIRListener, tree);
-//            System.out.println(IR.toFormattedString());
+//            // System.out.println(IR.toFormattedString());
             if (irFlagProvided) {
                 writeIRToFile(fileName, IR.toFormattedString());
             }
@@ -407,7 +407,7 @@ public class Tiger {
             if (nFlagProvided) {
                 String mips = targetCodeGenerator.generateTargetMipsCodeNaiveAlloc();
                 if (mipsFlagProvided) {
-//                    System.out.println(mips);
+//                    // System.out.println(mips);
                     writeMipsToFile(fileName, "naive", mips);
                 }
             }
@@ -422,7 +422,7 @@ public class Tiger {
 
                 if (mipsFlagProvided) {
                     String mips = targetCodeGenerator.generateTargetMipsCodeIntraBlockAlloc(funcNameToCFG);
-//                    System.out.println(mips);
+//                    // System.out.println(mips);
                     writeMipsToFile(fileName, "ib", mips);
                 }
             }
@@ -438,13 +438,13 @@ public class Tiger {
 
                 if (mipsFlagProvided) {
                     String mips = targetCodeGenerator.generateTargetMipsCodeBriggsAlloc(funcNameToLivenessAnaylsis);;
-//                    System.out.println(mips);
+//                    // System.out.println(mips);
                     writeMipsToFile(fileName, "briggs", mips);
                 }
             }
         }
         else {
-            System.out.println("No action required.");
+            // System.out.println("No action required.");
         }
 
         System.exit(0); // compiling was successful/no errors encountered

@@ -31,21 +31,21 @@ s.s $f27, 76($sp)
 sw $ra, 96($sp)
 # end of prologue
 la $s0, _0_p1
-li $s1, 2.0
+li.s $f4, 2.0
 addi $s0, $s0, 0
-sw $s1, ($s0)
-la $s1, _0_p1
-li $s0, 1.0
-addi $s1, $s1, 4
-sw $s0, ($s1)
+s.s $f4, ($s0)
+la $s0, _0_p1
+li.s $f5, 1.0
+addi $s0, $s0, 4
+s.s $f5, ($s0)
 la $s0, _0_p2
-li $s1, 3.0
+li.s $f6, 3.0
 addi $s0, $s0, 0
-sw $s1, ($s0)
-la $s1, _0_p2
-li $s0, 3.0
-addi $s1, $s1, 4
-sw $s0, ($s1)
+s.s $f6, ($s0)
+la $s0, _0_p2
+li.s $f7, 3.0
+addi $s0, $s0, 4
+s.s $f7, ($s0)
 la $s0, _0_p2
 addi $s0, $s0, 4
 lw $s1, ($s0)
@@ -54,13 +54,13 @@ la $s0, _0_p1
 addi $s0, $s0, 4
 lw $s1, ($s0)
 sw $s1, 120($sp)
-l.s $f5, 116($sp)
-l.s $f6, 120($sp)
-l.s $f4, 124($sp)
-sub.s $f4, $f5, $f6
-s.s $f4, 124($sp)
-l.s $f7, 124($sp)
-s.s $f7, _0_rise
+l.s $f9, 116($sp)
+l.s $f10, 120($sp)
+l.s $f8, 124($sp)
+sub.s $f8, $f9, $f10
+s.s $f8, 124($sp)
+l.s $f11, 124($sp)
+s.s $f11, _0_rise
 la $s0, _0_p2
 addi $s0, $s0, 0
 lw $s1, ($s0)
@@ -69,26 +69,26 @@ la $s0, _0_p1
 addi $s0, $s0, 0
 lw $s1, ($s0)
 sw $s1, 132($sp)
-l.s $f9, 128($sp)
-l.s $f10, 132($sp)
-l.s $f8, 136($sp)
-sub.s $f8, $f9, $f10
-s.s $f8, 136($sp)
-l.s $f11, 136($sp)
-s.s $f11, _0_run
+l.s $f17, 128($sp)
+l.s $f18, 132($sp)
+l.s $f16, 136($sp)
+sub.s $f16, $f17, $f18
+s.s $f16, 136($sp)
+l.s $f19, 136($sp)
+s.s $f19, _0_run
 li $s0, 0
 sw $s0, 100($sp)
-lw $t0, _0_run
-li $t1, 0.0
-c.eq.s $t0, $t1
+l.s $f20, _0_run
+li.s $f21, 0.0
+c.eq.s $f20, $f21
 bc1f _L0
 li $s0, 1
 sw $s0, 100($sp)
 li $s0, 0
 sw $s0, 104($sp)
-lw $t0, _0_rise
-li $t1, 0.0
-c.eq.s $t0, $t1
+l.s $f20, _0_rise
+li.s $f21, 0.0
+c.eq.s $f20, $f21
 bc1f _L0
 li $s0, 1
 sw $s0, 104($sp)
@@ -117,13 +117,13 @@ li $v0, 4
 la $a0, newline
 syscall
 _L0:
-l.s $f17, _0_rise
-l.s $f18, _0_run
-l.s $f16, 140($sp)
-div.s $f16, $f17, $f18
-s.s $f16, 140($sp)
-l.s $f19, 140($sp)
-s.s $f19, _0_slope
+l.s $f21, _0_rise
+l.s $f22, _0_run
+l.s $f20, 140($sp)
+div.s $f20, $f21, $f22
+s.s $f20, 140($sp)
+l.s $f21, 140($sp)
+s.s $f21, _0_slope
 la $s0, _0_p2
 addi $s0, $s0, 4
 lw $s1, ($s0)
@@ -132,33 +132,33 @@ la $s0, _0_p2
 addi $s0, $s0, 0
 lw $s1, ($s0)
 sw $s1, 148($sp)
-l.s $f21, _0_slope
-l.s $f22, 148($sp)
-l.s $f20, 152($sp)
-mul.s $f20, $f21, $f22
-s.s $f20, 152($sp)
-l.s $f22, 144($sp)
-l.s $f20, 152($sp)
-l.s $f21, 156($sp)
-sub.s $f21, $f22, $f20
-s.s $f21, 156($sp)
-l.s $f22, 156($sp)
-s.s $f22, _0_yintercept
-li $s0, 0
-mtc1 $s0, $f20
-cvt.s.w $f20, $f20
-li.s $f20, 0.0
-l.s $f21, _0_yintercept
-l.s $f22, 160($sp)
-sub.s $f22, $f20, $f21
-s.s $f22, 160($sp)
-l.s $f21, 160($sp)
 l.s $f22, _0_slope
-l.s $f20, 164($sp)
-div.s $f20, $f21, $f22
-s.s $f20, 164($sp)
+l.s $f20, 148($sp)
+l.s $f21, 152($sp)
+mul.s $f21, $f22, $f20
+s.s $f21, 152($sp)
+l.s $f20, 144($sp)
+l.s $f21, 152($sp)
+l.s $f22, 156($sp)
+sub.s $f22, $f20, $f21
+s.s $f22, 156($sp)
+l.s $f20, 156($sp)
+s.s $f20, _0_yintercept
+li $s0, 0
+mtc1 $s0, $f21
+cvt.s.w $f21, $f21
+li.s $f21, 0.0
+l.s $f22, _0_yintercept
+l.s $f20, 160($sp)
+sub.s $f20, $f21, $f22
+s.s $f20, 160($sp)
+l.s $f22, 160($sp)
+l.s $f20, _0_slope
 l.s $f21, 164($sp)
-s.s $f21, _0_xintercept
+div.s $f21, $f22, $f20
+s.s $f21, 164($sp)
+l.s $f22, 164($sp)
+s.s $f22, _0_xintercept
 li $v0, 2
 l.s $f12, _0_slope
 syscall

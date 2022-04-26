@@ -82,6 +82,16 @@ set -v
     # Square_root + limit
     # Motor + limit
 
+##########
+# demo_slope
+# demo_matrix
+# demo_jacobi
+# demo_motor
+
+
+
+########
+
 make clean
 make
 cd cs8803_bin
@@ -94,11 +104,9 @@ TEST=demo_slope
     # li $s2, 2.0
 # TEST=demo_matrix
 # TEST=float_math_mixed
-ALLOCATOR=-n # can be -g, -b, -n
+ALLOCATOR=-b # can be -g, -b, -n
 # ALLOCATOR=-n # can be -g, -b, -n
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --limit 4 --ir $ALLOCATOR --mips
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips
 # java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger  --ir $ALLOCATOR --mips --limit 4
 java -jar tigerc.jar -r ../phase3_test_files_v1/ir/$TEST.ir -i ../phase3_test_files_v1/tiger/$TEST.tiger --ir $ALLOCATOR --mips
-
-# java -jar tigerc.jar -r ../benchmark_files_v1/benchmark4.ir -i ../benchmark_files_v1/benchmark4.tiger  --ir $ALLOCATOR --mips
